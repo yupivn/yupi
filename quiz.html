@@ -1,0 +1,104 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Quiz Max</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--panel:#e9edf6;--gold:#c9a227;--late:#c8372d;--late-soft:#fbe5e2;--ok:#1f8a5e;--ok-soft:#dcf3e8;--blue:#2b5cb8;--blue-soft:#e4ecfb;
+  --display:"Nunito","Be Vietnam Pro",system-ui,sans-serif;--body:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 90px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+select,button{font:inherit}
+select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.dots{display:flex;gap:6px}
+.dot{width:30px;height:30px;border-radius:99px;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--panel);color:var(--muted);border:2px solid transparent;cursor:pointer}
+.dot.on{border-color:var(--gold)}.dot.d{background:var(--ok-soft);color:var(--ok)}.dot.s{background:var(--late-soft);color:var(--late)}
+.img{width:100%;aspect-ratio:1/1;max-height:62vh;object-fit:contain;background:var(--panel);border-radius:14px}
+.q{font-weight:700;font-size:16px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.op{text-align:left;border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:14px;padding:12px 14px;font-weight:600;cursor:pointer}
+.op:disabled{cursor:default}.op.dung{border-color:var(--ok);background:var(--ok-soft)}.op.sai{border-color:var(--late);background:var(--late-soft)}
+.kq{font-size:14px;padding:10px 12px;border-radius:12px;background:var(--panel)}
+.kq.d{background:var(--ok-soft)}.kq.s{background:var(--late-soft)}
+.nav{display:flex;justify-content:space-between;gap:8px}
+.bt{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--gold);color:#14213d;cursor:pointer}
+.bt.ghost{background:var(--panel);color:var(--fg)}
+.meta{font-size:12.5px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:12.5px}
+td.n{font-variant-numeric:tabular-nums;text-align:right}th.n{text-align:right}
+.pct{font-weight:800}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+h2{font-family:var(--display);font-size:18px;margin:0}
+</style></head><body>
+<div class="wrap">
+  <div><h1>🧠 Quiz Max</h1><p class="sub" id="sub">Đang đọc…</p></div>
+  <select id="ai"><option value="">— Ai đang làm quiz —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
+  <div class="card" id="quiz"><div class="empty">Đang tải câu hỏi…</div></div>
+  <div class="card"><h2>📊 Tỉ lệ đúng theo tuần</h2><div id="tuan"></div></div>
+  <p class="meta">Mỗi ngày 5 câu, laptop soạn lúc 8h30 từ ảnh khách thật. Ưu tiên các câu Max từng đoán sai bị chị/anh Trường sửa mã. Chọn đúng thì máy lưu cặp ảnh → mã để Max nhận ra nhanh hơn lần sau.</p>
+</div>
+<script>
+const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",SV="Google Sheets",TQ="Quiz",TT="Quiz trả lời",TW="Quiz tuần";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let mcp,Q=[],A=[],W=[],cur=0,ngay="",moi={};
+try{const a=localStorage.getItem("yupi_ai");if(a)$("#ai").value=a}catch(_){}
+$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};cur=0;render()};
+function vnNow(){return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace("T"," ")}
+const homNay=()=>vnNow().slice(0,10);
+let IM={};
+const anh=id=>String(id).startsWith("img:")?(IM[String(id).slice(4)]||""):"https://drive.google.com/thumbnail?id="+encodeURIComponent(id)+"&sz=w1000";
+function traLoi(k){const ai=$("#ai").value;if(moi[k+"|"+ai])return moi[k+"|"+ai];return A.filter(r=>r[2]===k&&r[1]===ai).pop()}
+function render(){
+  const ds=Q.filter(r=>r[0]===ngay);const ai=$("#ai").value;
+  if(!ds.length){$("#quiz").innerHTML='<div class="empty">Hôm nay chưa có câu hỏi – laptop soạn lúc 8h30.</div>';return}
+  if(!ai){$("#quiz").innerHTML='<div class="empty">👆 Chọn tên người làm quiz ở trên trước nha.</div>';return}
+  cur=Math.min(cur,ds.length-1);const r=ds[cur],k=r[7],ops=String(r[3]||"").split(" || ").filter(Boolean),t=traLoi(k);
+  const dots=ds.map((x,i)=>{const tt=traLoi(x[7]);return `<span class="dot${i===cur?" on":""}${tt?(tt[4]==="đúng"?" d":" s"):""}" data-i="${i}">${i+1}</span>`}).join("");
+  const xong=ds.filter(x=>traLoi(x[7])),dung=xong.filter(x=>traLoi(x[7])[4]==="đúng").length;
+  $("#quiz").innerHTML=`<div class="dots">${dots}</div>
+   <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" >
+   <div class="q">Câu ${cur+1}/${ds.length}: Chai trong ảnh khách gửi là mã nào?</div>
+   <div class="opts">${ops.map(o=>{let c="";if(t){if(o===r[4])c=" dung";else if(o===t[3])c=" sai"}return `<button class="op${c}" ${t?"disabled":""} data-o="${esc(o)}">${esc(o)}</button>`}).join("")}</div>
+   ${t?`<div class="kq ${t[4]==="đúng"?"d":"s"}">${t[4]==="đúng"?"✅ Đúng rồi!":"❌ Chưa đúng."} Đáp án: <b>${esc(r[4])}</b><br><span class="meta">Nguồn: ${esc(r[5])}${r[6]?" · Max từng đoán: "+esc(r[6]):""}</span></div>`:""}
+   <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Câu trước</button>${xong.length===ds.length?`<span class="meta" style="align-self:center">🎯 Xong: ${dung}/${ds.length} đúng</span>`:""}<button class="bt" id="sau" ${cur<ds.length-1?"":"disabled"}>Câu sau ›</button></div>`;
+  $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;render()});
+  $("#quiz").querySelectorAll(".op").forEach(b=>b.onclick=()=>chon(r,b.dataset.o));
+  const tr=$("#truoc"),sa=$("#sau");if(tr)tr.onclick=()=>{cur--;render()};if(sa)sa.onclick=()=>{cur++;render()};
+}
+async function chon(r,o){
+  const ai=$("#ai").value,k=r[7];if(traLoi(k))return;
+  const row=[vnNow(),ai,k,o,o===r[4]?"đúng":"sai",""];moi[k+"|"+ai]=row;render();
+  try{await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:[row]});A.push(row);delete moi[k+"|"+ai]}
+  catch(e){delete moi[k+"|"+ai];alert("Không ghi được câu trả lời: "+(e.message||e));render()}
+  tuan();
+}
+function dauTuan(s){const d=new Date(s.slice(0,10)+"T00:00:00Z");const w=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-w);return d.toISOString().slice(0,10)}
+function tuan(){
+  const g={};A.forEach(r=>{if(!r[0]||!r[1])return;const w=dauTuan(r[0]);g[w]=g[w]||{};const p=g[w][r[1]]=g[w][r[1]]||[0,0];p[1]++;if(r[4]==="đúng")p[0]++});
+  const mx={};W.forEach(r=>{if(r[3])mx[r[3]]=[+r[1]||0,+r[2]||0]});
+  const ws=[...new Set([...Object.keys(g),...Object.keys(mx)])].sort().reverse().slice(0,6);
+  if(!ws.length){$("#tuan").innerHTML='<div class="empty">Chưa có dữ liệu.</div>';return}
+  const ng=["Chị Phương","Anh Trường","Anh Luật"];
+  const f=p=>p&&p[1]?`<span class="pct">${Math.round(p[0]*100/p[1])}%</span> <span class="meta">${p[0]}/${p[1]}</span>`:'<span class="meta">–</span>';
+  $("#tuan").innerHTML=`<table><thead><tr><th>Tuần</th>${ng.map(n=>`<th class="n">${n.replace("Anh ","A. ").replace("Chị ","C. ")}</th>`).join("")}<th class="n">🤖 Max</th></tr></thead><tbody>${ws.map(w=>`<tr><td>${w.slice(8,10)}/${w.slice(5,7)}</td>${ng.map(n=>`<td class="n">${f(g[w]&&g[w][n])}</td>`).join("")}<td class="n">${f(mx[w])}</td></tr>`).join("")}</tbody></table><p class="meta">🤖 Max = tỉ lệ Max đoán đúng mã ảnh khách khi làm việc thật (người duyệt / sửa mã).</p>`;
+}
+(async()=>{
+  mcp=await window.claude.use("mcp");
+  const w=(rg,cb)=>mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:rg},ev=>{if(ev.type!=="data"){$("#sub").textContent="Không đọc được sheet: "+ev.error;return}cb((ev.result.payload.values||[]).slice(1))},{refetchInterval:60000});
+  w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);const h=homNay();ngay=Q.some(r=>r[0]===h)?h:(Q.length?Q[Q.length-1][0]:h);
+    $("#sub").textContent=Q.length?`Bộ câu ngày ${ngay.slice(8,10)}/${ngay.slice(5,7)} · ${Q.filter(r=>r[0]===ngay).length} câu`:"Chưa có câu hỏi";render()});
+  w(TT+"!A1:F5000",v=>{A=v.filter(r=>r&&r[2]);render();tuan()});
+  w(TW+"!A1:D200",v=>{W=v;tuan()});
+  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Quiz ảnh!A1:B400"},ev=>{if(ev.type==="data"){(ev.result.payload.values||[]).slice(1).forEach(r=>{if(r[0]&&r[1])IM[r[0]]=r[1]});render()}},{refetchInterval:600000});
+})();
+</script>
+</body></html>

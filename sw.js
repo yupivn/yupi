@@ -1,5 +1,5 @@
 // Vỏ app Yupi: luôn lấy trang mới khi có mạng, mất mạng thì mở bản đã lưu.
-const C = 'yupi-v3';
+const C = 'yupi-v4';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(['./', 'index.html', 'shim.js', 'manifest.json', 'icon-192.png'])));
   self.skipWaiting();
