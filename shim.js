@@ -3,8 +3,17 @@
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyayRLS2PuNXLdV2TrxU2jwsCb5Z21Q90osSCXppZSq5sgqx3dVyjO_K2iYjGK5BnlX/exec';
   var KEY = 'yupi_pw';
-  function getPw() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return window.__ypw || ''; } }
-  function setPw(v) { window.__ypw = v; try { localStorage.setItem(KEY, v); } catch (e) {} }
+  // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
+  function getPw() {
+    var v = ''; try { v = localStorage.getItem(KEY) || ''; } catch (e) {}
+    if (!v) { var m = document.cookie.match(/(?:^|; )yupi_pw=([^;]*)/); if (m) { v = decodeURIComponent(m[1]); try { localStorage.setItem(KEY, v); } catch (e) {} } }
+    return v || window.__ypw || '';
+  }
+  function setPw(v) {
+    window.__ypw = v; try { localStorage.setItem(KEY, v); } catch (e) {}
+    try { document.cookie = 'yupi_pw=' + encodeURIComponent(v) + '; max-age=' + (v ? 31536000 : 0) + '; path=/; SameSite=Lax; Secure'; } catch (e) {}
+  }
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 
   var waiting = [];
   function needPw() {
