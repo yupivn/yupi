@@ -135,7 +135,7 @@ function onGhtk(rows){const t=new Date();t.setHours(0,0,0,0);
   const late=act.filter(r=>{const m=String(r[6]||"").match(/(\d{1,2})\/(\d{1,2})/);return m&&new Date(t.getFullYear(),m[2]-1,+m[1])<t;});
   fill("#c-ghtk",rows.length?`<span class="c"><b>${act.length}</b>đơn đang đi</span>`+chip(late.length,"trễ hẹn","bad"):`<span class="c">Chưa có đơn (chờ máy ghi tab GHTK)</span>`);}
 function onSot(rows){rows=rows.filter(r=>!/^xong/.test(r[6]||""));const n=k=>rows.filter(r=>r[2]===k).length;
-  fill("#c-sot",rows.length?chip(n("Chưa lên đơn"),"chưa lên đơn","bad")+chip(n("Chưa báo giá"),"chưa báo giá","wait")+chip(n("Chưa giải đáp"),"chưa giải đáp","wait")+(n("Cần xem")?`<span class="c"><b>${n("Cần xem")}</b>cần xem</span>`:""):`<span class="c ok"><b>0</b>không sót tin nào</span>`);}
+  fill("#c-sot",`<span class="c ${rows.length?"bad":"ok"}"><b>${rows.length}</b>tin chờ xử lý</span>`+(rows.length?chip(n("Chưa lên đơn"),"chưa lên đơn","bad"):""));}
 function onQuiz(rows){const vn=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());const n=rows.filter(r=>r[0]===vn).length;fill("#c-quiz",n?`<span class="c wait"><b>${n}</b>câu hôm nay</span>`:`<span class="c">Chưa có câu hôm nay (8h30)</span>`);}
 function onNcc(rows){
   const chuaNhap=rows.filter(r=>!/^da nhap/.test(norm(r[13]))).length;
@@ -206,4 +206,39 @@ function onNcc(rows){
 })();
 </script>
 
+<style id="gon">
+/* 08/11: trang chủ gọn – 2 cột trên điện thoại, 3–4 cột máy tính/iPad; thẻ chỉ còn icon + tên + 1–2 số to; bấm cả thẻ để mở */
+.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+@media (min-width:1080px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+a.card{min-height:0;padding:12px;gap:8px;border-radius:20px}
+a.card .top{gap:8px;align-items:center}
+a.card .top p,a.card .go{display:none}
+a.card .ic{width:36px;height:36px;font-size:19px;border-radius:12px}
+a.card h2{font-size:15px;line-height:1.2}
+.counts{gap:4px 12px;margin-top:2px}
+.counts .c{background:none!important;padding:0;display:flex;flex-direction:column;gap:0;font-size:11.5px;line-height:1.25}
+.counts .c b{font-size:24px;line-height:1.1}
+.counts .c:nth-child(n+3){display:none}
+a.card.gap{border-color:var(--late);box-shadow:0 0 0 1px var(--late),var(--shadow)}
+a.card.cho{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow)}
+a.card.rong{grid-column:1/-1}
+a.card.rong .counts{display:none}
+@media (max-width:719px){.logo{width:56px;height:56px;border-radius:16px;padding:5px}h1{font-size:22px}header p{font-size:13px}}
+</style>
+<script>
+(function(){
+  const g=document.querySelector(".grid");if(!g)return;
+  const lenh=g.querySelector('a[href="lenh.html"]');if(lenh)lenh.classList.add("rong");
+  const so=el=>{const b=el.querySelector("b");return b?parseFloat(String(b.textContent).replace(/[^\d.]/g,""))||0:0};
+  let hen=0;const xep=()=>{clearTimeout(hen);hen=setTimeout(()=>{
+    const ds=[...g.querySelectorAll("a.card")];
+    ds.forEach(c=>{const bad=[...c.querySelectorAll(".c.bad")].some(x=>so(x)>0),wait=[...c.querySelectorAll(".c.wait")].some(x=>so(x)>0);
+      c.classList.toggle("gap",bad);c.classList.toggle("cho",!bad&&wait);c.dataset.m=c.classList.contains("rong")?9:bad?0:wait?1:2});
+    const goc=ds.map((c,i)=>[c,i]);goc.sort((a,b)=>(a[0].dataset.m-b[0].dataset.m)||(a[1]-b[1]));
+    const doi=goc.some(([c],i)=>ds[i]!==c);if(doi)goc.forEach(([c])=>g.appendChild(c));
+  },120)};
+  new MutationObserver(xep).observe(g,{subtree:true,childList:true,characterData:true});xep();
+})();
+</script>
 </body></html>
