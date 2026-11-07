@@ -1,0 +1,402 @@
+<!doctype html><html><head><meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script src="shim.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Max đang làm gì</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@700;800;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Bảng kẹo ngọt: ngay lúc này → số liệu + tình trạng máy → 4 cột (cần người / đang làm / sắp chạy / xong) rộng, kéo ngang được trên máy tính */
+:root{
+  --bg:#f4f6fb; --panel:#e9edf6; --card:#ffffff; --fg:#14213d; --muted:#5b6785; --line:#d9dfec;
+  --accent:#1f3a6e; --accent-soft:#e4eaf6;
+  --bot:#3b63c4; --claude:#7b4fb0; --lich:#6b7488;
+  --late:#c8372d; --late-soft:#fbe5e2; --warn:#a8740f; --warn-soft:#fbf1d6; --ok:#1f8a5e; --ok-soft:#dcf3e8;
+  --c-lam:#e6edf9; --c-sched:#ece9f7; --c-done:#e1f3ea;
+  --gold:#c9a227; --gold-ink:#14213d; --gold-soft:#fbf3d9; --shadow:0 4px 14px rgba(20,33,61,.08);
+  --display:"Nunito","Be Vietnam Pro",system-ui,sans-serif; --body:"Be Vietnam Pro",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1526; --panel:#15203a; --card:#1b2847; --fg:#eef1f8; --muted:#9aa6c4; --line:#2b3a5e;
+  --accent:#e3c15a; --accent-soft:#3a3320; --bot:#8eaaf0; --claude:#c39ae6; --lich:#b3bbcd;
+  --late:#f2877b; --late-soft:#40221f; --warn:#eec463; --warn-soft:#3b311a; --ok:#6fd3a3; --ok-soft:#183829;
+  --c-lam:#17284a; --c-sched:#252544; --c-done:#16332a; --shadow:0 4px 14px rgba(0,0,0,.35); --gold:#e3c15a; --gold-ink:#14213d; --gold-soft:#3a3320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1526; --panel:#15203a; --card:#1b2847; --fg:#eef1f8; --muted:#9aa6c4; --line:#2b3a5e;
+  --accent:#e3c15a; --accent-soft:#3a3320; --bot:#8eaaf0; --claude:#c39ae6; --lich:#b3bbcd;
+  --late:#f2877b; --late-soft:#40221f; --warn:#eec463; --warn-soft:#3b311a; --ok:#6fd3a3; --ok-soft:#183829;
+  --c-lam:#17284a; --c-sched:#252544; --c-done:#16332a; --shadow:0 4px 14px rgba(0,0,0,.35); --gold:#e3c15a; --gold-ink:#14213d; --gold-soft:#3a3320; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;
+  background-image:radial-gradient(circle at 1px 1px,var(--line) 1px,transparent 0);background-size:22px 22px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;gap:14px;align-items:center}
+.mascot{font-size:34px;line-height:1;background:var(--card);border:2px solid var(--line);border-radius:20px;width:58px;height:58px;display:grid;place-items:center;box-shadow:var(--shadow);flex:none}
+header h1{font-family:var(--display);font-size:24px;font-weight:900;margin:0;text-wrap:balance}
+header p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.demo{display:inline-block;background:var(--accent-soft);color:var(--accent);font-family:var(--body);font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;vertical-align:middle;margin-left:6px}
+.now{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:12px 16px;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.box-h{margin:0 0 4px;font-family:var(--display);font-size:15px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.box-h span{font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted)}
+.nowgrid{display:grid;grid-template-columns:1fr;gap:0 24px}
+.nw.who::before{display:none}
+.now.two{display:grid;grid-template-columns:1fr;gap:16px}
+.nowcol,.logcol{min-width:0;display:flex;flex-direction:column}
+.now.two .nr{padding:6px 0;grid-template-columns:150px 1fr}
+.now.two .ns{font-size:13.5px}
+.now.two .ns small{display:inline;margin-left:6px}
+.now.two .ns small::before{content:"· "}
+@media (min-width:900px){.now.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}.logcol{border-left:2px dashed var(--line);padding-left:24px}.log{flex:1;max-height:420px!important;min-height:260px}}
+.log{max-height:300px;overflow-y:auto;background:var(--panel);border-radius:14px;padding:4px 12px;scrollbar-width:thin}
+.log::-webkit-scrollbar{width:10px}.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+.lg{display:grid;grid-template-columns:48px 150px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.lg:last-child{border-bottom:0}
+.lg time{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lg .who{font-size:12px}
+.lg small{color:var(--muted)}
+@media (max-width:520px){.lg{grid-template-columns:44px 1fr}.lg .who{grid-column:2}.lg div:last-child{grid-column:2}}
+.connect{margin-top:6px;border:0;background:var(--gold);color:var(--gold-ink);font:inherit;font-weight:700;font-size:13px;padding:7px 14px;border-radius:99px;cursor:pointer}
+.nr{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
+.nw{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--ok);flex:0 0 auto}
+.pulse.idle{background:var(--line)} .pulse.wait{background:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.pulse:not(.idle){animation:pl 1.4s ease-in-out infinite}@keyframes pl{0%,100%{opacity:1}50%{opacity:.35}}}
+.ns{font-size:14px;min-width:0;overflow-wrap:anywhere}
+.ns small{display:block;font-size:11.5px;color:var(--muted)}
+.top2{display:flex;flex-direction:column;gap:12px}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--card);border:1.5px solid var(--line);border-radius:99px;padding:6px 14px 6px 8px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+.stat .ic{font-size:16px;width:30px;height:30px;border-radius:99px;display:grid;place-items:center;background:var(--panel)}
+.stat b{font-family:var(--display);font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted)}
+.stat.l .ic{background:var(--late-soft)} .stat.l b{color:var(--late)}
+.stat.w .ic{background:var(--warn-soft)} .stat.w b{color:var(--warn)}
+.stat.a .ic{background:var(--accent-soft)} .stat.a b{color:var(--accent)}
+.health{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow)}
+.hl{display:flex;flex-wrap:wrap;gap:6px}
+.h{font-size:12.5px;padding:4px 10px;border-radius:99px;display:inline-flex;gap:6px;align-items:center;background:var(--ok-soft);color:var(--fg)}
+.h::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.h.bad{background:var(--late-soft)} .h.bad::before{background:var(--late)}
+.h em{font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.search input{width:100%;max-width:560px;font:inherit;font-size:15px;color:var(--fg);background:var(--card);border:2px solid var(--line);border-radius:99px;padding:10px 18px;box-shadow:var(--shadow)}
+.search input:focus{outline:none;border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:13px;font-weight:600;padding:5px 13px;border-radius:99px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cols{display:flex;flex-direction:column;gap:12px}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+details{background:var(--panel);border-radius:22px;padding:6px 12px 12px}
+details.red{background:var(--late-soft)} details.yel{background:var(--warn-soft)} details.pink{background:var(--accent-soft)}
+details[data-g="lam"]{background:var(--c-lam)} details[data-g="sched"]{background:var(--c-sched)} details[data-g="done"]{background:var(--c-done)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 2px;font-family:var(--display);font-weight:800;font-size:16px}
+summary::-webkit-details-marker{display:none}
+summary .n{font-family:var(--body);font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600;font-size:12.5px;display:flex;gap:8px;align-items:center;background:var(--card);padding:2px 10px;border-radius:99px}
+summary .n::after{content:"›";font-size:17px;transition:transform .15s;display:inline-block}
+details[open] summary .n::after{transform:rotate(90deg)}
+.list{display:flex;flex-direction:column;gap:10px}
+.empty{color:var(--muted);font-size:13px;padding:8px 4px;text-align:center}
+.empty::before{content:"✨ "}
+.item{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:11px 13px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.item.slow{border-color:color-mix(in srgb,var(--warn) 55%,var(--line))}
+.it{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.it b{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.tm{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.slow .tm{color:var(--warn);font-weight:700}
+.sub{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.q{font-size:13.5px;font-style:italic;background:var(--accent-soft);border-radius:12px;padding:7px 10px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.who{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px}
+.who::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.who.bot{color:var(--bot)} .who.claude{color:var(--claude)} .who.lich{color:var(--lich)}
+.where{font-size:12px;color:var(--muted);background:var(--panel);padding:2px 9px;border-radius:99px}
+.bar{height:7px;border-radius:99px;background:var(--panel);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.act{display:flex;gap:8px}
+.btn{background:var(--accent);color:#fff;border:0;font:inherit;font-size:13.5px;font-weight:700;padding:8px 12px;border-radius:14px;cursor:pointer;min-height:38px;flex:1}
+.btn.ghost{background:var(--panel);color:var(--fg);flex:0 0 auto}
+.sched,.done{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;background:var(--card);border-radius:16px;padding:4px 12px}
+.sched li,.done li{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.sched li:last-child,.done li:last-child{border-bottom:0}
+.sched time{font-family:var(--mono);font-size:12.5px;color:var(--accent);padding-top:1px}
+.done time{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:1px}
+.sched span,.done span{min-width:0;overflow-wrap:anywhere} .sched small{display:block;color:var(--muted);font-size:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:16px;font-size:13.5px;z-index:70;max-width:calc(100% - 32px)}
+.sheet-bg{position:fixed;inset:0;background:rgba(10,18,36,.5);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);color:var(--fg);width:min(560px,100%);border-radius:24px 24px 0 0;padding:20px max(18px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet h3{margin:0;font-family:var(--display);font-size:17px;font-weight:800}
+.sheet textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:10px}
+.row{display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:420px){.nr{grid-template-columns:1fr;gap:2px}}
+@media (min-width:900px){
+  .wrap{max-width:min(1900px,100%)}
+  header h1{font-size:28px}
+  .cols{display:grid;grid-template-columns:repeat(4,minmax(380px,1fr));align-items:start;gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+  .col{scroll-snap-align:start}
+  .col details{max-height:calc(100vh - 360px);overflow:auto}
+  .col details summary{position:sticky;top:-6px;background:inherit;z-index:1}
+}
+.cols::-webkit-scrollbar{height:12px}
+.cols::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Navy · gold: mỗi loại nút một màu */
+.mascot{border-color:var(--gold)!important}
+.demo{background:var(--gold-soft)!important;color:var(--fg)!important}
+.next,.fab{background:var(--gold)!important;color:var(--gold-ink)!important}
+.primary{background:var(--accent)!important;color:var(--card)!important}
+.step[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:var(--card)!important}
+.step[aria-pressed="true"] i{background:var(--gold)!important;color:var(--gold-ink)!important}
+.step:hover,.chip:hover{border-color:var(--gold)!important}
+.search input:focus{border-color:var(--gold)!important}
+[data-giuc]{background:var(--late)!important;color:#fff!important}
+[data-done]{background:var(--ok)!important;color:#fff!important}
+.copy{border-color:var(--info)!important;color:var(--info)!important}
+.btn[data-ok]{background:var(--ok)!important;color:#fff!important}
+.btn[data-skip]{background:var(--panel)!important;color:var(--muted)!important}
+.btn[data-ans]{background:var(--info,#3b63c4)!important;color:#fff!important}
+.next.to-bao{background:#7b4fb0!important;color:#fff!important}
+.next.to-chot{background:var(--accent)!important;color:var(--card)!important}
+.next.to-ck{background:var(--gold)!important;color:var(--gold-ink)!important}
+.next.to-ghtk{background:#1f8a8a!important;color:#fff!important}
+.next.to-xong{background:var(--ok)!important;color:#fff!important}
+.lai b,.total{color:var(--fg)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mascot" aria-hidden="true">🤖</div>
+    <div>
+      <h1>Max đang làm gì <span class="demo" id="demo">Bản thử · dữ liệu mẫu</span></h1>
+      <p id="upd"></p>
+      <button class="connect" id="connect" hidden>🔌 Kết nối dữ liệu thật</button>
+    </div>
+  </header>
+  <section class="now two">
+    <div class="nowcol" aria-live="polite"><h2 class="box-h">💫 Ngay lúc này <span>tự cập nhật</span></h2><div class="nowgrid" id="now"></div></div>
+    <div class="logcol"><h2 class="box-h">📜 Vừa qua <span>lăn xuống để đọc lại</span></h2>
+    <div class="log" id="log" tabindex="0" aria-label="Nhật ký vừa qua"></div></div></section>
+  <div class="top2">
+    <section class="stats" id="stats" aria-label="Tổng hợp"></section>
+    <section class="health" aria-label="Tình trạng máy"><h2 class="box-h">💻 Tình trạng máy <span id="hok"></span></h2><div class="hl" id="health"></div></section>
+  </div>
+  <div class="search"><input id="q" type="search" placeholder="🔍 Tìm việc, tên khách, mã, nhóm…" aria-label="Tìm kiếm việc"></div>
+  <div class="chips" role="group" aria-label="Lọc theo ai làm">
+    <button class="chip" data-f="all" aria-pressed="true">✨ Tất cả</button>
+    <button class="chip" data-f="bot" aria-pressed="false">🤖 Bot Max</button>
+    <button class="chip" data-f="claude" aria-pressed="false">💻 Claude laptop</button>
+    <button class="chip" data-f="lich" aria-pressed="false">⏰ Việc theo lịch</button>
+  </div>
+  <div class="cols" id="cols"></div>
+</div>
+<div id="sheetRoot"></div><div id="toastRoot"></div>
+
+<script>
+let LIVEMODE=false;
+let NOWMS=new Date("2026-11-06T11:20:00+07:00").getTime();
+const WHO={bot:"Bot Max",claude:"Claude laptop",lich:"Việc theo lịch"};
+const pad=n=>String(n).padStart(2,"0");
+const hm=ms=>{const d=new Date(ms);return pad(d.getHours())+":"+pad(d.getMinutes())};
+const at=t=>new Date("2026-11-06T"+t+":00+07:00").getTime();
+const ago=ms=>{const d=Math.max(0,Math.round((NOWMS-ms)/60000));return d<60?d+" phút":d<1440?Math.floor(d/60)+" giờ "+(d%60)+" phút":Math.floor(d/1440)+" ngày"};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=s=>document.querySelector(s);
+let health=[
+ {n:"Laptop",ok:true},{n:"Zalo PC (Gia Di)",ok:true},{n:"Bot Telegram",ok:true},
+ {n:"Quét kho NCC",ok:true,t:"11:15"},{n:"Kho Xốp",ok:false,t:"10:58"},{n:"Kho Trương Thiện",ok:true},
+ {n:"Kho Lục Loan",ok:true},{n:"Kho Emily",ok:true},{n:"Webhook GHTK",ok:true},{n:"Google Vision",ok:true,t:"214/900"}
+];
+let items=[
+ {id:1,k:"loi",who:"lich",t:at("10:58"),title:"Kho Sapo Xốp bị đăng xuất",sub:"Đã tự mở trang đăng nhập và điền sẵn. Cần người tick ô xác minh trên laptop.",where:"Chat riêng với bot",h:"Kho Xốp"},
+ {id:2,k:"hoi",who:"bot",t:at("10:52"),title:"Khách KS – Ngọc Anh gửi ảnh chai",q:"Ảnh mờ, không đọc được tên. Là Le Labo Santal 33 hay Another 13 ạ?",where:"Nhóm Trợ lý Max – Yupi"},
+ {id:3,k:"hoi",who:"claude",t:at("10:31"),title:"Ảnh Hàng về có tên NCC lạ",q:"\"Chị Mai Q10\" chưa có trong danh sách NCC. Là NCC nào, hay NCC mới cần thêm vào sheet ạ?",where:"Chat riêng với bot"},
+ {id:4,k:"duyet",who:"bot",t:at("10:42"),title:"Tin gợi ý GHTK: KS – Đức Anh",sub:"Đơn trễ 2 ngày, khách đã hỏi trong nhóm Zalo",where:"Yupi – Theo dõi GHTK"},
+ {id:5,k:"duyet",who:"bot",t:at("11:06"),title:"Báo giá KS – Minh Tú",sub:"Dior Sauvage EDT 100ml · YSL Libre EDP 50ml",where:"Zalo Gia Di – Tin khách"},
+ {id:6,k:"duyet",who:"claude",t:at("11:14"),title:"Phiếu chốt KHS – Thảo Vy",sub:"Kilian Love Don't Be Shy 50ml · 4.850k",where:"Zalo Gia Di – Tin khách"},
+ {id:8,k:"lam",who:"bot",t:at("11:18"),title:"Tra giá NCC cho KHS – Lan Hà Đông",sub:"Diptyque Do Son EDP 75ml",p:60,ps:"3/5 kho"},
+ {id:9,k:"lam",who:"claude",t:at("11:12"),title:"Lên phiếu đặt hàng KS – Quang Huy",sub:"2 mã · tạo phiếu Kiot, xuất ảnh phiếu",p:70,ps:"Đã tạo phiếu, đang xuất ảnh"},
+ {id:11,k:"lam",who:"lich",t:at("11:15"),title:"Quét kho NCC",sub:"Lượt 11:15 · 5 kho",p:80,ps:"4/5 kho (Xốp lỗi)"}
+];
+let sched=[
+ ["11:27","Quét kho NCC","12 phút/lần"],["12:00","Nhập hàng Kiot","2 tiếng/lần"],["14:00","Yupi – Zalo tổng hợp","Lượt chiều"],
+ ["22:30","Thử và áp dụng quy tắc mới","Báo kết quả vào chat riêng"],["23:00","Rà soát cuối ngày","Việc còn dở, bài học trong ngày"]
+];
+let done=[
+ ["11:00","Quét kho NCC lượt 11:00","lich"],["10:40","Nhập 6 mã Hàng về (Thảo Wear) và thả tim","claude"],
+ ["10:12","Gửi phiếu đặt hàng cho KS – Quang Huy (anh Luật duyệt)","bot"],["10:05","Giục GHTK đơn KHS – Hương CTV","claude"],
+ ["09:40","Báo giá KHS – Hương CTV (anh Trường duyệt)","bot"],["09:15","Sửa giá vốn 3 mã chốt NCC hôm qua","claude"]
+];
+let LIVE=[
+ {who:"bot",name:"Bot Max",steps:[["Đang xem Zalo khách","KHS – Lan Hà Đông hỏi Diptyque Do Son 75ml"],["Đang tra giá NCC","Diptyque Do Son EDP 75ml · 3/5 kho"],["Đang soạn đề xuất báo giá","KHS – Lan Hà Đông"]]},
+ {who:"claude",name:"Claude laptop",steps:[["Đang lên phiếu Kiot","KS – Quang Huy · 2 mã"],["Đang sửa giá vốn","Creed Aventus EDP 100ml → 6.820k (Emily)"],["Đang dời giờ hóa đơn","HĐ có Creed Aventus bán trước khi sửa vốn"]]},
+ {who:"claude",name:"Nhập hàng Kiot",steps:[["Đang đọc ảnh Hàng về","4 mã · NCC Lục Loan"],["Đang nhập hàng Kiot","Phiếu nhập Lục Loan · 2/4 mã"]]},
+ {who:"lich",name:"Quét kho NCC",steps:[["Đang quét kho Lục Loan","Lượt 11:15"],["Kho Xốp: chờ người đăng nhập","Bỏ qua Xốp lượt này","wait"]]},
+ {who:"lich",name:"Theo dõi GHTK",steps:[["Đang chờ tin từ GHTK","Webhook bật · 1 đơn trễ đang theo dõi","idle"]]},
+ {who:"claude",name:"Book ship",steps:[["Đang book Be lấy hàng NCC","Emily → shop"],["Đang chờ tài xế nhận đơn","Emily → shop","wait"]]},
+ {who:"bot",name:"Canh Pancake",steps:[["Đang đọc tin khách lẻ","2 hội thoại mới"],["Đang soạn kịch bản gợi ý","Khách hỏi Gucci Flora"]]},
+ {who:"lich",name:"Hàng đi",steps:[["Đang đối chiếu ảnh hàng đi","3 hóa đơn sáng nay"],["Đã khớp hết","Chờ ảnh mới","idle"]]}
+];
+let f="all";const openState={};let tick=0;
+let Q="";const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d");
+document.getElementById("q").addEventListener("input",e=>{Q=norm(e.target.value.trim());render();});
+const HIST=[];const lastSeen={};
+function record(){const t=hm(Date.now());LIVE.forEach(w=>{const s=w.steps[tick%w.steps.length];const txt=s[0]+"|"+(s[1]||"");
+  if(lastSeen[w.name]!==txt){lastSeen[w.name]=txt;HIST.unshift({t,who:w.who,n:w.name,a:s[0],b:s[1]||""});}});if(HIST.length>300)HIST.length=300;}
+function renderLog(){const box=$("#log");const keep=box.scrollTop;const h=HIST.filter(x=>(f==="all"||x.who===f)&&(!Q||norm(x.n+" "+x.a+" "+x.b).includes(Q)));
+  box.innerHTML=h.length?h.map(x=>`<div class="lg"><time>${x.t}</time><span class="who ${x.who}">${esc(x.n)}</span><div>${esc(x.a)}${x.b?` <small>· ${esc(x.b)}</small>`:""}</div></div>`).join(""):`<div class="empty">Chưa có</div>`;
+  if(keep>0)box.scrollTop=keep+(box.scrollHeight-box._h||0);box._h=box.scrollHeight;}
+function renderNow(){
+  record();renderLog();
+  const rows=LIVE.filter(w=>f==="all"||w.who===f);
+  $("#now").innerHTML=rows.length?rows.map(w=>{const s=w.steps[tick%w.steps.length];
+    return `<div class="nr"><div class="nw who ${w.who}"><span class="pulse ${s[2]||""}"></span>${esc(w.name)}</div><div class="ns">${esc(s[0])}<small>${esc(s[1]||"")}</small></div></div>`;}).join(""):`<div class="empty">Không có</div>`;
+}
+setInterval(()=>{tick++;renderNow();},3500);
+const vis=x=>(f==="all"||x.who===f)&&(!Q||norm(JSON.stringify(x)).includes(Q));
+function itemHTML(x){
+  const w=(NOWMS-x.t)/60000;const slow=(x.k==="duyet"&&w>30)||(x.k==="hoi"&&w>15);
+  let act="";
+  if(!LIVEMODE){
+    if(x.k==="loi")act=`<div class="act"><button class="btn" data-ok="${x.id}">Đã xử lý</button></div>`;
+    if(x.k==="hoi")act=`<div class="act"><button class="btn" data-ans="${x.id}">Trả lời</button></div>`;
+    if(x.k==="duyet")act=`<div class="act"><button class="btn" data-ok="${x.id}">Duyệt</button><button class="btn ghost" data-skip="${x.id}">Không gửi</button></div>`;
+  }
+  const label=x.k==="lam"?"từ "+hm(x.t):(x.k==="duyet"?"chờ ":x.k==="hoi"?"hỏi ":"lỗi ")+ago(x.t);
+  return `<article class="item${slow?" slow":""}">
+   <div class="it"><b>${esc(x.title)}</b><span class="tm">${label}</span></div>
+   ${x.sub?`<div class="sub">${esc(x.sub)}</div>`:""}
+   ${x.q?`<div class="q">${esc(x.q)}</div>`:""}
+   ${x.p!=null?`<div class="bar" role="progressbar" aria-valuenow="${x.p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${x.p}%"></i></div><div class="sub">${esc(x.ps)}</div>`:""}
+   <div class="foot"><span class="who ${x.who}">${WHO[x.who]||esc(x.who)}</span>${x.where?`<span class="where">📍 ${esc(x.where)}</span>`:""}</div>
+   ${act}
+  </article>`;
+}
+function group(id,name,list,cls,openDef){
+  const isOpen=openState[id]!==undefined?openState[id]:openDef;
+  return `<details class="${cls||""}" data-g="${id}" ${isOpen?"open":""}><summary>${name}<span class="n">${list.length}</span></summary><div class="list">${list.length?list.map(itemHTML).join(""):`<div class="empty">Không có</div>`}</div></details>`;
+}
+function render(){
+  const d=new Date(NOWMS);
+  $("#upd").textContent=`Cập nhật lúc ${hm(NOWMS)} hôm nay ${pad(d.getDate())}/${pad(d.getMonth()+1)}${LIVEMODE?", tự làm mới mỗi phút":""}. Việc cần người luôn nằm trên cùng.`;
+  renderNow();
+  const v=items.filter(vis);
+  const L=v.filter(x=>x.k==="loi"),H=v.filter(x=>x.k==="hoi"),D=v.filter(x=>x.k==="duyet"),W=v.filter(x=>x.k==="lam");
+  const dv=done.filter(x=>(f==="all"||x[2]===f)&&(!Q||norm(x.join(" ")).includes(Q)));
+  $("#stats").innerHTML=`<div class="stat l"><span class="ic">🔴</span><b>${L.length}</b><span>Lỗi cần xử lý</span></div>
+   <div class="stat w"><span class="ic">❓</span><b>${H.length}</b><span>Bot đang hỏi</span></div>
+   <div class="stat a"><span class="ic">🟡</span><b>${D.length}</b><span>Chờ duyệt</span></div>
+   <div class="stat"><span class="ic">🟢</span><b>${W.length}</b><span>Đang làm</span></div>`;
+  const bad=health.filter(h=>!h.ok).length;
+  $("#hok").textContent=bad?`${bad} phần đang lỗi`:"Tất cả đang chạy 💚";
+  $("#health").innerHTML=health.map(h=>`<span class="h${h.ok?"":" bad"}">${esc(h.n)}${h.t?`<em>${esc(h.t)}</em>`:""}</span>`).join("");
+  const need=group("loi","🔴 Lỗi / máy đứng",L,"red",true)+group("hoi","❓ Bot đang hỏi",H,"yel",true)+group("duyet","🟡 Chờ duyệt",D,"pink",true);
+  const showSched=f==="all"||f==="lich";
+  $("#cols").innerHTML=`<div class="col">${need}</div>
+   <div class="col">${group("lam","🟢 Đang làm",W,"",true)}</div>
+   <div class="col"><details data-g="sched" ${openState.sched!==false?"open":""}><summary>⏰ Sắp chạy<span class="n">${showSched?sched.length:0}</span></summary>
+     ${showSched&&sched.length?`<ul class="sched">${sched.map(s=>`<li><time>${esc(s[0])}</time><span>${esc(s[1])}<small>${esc(s[2])}</small></span></li>`).join("")}</ul>`:`<div class="empty">Không có</div>`}</details></div>
+   <div class="col"><details data-g="done" ${openState.done!==false?"open":""}><summary>✅ Xong hôm nay<span class="n">${dv.length}</span></summary>
+     ${dv.length?`<ul class="done">${dv.map(x=>`<li><time>${esc(x[0])}</time><span>${esc(x[1])} <span class="who ${x[2]}" style="margin-left:4px">${WHO[x[2]]||""}</span></span></li>`).join("")}</ul>`:`<div class="empty">Chưa có</div>`}</details></div>`;
+}
+let tt;function toast(m){clearTimeout(tt);$("#toastRoot").innerHTML=`<div class="toast" role="status">${esc(m)}</div>`;tt=setTimeout(()=>$("#toastRoot").innerHTML="",3000);}
+function finish(x,text){
+  items=items.filter(i=>i.id!==x.id);done.unshift([hm(NOWMS),text,x.who]);
+  if(x.h){const h=health.find(h=>h.n===x.h);if(h){h.ok=true;h.t="";}}
+  render();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.f){f=b.dataset.f;document.querySelectorAll("[data-f]").forEach(c=>c.setAttribute("aria-pressed",c===b));render();return;}
+  const get=k=>items.find(i=>i.id==b.dataset[k]);
+  if(b.dataset.ok){const x=get("ok");finish(x,(x.k==="duyet"?"Đã duyệt: ":"Đã xử lý: ")+x.title);toast(x.k==="duyet"?"Đã duyệt (bản thử)":"Đã đánh dấu xử lý xong");return;}
+  if(b.dataset.skip){const x=get("skip");finish(x,"Không gửi: "+x.title);toast("Đã bỏ, không gửi khách");return;}
+  if(b.dataset.ans){const x=get("ans");
+    $("#sheetRoot").innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-modal="true"><h3>Trả lời bot</h3><div class="q">${esc(x.q)}</div><label for="ansT" class="sub">Câu trả lời của chị</label><textarea id="ansT" rows="3" placeholder="vd: Santal 33 nha"></textarea><div class="row"><button class="btn ghost" id="cx">Huỷ</button><button class="btn" id="go" style="flex:0 0 auto">Gửi cho bot</button></div></div></div>`;
+    const close=()=>$("#sheetRoot").innerHTML="";
+    $("#sbg").onclick=ev=>{if(ev.target.id==="sbg")close();};$("#cx").onclick=close;
+    $("#go").onclick=()=>{const a=$("#ansT").value.trim();if(!a){$("#ansT").focus();return;}close();finish(x,"Đã trả lời bot: "+x.title+" → "+a);toast("Đã gửi câu trả lời (bản thử)");};
+    setTimeout(()=>$("#ansT").focus(),50);}
+});
+document.addEventListener("toggle",e=>{if(e.target.dataset?.g)openState[e.target.dataset.g]=e.target.open;},true);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheetRoot").innerHTML="";});
+render();
+
+/* Dữ liệu thật: tab Max trong sheet Hộp duyệt Yupi (bot ghi), tự làm mới mỗi phút */
+const SHEET="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M";
+const whoOf=s=>{s=String(s||"").toLowerCase();return s==="claude"?"claude":s==="lich"?"lich":"bot";};
+function parseT(s){s=String(s||"").trim();if(!s)return NOWMS;
+  if(/^\d{1,2}:\d{2}$/.test(s)){const d=new Date(NOWMS);const [h,m]=s.split(":").map(Number);d.setHours(h,m,0,0);return d.getTime();}
+  const t=new Date(s.replace(" ","T")+(s.length>10&&!/[+Z]/.test(s.slice(10))?"+07:00":"")).getTime();return isNaN(t)?NOWMS:t;}
+function SNAP_APPLY(r,rows,t){applyLive(rows);document.getElementById("demo").textContent="Bản lưu";const d=new Date(t);document.getElementById("upd").textContent=`Số liệu lưu lúc ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} ${d.getDate()}/${d.getMonth()+1}.`;}
+function applyLive(rows){
+  NOWMS=Date.now();
+  const R=rows.slice(1).filter(r=>r&&r[0]).map(r=>{const g=k=>String(r[k]??"").trim();return {muc:g(0),luc:g(1),ai:g(2),tieu:g(3),ct:g(4),tt:g(5).toLowerCase(),noi:g(6),ma:g(7)};});
+  LIVE=R.filter(r=>r.muc==="nay").map(r=>({who:whoOf(r.ai),name:r.tieu,steps:[[r.tt==="ranh"?"Đang rảnh":(r.ct.split("·")[0]||"Đang làm"),r.tt==="ranh"?r.ct.replace(/^Rảnh\s*·?\s*/,""):r.ct,r.tt==="ranh"?"idle":(r.tt==="cho"?"wait":"")]]}));
+  health=R.filter(r=>r.muc==="may").map(r=>({n:r.tieu,ok:r.tt==="ok",t:r.ct}));
+  let id=1;
+  const isTest=s=>/test|gia lap|khs yupi|duc sang|tan dat|a luat|dac hung|long nguyen/.test(norm(s));
+  items=R.filter(r=>r.muc==="can"&&!isTest(r.tieu+" "+r.noi+" "+r.ct)).map(r=>({id:id++,k:r.tt==="duyet"?"duyet":r.tt==="loi"?"loi":"hoi",who:whoOf(r.ai),t:parseT(r.luc),title:r.tieu,sub:r.ct&&r.ct!=="Hình ảnh"?r.ct:"",where:r.noi+(r.ma?" #"+r.ma:"")}))
+   .concat(R.filter(r=>r.muc==="nay"&&r.tt&&r.tt!=="ranh").map(r=>({id:id++,k:"lam",who:whoOf(r.ai),t:parseT(r.luc),title:r.tieu,sub:r.ct})));
+  sched=R.filter(r=>r.muc==="lich").map(r=>{const t=parseT(r.luc);return [hm(t),r.tieu,r.ct];});
+  done=R.filter(r=>r.muc==="xong").map(r=>[r.luc.length>5?hm(parseT(r.luc)):r.luc,r.tieu,whoOf(r.ai)]);
+  LIVEMODE=true;$("#demo").textContent="Dữ liệu thật";render();
+}
+(async()=>{
+  let mcp=null;try{mcp=await window.claude?.use?.("mcp")}catch(_){}
+  if(!mcp){$("#upd").textContent="Chỗ này chưa đọc được Google Sheets – đang hiện dữ liệu mẫu. Mở bảng bằng tài khoản Claude của chị để xem dữ liệu thật.";return;}
+  let unwatch=null;
+  const start=()=>{if(unwatch)unwatch();unwatch=mcp.watchTool("Google Sheets","get_values",{spreadsheetId:SHEET,range:"Max!A1:H300"},ev=>{
+    if(ev.type!=="data"){if(!LIVEMODE){$("#upd").textContent="Chưa được phép đọc sheet Hộp duyệt Yupi – đang hiện dữ liệu mẫu. Bấm nút vàng bên dưới để kết nối.";$("#connect").hidden=false;}return;}
+    $("#connect").hidden=true;{const v=(ev.result.payload&&ev.result.payload.values)||[];SNAP_KEEP("Max!A1:H300",v);applyLive(v);}
+  },{refetchInterval:60000});};
+  $("#connect").onclick=async()=>{let p=null;try{p=await window.claude.use("permissions")}catch(_){}
+    if(p){const st=await p.request(["mcp"]);if(st.mcp==="denied"){try{await p.manage()}catch(_){$("#upd").textContent="Chị mở menu Quyền (Permissions) của bảng để bật Google Sheets.";}}}
+    start();};
+  start();
+})();
+</script>
+
+<script type="application/json" id="snapData">null</script>
+<script type="text/plain" id="tplData"></script>
+<style>
+.snapbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.snapbar:empty{display:none}
+#snapBtn{border:0;background:var(--accent);color:var(--card);font:inherit;font-weight:700;font-size:13px;padding:7px 14px;border-radius:99px;cursor:pointer}
+#snapBtn:disabled{opacity:.6;cursor:default}
+</style>
+<script>
+(function(){
+  const p2=n=>String(n).padStart(2,"0");
+  const when=t=>{const d=new Date(t);return p2(d.getHours())+":"+p2(d.getMinutes())+" ngày "+p2(d.getDate())+"/"+p2(d.getMonth()+1);};
+  const LAST={};let liveSeen=false,art=null;
+  const bar=document.createElement("div");bar.className="snapbar";
+  bar.innerHTML='<span id="snapMsg"></span><button id="snapBtn" type="button" hidden>📤 Cập nhật cho quản lý</button>';
+  const hd=document.querySelector("header");if(hd)hd.after(bar);else document.body.prepend(bar);
+  const msg=bar.querySelector("#snapMsg"),btn=bar.querySelector("#snapBtn");
+  const showBtn=()=>{if(art&&liveSeen)btn.hidden=false;};
+  window.SNAP_KEEP=(r,v)=>{LAST[r]=v;liveSeen=true;showBtn();};
+  let snap=null;try{snap=JSON.parse(document.getElementById("snapData").textContent);}catch(_){}
+  if(snap&&snap.t){
+    msg.textContent="📌 Bản lưu cho quản lý: "+when(snap.t);
+    setTimeout(()=>{if(liveSeen)return;for(const r in snap.data){try{SNAP_APPLY(r,snap.data[r],snap.t);}catch(e){}}},1200);
+  }
+  (async()=>{try{art=await window.claude?.use?.("artifact");}catch(_){}showBtn();})();
+  const dec=s=>new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)));
+  const enc=s=>{const b=new TextEncoder().encode(s);let x="";for(let i=0;i<b.length;i+=32768)x+=String.fromCharCode.apply(null,b.subarray(i,i+32768));return btoa(x);};
+  btn.onclick=async()=>{
+    if(!art||!Object.keys(LAST).length)return;
+    btn.disabled=true;btn.textContent="Đang cập nhật…";
+    try{
+      const S=dec(document.getElementById("tplData").textContent.trim());
+      const json=JSON.stringify({t:Date.now(),data:LAST}).replace(/</g,"\\u003c");
+      const body=S.replace("__SN"+"AP__",json).replace("__T"+"PL__",enc(S));
+      const html='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+':root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}'+'</style></head><body>\n'+body+'</body></html>';
+      await art.publish(html);
+      msg.textContent="✅ Đã cập nhật cho quản lý lúc "+when(Date.now());btn.textContent="📤 Cập nhật cho quản lý";btn.disabled=false;
+    }catch(e){
+      const c=e&&e.code;btn.disabled=false;btn.textContent="📤 Cập nhật cho quản lý";
+      msg.textContent=c==="conflict"?"Bảng vừa có bản mới, chị bấm lại lần nữa.":(c==="not_granted"||c==="not_writer")?"Chỉ chủ bảng mới cập nhật được.":"Chưa cập nhật được ("+(c||"lỗi")+"), chị thử lại sau.";
+    }
+  };
+})();
+</script>
+
+</body></html>

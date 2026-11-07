@@ -1,0 +1,220 @@
+<!doctype html><html><head><meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script src="shim.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Hộp duyệt Yupi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Bảng điều phối một cột cho điện thoại: thanh trạng thái laptop → 3 tab (Duyệt · Đơn sỉ · Max) → thẻ */
+:root{
+  --bg:#f5f3f6; --card:#ffffff; --panel:#ece8ef; --fg:#221d27; --muted:#6d6575; --line:#ddd6e2;
+  --accent:#8e2f5b; --accent-soft:#f5e3ec; --ok:#237a50; --ok-soft:#ddf1e6; --warn:#a8650f; --warn-soft:#fbeed6; --bad:#b8322a; --bad-soft:#fbe2df;
+  --body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17141a; --card:#221e26; --panel:#2b2630; --fg:#ece7f0; --muted:#a59cad; --line:#3a3440;
+  --accent:#e58ab4; --accent-soft:#40243a; --ok:#63c993; --ok-soft:#1d3a2b; --warn:#eeb65a; --warn-soft:#3d301a; --bad:#f08a80; --bad-soft:#41211f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17141a; --card:#221e26; --panel:#2b2630; --fg:#ece7f0; --muted:#a59cad; --line:#3a3440;
+  --accent:#e58ab4; --accent-soft:#40243a; --ok:#63c993; --ok-soft:#1d3a2b; --warn:#eeb65a; --warn-soft:#3d301a; --bad:#f08a80; --bad-soft:#41211f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 48px}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+h1{font-size:20px;margin:0;flex:1 1 auto;text-wrap:balance}
+select,button,textarea,input{font:inherit;color:var(--fg)}
+select{padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.st{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13.5px}
+.st.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--fg)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--muted);flex:none}.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+.st .r{margin-left:auto;color:var(--muted)}
+.tabs{display:flex;gap:6px;overflow-x:auto}
+.tabs button{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 14px;font-weight:600;font-size:13.5px;white-space:nowrap;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tabs i{font-style:normal;font-variant-numeric:tabular-nums;opacity:.8;margin-left:4px}
+.kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;display:flex;flex-direction:column;min-width:0}
+.kpi b{font-size:20px;font-variant-numeric:tabular-nums}.kpi span{font-size:12px;color:var(--muted)}.kpi .w b{color:var(--warn)}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card.hot{border-left:4px solid var(--accent)}.card.gap{border-left:4px solid var(--warn)}
+.top{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.top b{font-weight:600;overflow-wrap:anywhere;min-width:0}
+.time{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;background:var(--panel);color:var(--muted)}
+.pill.hot{background:var(--accent-soft);color:var(--accent)}.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+pre{white-space:pre-wrap;margin:0;font:inherit;font-size:14px;overflow-wrap:anywhere}
+.msg{background:var(--panel);border-radius:10px;padding:8px 10px;font-size:13.5px}
+textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
+details summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{flex:1 1 110px;border:0;border-radius:10px;padding:10px;font-weight:700;cursor:pointer;min-height:42px}
+.b-ok{background:var(--ok);color:#fff}.b-soft{background:var(--panel)}.b-acc{background:var(--accent);color:#fff}.b-warn{background:var(--warn-soft);color:var(--warn)}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--warn-soft);border-radius:10px;padding:8px 10px;font-size:13.5px}
+.res{font-size:13px;color:var(--muted)}.res.ok{color:var(--ok)}.res.bad{color:var(--bad)}
+.lai{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;font-size:12.5px}
+.lai div{background:var(--panel);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column}.lai b{font-size:15px;font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;align-items:baseline;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}
+.row .t{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;min-width:3.4em}.row .x{flex:1;min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{display:inline-flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:13px}
+.grid6{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.empty{color:var(--muted);font-size:14px;padding:18px 4px;text-align:center}
+.note{font-size:12.5px;color:var(--muted)}
+.sec{display:flex;flex-direction:column;gap:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>📋 Hộp duyệt Yupi</h1>
+    <label for="ai" class="note">Người bấm</label>
+    <select id="ai"><option value="">— Chọn tên —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
+  </header>
+  <div class="st" id="st"><span class="dot"></span><span>Đang đọc Google Sheet «Hộp duyệt Yupi»…</span></div>
+  <nav class="tabs" id="tabs" aria-label="Chọn bảng">
+    <button data-v="duyet" aria-pressed="true">✅ Duyệt<i id="n_duyet"></i></button>
+    <button data-v="don" aria-pressed="false">🗂 Đơn khách sỉ<i id="n_don"></i></button>
+    <button data-v="max" aria-pressed="false">🤖 Max đang làm<i id="n_max"></i></button>
+  </nav>
+  <main id="view"><div class="empty">Đang tải…</div></main>
+  <p class="note">Bảng này đọc Google Sheet do laptop ghi (30 giây–1 phút làm mới). Bấm nút → ghi 1 dòng vào tab «Lệnh», laptop làm như bấm trên trang duyệt, khoảng 10–20 giây. Không dán link bảng này hay link sheet vào nhóm Yupi Kho.</p>
+</div>
+
+<script>
+const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M", SV="Google Sheets";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let mcp=null, data={tt:[],duyet:[],don:[],max:[],lenh:[]}, view="duyet", pending={}, open={}, lastOk=null;
+try{$("#ai").value=localStorage.getItem("ai")||"";view=localStorage.getItem("tab")||"duyet"}catch(e){}
+$("#ai").onchange=()=>{try{localStorage.setItem("ai",$("#ai").value)}catch(e){}};
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{view=b.dataset.v;try{localStorage.setItem("tab",view)}catch(e){};render()});
+
+function rowsOf(res){
+  const p=res&&(res.payload??res.structuredContent);
+  let v=p&&p.values;
+  if(!v&&res&&res.content){for(const c of res.content){if(c.type==="text"){try{const j=JSON.parse(c.text);if(j.values){v=j.values;break}}catch(e){}}}}
+  return v||[];
+}
+function objs(v){if(!v.length)return[];const h=v[0];return v.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]??"");return o})}
+function vnNow(){const f=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});return f.format(new Date()).replace("T"," ")}
+function minsSince(s){if(!s)return 1e9;const now=vnNow();const a=new Date(now.replace(" ","T")+"Z"),b=new Date(s.replace(" ","T")+"Z");return (a-b)/60000}
+
+const TABS={tt:"Trạng thái!A1:B20",duyet:"Duyệt!A1:H300",don:"Đơn!A1:N300",max:"Max!A1:H400",lenh:"Lệnh!A1:H300"};
+function watchAll(){
+  for(const [k,range] of Object.entries(TABS)){
+    mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range},ev=>{
+      if(ev.type==="data"){const v=rowsOf(ev.result);data[k]=k==="tt"?v:objs(v);if(k==="tt")lastOk=ev.result.cache?.storedAt||Date.now();render()}
+      else showErr(ev.error)
+    },{refetchInterval:k==="lenh"?8000:40000,cache:{staleTime:20000}});
+  }
+}
+function showErr(e){const m={needs_reauth:"Kết nối Google Sheets cần đăng nhập lại (mục Kết nối của Claude).",server_not_connected:"Chưa bật kết nối Google Sheets cho trang này.",not_granted:"Chưa cho phép trang dùng Google Sheets.",rate_limited:"Google đang giới hạn, thử lại sau ít phút."};
+  $("#st").className="st bad";$("#st").innerHTML='<span class="dot bad"></span><span>'+esc(m[e?.code]||("Không đọc được sheet: "+(e?.message||e?.code||"lỗi")))+'</span>'}
+
+function status(){
+  const tt=Object.fromEntries((data.tt||[]).slice(1).map(r=>[r[0],r[1]]));const cap=tt["Cập nhật lúc"];
+  if(!cap){return}
+  const m=minsSince(cap);const st=$("#st");
+  if(m>2.5){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>Laptop tắt hoặc mất mạng</b> – cập nhật lần cuối lúc '+esc(cap.slice(11,16))+' ngày '+esc(cap.slice(8,10)+"/"+cap.slice(5,7))+'. Bấm nút lúc này sẽ chờ laptop bật lại.</span>'}
+  else{st.className="st";st.innerHTML='<span class="dot ok"></span><span>Laptop đang bật · cập nhật '+esc(cap.slice(11,19))+'</span><span class="r">'+(tt["Chế độ"]==="thu"?"🧪 Bản thử – nhóm test":"Chạy thật")+'</span>'}
+}
+function lenhKq(key){const l=(data.lenh||[]).filter(x=>x["Mã đề xuất"]+"|"+x["Loại"]+"|"+x["Nhóm"]===key).pop();return l}
+
+async function send(loai,nhom,mid,nd,key){
+  const ai=$("#ai").value;if(!ai){$("#ai").focus();toastIn(key,"Chọn tên người bấm ở trên trước nha","bad");return}
+  if(!mcp){toastIn(key,"Chưa kết nối Google Sheets","bad");return}
+  pending[key]={luc:vnNow(),txt:"⏳ Đã gửi lệnh, laptop đang làm…"};render();
+  try{await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:"Lệnh!A1",values:[[vnNow(),ai,loai,nhom,mid,nd||""]]},{cache:false});
+    await mcp.invalidate(SV,"get_values",{spreadsheetId:SID,range:TABS.lenh});
+  }catch(e){pending[key]={txt:"⚠️ Không ghi được lệnh: "+(e.message||e.code),bad:true};render()}
+}
+function toastIn(key,t,c){pending[key]={txt:t,bad:c==="bad"};render()}
+function resLine(key){
+  const p=pending[key];const l=lenhKq(key);
+  if(l&&l["Trạng thái"]&&(!p||!p.luc||l["Lúc"]>=p.luc)){const ok=l["Trạng thái"]==="xong";return '<div class="res '+(ok?"ok":"bad")+'">'+esc(l["Kết quả"])+'</div>'}
+  if(p)return '<div class="res'+(p.bad?" bad":"")+'">'+esc(p.txt)+'</div>';return ""}
+
+// ---------- Duyệt ----------
+const TTN={can_duyet:["🔴 Cần duyệt","hot"],chua_co:["🟠 Chưa có đề xuất","warn"],dang_soan:["⏳ Max đang soạn",""],da_duyet:["✅ Đã duyệt","ok"],bo_qua:["⏭ Bỏ qua",""],xong:["· Xong",""]};
+function vDuyet(){
+  const ds=(data.duyet||[]).filter(d=>["can_duyet","chua_co","dang_soan"].includes(d["Trạng thái"]));
+  if(!ds.length)return '<div class="empty">🎉 Không có tin nào cần duyệt</div>';
+  return '<div class="list">'+ds.map((d,i)=>{const mid=d["Mã đề xuất"],nhom=d["Nhóm khách"],key=mid+"|"+"duyet"+"|"+nhom,t=TTN[d["Trạng thái"]]||[d["Trạng thái"],""];const isMay=mid.startsWith("may:");
+    const o=open[i]||"";let a="";
+    if(d["Trạng thái"]==="can_duyet"&&mid){
+      if(o==="xn")a='<div class="confirm">Gửi tin này cho khách «'+esc(nhom.split("|")[0])+'»?<button class="b-ok" onclick="doDuyet('+i+')">Gửi khách</button><button class="b-soft" onclick="setO('+i+',\'\')">Thôi</button></div>';
+      else if(o==="sua")a='<label class="lbl" for="sua'+i+'">Ý cần sửa (Max soạn lại)</label><textarea id="sua'+i+'"></textarea><div class="acts"><button class="b-acc" onclick="doSua('+i+')">Gửi ý sửa</button><button class="b-soft" onclick="setO('+i+',\'\')">Thôi</button></div>';
+      else a='<div class="acts"><button class="b-ok" onclick="setO('+i+',\'xn\')">✅ Duyệt</button><button class="b-soft" onclick="setO('+i+',\'sua\')">✏️ Sửa</button><button class="b-soft" onclick="doBo('+i+')">⏭ Bỏ qua</button></div>';
+    } else if(d["Trạng thái"]==="chua_co"&&!isMay) a='<div class="acts"><button class="b-acc" onclick="doXuLy('+i+')">🔎 Nhờ Max soạn đề xuất</button></div>';
+    return '<article class="card'+(d["Trạng thái"]==="can_duyet"?" hot":"")+'"><div class="top"><b>👥 '+esc(nhom)+'</b><span class="pill '+t[1]+'">'+t[0]+'</span></div><div class="time">'+esc((d["Lúc"]||"").slice(5,16))+'</div>'+
+      (d["Tin khách (gần nhất)"]?'<div class="lbl">💬 Tin nhắn</div><pre class="msg">'+esc(d["Tin khách (gần nhất)"])+'</pre>':'')+
+      (d["Tin sẽ nhắn"]?'<div class="lbl">✉️ Tin sẽ nhắn khách</div><pre class="msg">'+esc(d["Tin sẽ nhắn"])+'</pre>':'')+
+      (d["Đề xuất của Max"]?'<details><summary>📝 Xem đủ đề xuất của Max</summary><pre>'+esc(d["Đề xuất của Max"])+'</pre></details>':'')+
+      a+resLine(key)+resLine(mid+"|bo|"+nhom)+resLine(mid+"|sua|"+nhom)+resLine("|xu_ly|"+nhom)+'</article>'}).join("")+'</div>'
+}
+function setO(i,v){open[i]=v;render()}
+function dI(i){return (data.duyet||[]).filter(d=>["can_duyet","chua_co","dang_soan"].includes(d["Trạng thái"]))[i]}
+function doDuyet(i){const d=dI(i);open[i]="";send("duyet",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|duyet|"+d["Nhóm khách"])}
+function doBo(i){const d=dI(i);send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
+function doSua(i){const d=dI(i);const t=($("#sua"+i).value||"").trim();if(!t)return;open[i]="";send("sua",d["Nhóm khách"],d["Mã đề xuất"],t,d["Mã đề xuất"]+"|sua|"+d["Nhóm khách"])}
+function doXuLy(i){const d=dI(i);send("xu_ly",d["Nhóm khách"],"","","|xu_ly|"+d["Nhóm khách"])}
+
+// ---------- Đơn ----------
+const BUOC=[["khach_hoi","💬 Khách hỏi"],["bao_gia","💰 Đã báo giá"],["chot","🧾 Chốt · lên phiếu"],["cho_ck","💳 Chờ CK"],["ghtk","🚚 Đã tạo GHTK"],["hoan_thanh","✅ Hoàn thành"]];
+const k=v=>v===""||v==null?"—":Number(v).toLocaleString("vi-VN")+"k";
+function vDon(){
+  const tt=Object.fromEntries((data.tt||[]).slice(1).map(r=>[r[0],r[1]]));const ds=data.don||[];
+  let s='<div class="kpi"><div><b>'+k(tt["Lãi thực tế hôm nay (k)"])+'</b><span>Lãi thực tế hôm nay ('+esc(tt["Đơn hôm nay"]||0)+' đơn)</span></div><div><b>'+k(tt["Lãi theo Kiot (k)"])+'</b><span>Lãi theo Kiot</span></div><div class="'+(+tt["Đơn lệch Kiot"]?"w":"")+'"><b>'+esc(tt["Đơn lệch Kiot"]||0)+'</b><span>Đơn lệch Kiot</span></div></div>';
+  if(!ds.length)return s+'<div class="empty">Chưa có đơn khách sỉ trên bảng</div>';
+  for(const [id,ten] of BUOC){const l=ds.map((d,i)=>[d,i]).filter(([d])=>d["Bước"]===id);if(!l.length)continue;
+    s+='<section class="sec"><div class="lbl">'+ten+' · '+l.length+'</div><div class="list">'+l.map(([d,i])=>{const key="|nhan|"+d["Nhóm khách"];const lech=(d["Mã lệch (mã|vốn Kiot k|giá NCC k|NCC)"]||"").split(";").filter(x=>x);
+      return '<article class="card'+(d["Gấp"]?" gap":"")+'"><div class="top"><b>👥 '+esc(d["Nhóm khách"])+'</b><span class="time">'+esc((d["Lúc cuối"]||"").slice(5,16))+'</span></div>'+
+      (d["Chi tiết"]?'<div class="note">🧾 '+esc(d["Chi tiết"])+'</div>':'')+(d["Tin khách cuối"]?'<div class="note">💬 '+esc(d["Tin khách cuối"])+'</div>':'')+
+      (d["Gấp"]?'<span class="pill warn">⚠️ '+esc(d["Gấp"])+'</span>':'')+
+      (d["Lãi Kiot (k)"]!==""?'<div class="lai"><div><span>Dự kiến</span><b>'+k(d["Lãi dự kiến (k)"])+'</b></div><div><span>Thực tế</span><b>'+k(d["Lãi thực tế (k)"])+'</b></div><div><span>Kiot</span><b>'+k(d["Lãi Kiot (k)"])+'</b></div></div>'+
+        (d["Lệch Kiot (k)"]!==""&&Math.abs(+d["Lệch Kiot (k)"])>=1?'<span class="pill bad">Kiot lệch '+(+d["Lệch Kiot (k)"]>0?"+":"")+k(d["Lệch Kiot (k)"])+'</span>':(d["Lệch Kiot (k)"]!==""?'<span class="pill ok">✓ khớp Kiot</span>':'')):'')+
+      lech.map((x,j)=>{const p=x.split("|");const kk=d["Phiếu"]+"|sua_von|"+d["Nhóm khách"];const oo=open["v"+i+"_"+j];
+        return '<div class="note">'+esc(p[0])+': vốn Kiot '+k(p[1])+' ≠ giá NCC đặt '+k(p[2])+' ('+esc(p[3])+')</div>'+(oo?'<div class="confirm">Sửa giá vốn Kiot '+esc(p[0])+' → '+k(p[2])+'? Bấm là sửa Kiot luôn.<button class="b-warn" onclick="doVon('+i+','+j+')">Sửa ngay</button><button class="b-soft" onclick="open[\'v'+i+'_'+j+'\']=0;render()">Thôi</button></div>':'<div class="acts"><button class="b-warn" onclick="open[\'v'+i+'_'+j+'\']=1;render()">🧾 Sửa vốn Kiot → '+k(p[2])+'</button></div>')+resLine(kk)}).join("")+
+      '<div class="top"><span class="pill '+(d["Người nhận"]?"ok":"")+'">'+(d["Người nhận"]?"🙋 "+esc(d["Người nhận"])+(d["Nhận lúc"]?" · "+esc(d["Nhận lúc"].slice(11,16)):""):"Chưa ai nhận")+'</span>'+(d["Người nhận"]?'':'<button class="b-acc" style="border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer" onclick="doNhan('+i+')">🙋 Nhận</button>')+'</div>'+resLine(key)+'</article>'}).join("")+'</div></section>'}
+  return s
+}
+function doNhan(i){const d=data.don[i];send("nhan",d["Nhóm khách"],"","","|nhan|"+d["Nhóm khách"])}
+function doVon(i,j){const d=data.don[i];const p=d["Mã lệch (mã|vốn Kiot k|giá NCC k|NCC)"].split(";").filter(x=>x)[j].split("|");open["v"+i+"_"+j]=0;send("sua_von",d["Nhóm khách"],d["Phiếu"],p[0]+"|"+(+p[2]*1000),d["Phiếu"]+"|sua_von|"+d["Nhóm khách"])}
+
+// ---------- Max ----------
+const AI={bot:"Bot",claude:"Claude",lich:"Lịch"};
+function vMax(){
+  const m=data.max||[];const g=x=>m.filter(r=>r["Mục"]===x);
+  const nay=g("nay"),may=g("may"),can=g("can"),dang=g("dang"),lich=g("lich"),xong=g("xong");
+  let s='<section class="sec"><div class="lbl">Ngay lúc này</div><div class="grid6">'+nay.map(n=>'<div class="card"><div class="top"><b><span class="dot '+(n["Trạng thái"]==="lam"?"ok":n["Trạng thái"]==="cho"?"warn":"")+'"></span> '+esc(n["Tiêu đề"])+'</b><span class="time">'+esc(n["Lúc"])+'</span></div><div class="note">'+esc(n["Chi tiết"])+'</div></div>').join("")+'</div></section>';
+  s+='<section class="sec"><div class="lbl">Tình trạng máy</div><div class="chips">'+may.map(x=>'<span><span class="dot '+(x["Trạng thái"]==="ok"?"ok":"bad")+'"></span>'+esc(x["Tiêu đề"])+(x["Chi tiết"]?' <small class="note">'+esc(x["Chi tiết"])+'</small>':'')+'</span>').join("")+'</div></section>';
+  s+='<section class="sec"><div class="lbl">🔴 Cần người · '+can.length+'</div>'+(can.length?'<div class="list">'+can.map((c,i)=>{const key=c["Mã"]+"|tra_loi|"+chatOf(c);return '<article class="card gap"><div class="top"><b>'+esc(c["Tiêu đề"])+'</b><span class="pill '+(c["Trạng thái"]==="loi"?"bad":c["Trạng thái"]==="hoi"?"warn":"hot")+'">'+(c["Trạng thái"]==="loi"?"Lỗi máy":c["Trạng thái"]==="hoi"?"Bot hỏi":"Chờ duyệt")+'</span></div><div class="time">'+esc((c["Lúc"]||"").slice(5,16))+' · '+esc(c["Nơi"])+'</div>'+(c["Chi tiết"]?'<div class="note">'+esc(c["Chi tiết"])+'</div>':'')+
+    (c["Trạng thái"]==="hoi"&&c["Mã"]?(open["h"+i]?'<label class="lbl" for="tl'+i+'">Trả lời bot</label><textarea id="tl'+i+'"></textarea><div class="acts"><button class="b-acc" onclick="doTl('+i+')">Gửi trả lời</button><button class="b-soft" onclick="open[\'h'+i+'\']=0;render()">Thôi</button></div>':'<div class="acts"><button class="b-soft" onclick="open[\'h'+i+'\']=1;render()">💬 Trả lời</button></div>'):"")+resLine(key)+'</article>'}).join("")+'</div>':'<div class="note">Không có gì cần người 🎉</div>')+'</section>';
+  s+='<section class="sec"><div class="lbl">Đang làm · '+dang.length+'</div><div class="card">'+(dang.length?dang.map(d=>'<div class="row"><span class="t">'+esc(d["Lúc"])+'</span><span class="pill">'+(AI[d["Ai"]]||"")+'</span><span class="x">'+esc(d["Tiêu đề"])+(d["Chi tiết"]?' · <span class="note">'+esc(d["Chi tiết"])+'</span>':'')+'</span></div>').join(""):'<div class="note">Không có việc nào đang chạy</div>')+'</div></section>';
+  s+='<section class="sec"><div class="lbl">Sắp chạy</div><div class="card">'+lich.map(l=>'<div class="row"><span class="t">'+esc((l["Lúc"]||"").slice(11,16))+'</span><span class="x">'+esc(l["Tiêu đề"])+' <span class="note">'+esc(l["Chi tiết"])+'</span></span></div>').join("")+'</div></section>';
+  s+='<section class="sec"><div class="lbl">Xong hôm nay · '+xong.length+'</div><div class="card">'+(xong.length?xong.map(x=>'<div class="row"><span class="t">'+esc(x["Lúc"])+'</span><span class="pill">'+(AI[x["Ai"]]||"")+'</span><span class="x">'+esc(x["Tiêu đề"])+'</span></div>').join(""):'<div class="note">Chưa có</div>')+'</div></section>';
+  return s
+}
+function doTl(i){const c=(data.max||[]).filter(r=>r["Mục"]==="can")[i];const t=($("#tl"+i).value||"").trim();if(!t)return;open["h"+i]=0;
+  const chat=chatOf(c);send("tra_loi",chat,c["Mã"],t,c["Mã"]+"|tra_loi|"+chat)}
+function chatOf(c){return c["Nơi"].includes("Trợ lý Max")?"-5598183684":c["Nơi"].includes("Zalo Gia Di")?"-1003986855047":""}
+
+function render(){
+  status();
+  const nd=(data.duyet||[]).filter(d=>d["Trạng thái"]==="can_duyet").length,nc=(data.max||[]).filter(r=>r["Mục"]==="can").length,ng=(data.don||[]).filter(d=>d["Gấp"]).length;
+  $("#n_duyet").textContent=nd?"· "+nd:"";$("#n_don").textContent=ng?"· "+ng+" gấp":"";$("#n_max").textContent=nc?"· "+nc:"";
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===view));
+  const a=document.activeElement;if(a&&a.tagName==="TEXTAREA"&&a.value)return;
+  $("#view").innerHTML=view==="duyet"?vDuyet():view==="don"?vDon():vMax();
+}
+render();
+(async()=>{
+  mcp=await window.claude?.use?.("mcp");
+  if(!mcp){$("#st").className="st bad";$("#st").innerHTML='<span class="dot bad"></span><span>Trang này cần kết nối Google Sheets của Claude (tài khoản yupiperfume). Mở bằng Claude khi đã đăng nhập và cho phép kết nối.</span>';return}
+  watchAll();
+  setInterval(status,30000);
+})();
+</script>
+
+</body></html>
