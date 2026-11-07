@@ -30,9 +30,11 @@ select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);backgrou
 .pan,.gt{display:flex;flex-direction:column;gap:7px;background:var(--panel);border-radius:14px;padding:10px}
 .pan input,textarea{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);width:100%}
 .goi{display:flex;flex-direction:column;gap:4px}.g{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}
+.tk{display:flex;flex-direction:column;gap:4px;padding:6px 0}.tkso{font-family:var(--display);font-weight:900;font-size:56px;text-align:center;color:var(--ok);line-height:1}.tkso span{font-size:28px;color:var(--muted)}
+.tkbt{display:flex;flex-direction:column;gap:8px}
 .kq{font-size:14px;padding:10px 12px;border-radius:12px;background:var(--panel)}
 .kq.d{background:var(--ok-soft)}.kq.s{background:var(--late-soft)}
-.nav{display:flex;justify-content:space-between;gap:8px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px}.nav .bt{white-space:nowrap;padding:10px 14px}.nav .meta{flex:1;text-align:center;font-size:12px}
 .bt{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--gold);color:#14213d;cursor:pointer}
 .bt.ghost{background:var(--panel);color:var(--fg)}
 .meta{font-size:12.5px;color:var(--muted)}
@@ -56,7 +58,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let mcp,Q=[],A=[],W=[],cur=0,ngay="",moi={},KIOT=[];
 try{const a=localStorage.getItem("yupi_ai");if(a)$("#ai").value=a}catch(_){}
-$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};cur=0;render()};
+$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};cur=0;view=null;luyen=null;render()};
 function vnNow(){return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace("T"," ")}
 const homNay=()=>vnNow().slice(0,10);
 let IM={};
@@ -64,20 +66,26 @@ const anh=id=>String(id).startsWith("img:")?(window.yupiAnh?window.yupiAnh(Strin
 const LAM=["đúng","sai","không có"];
 function traLoi(k){const ai=$("#ai").value;if(moi[k+"|"+ai])return moi[k+"|"+ai];return A.filter(r=>r[2]===k&&r[1]===ai&&LAM.includes(r[4])).pop()}
 function daGiai(k){const ai=$("#ai").value;return A.some(r=>r[2]===k&&r[1]===ai&&String(r[6]||"").trim())||moi["gt|"+k+"|"+ai]}
-let mo=null,goi=[];
+let mo=null,goi=[],view=null,luyen=null,lkq={};
+function giaiCuoi(k){const ai=$("#ai").value;const x=A.filter(r=>r[2]===k&&r[1]===ai&&String(r[6]||"").trim()).pop();return x?String(x[6]):""}
 const kd=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[’']/g,"'");
 function timMa(q){const w=kd(q).split(/\s+/).filter(Boolean);if(!w.length)return[];const o=[];for(const x of KIOT){const t=x.k;if(w.every(z=>t.includes(z))){o.push(x);if(o.length>=8)break}}return o}
 function render(){
+  const ae=document.activeElement;if(ae&&/TEXTAREA|INPUT/.test(ae.tagName)&&$("#quiz").contains(ae)&&ae.value)return;   // dang go giai thich/ma -> khong ve lai
   const ds=Q.filter(r=>r[0]===ngay);const ai=$("#ai").value;
   if(!ds.length){$("#quiz").innerHTML='<div class="empty">Hôm nay chưa có câu hỏi – laptop soạn lúc 8h30.</div>';return}
   if(!ai){$("#quiz").innerHTML='<div class="empty">👆 Chọn tên người làm quiz ở trên trước nha.</div>';return}
+  const xongHet=ds.every(x=>traLoi(x[7]));
+  if(view===null&&A.length)view=xongHet?"tk":"cau";
+  if(luyen)return veLuyen(ds);
+  if(view==="tk"&&xongHet)return veTongKet(ds);
   cur=Math.min(cur,ds.length-1);const r=ds[cur],k=r[7],ops=String(r[3]||"").split(" || ").filter(Boolean),t=traLoi(k);
   const dots=ds.map((x,i)=>{const tt=traLoi(x[7]);return `<span class="dot${i===cur?" on":""}${tt?(tt[4]==="đúng"?" d":tt[4]==="không có"?" k":" s"):""}" data-i="${i}">${i+1}</span>`}).join("");
   const xong=ds.filter(x=>traLoi(x[7])),dung=xong.filter(x=>traLoi(x[7])[4]==="đúng").length;
   let kq="";
   if(t){if(t[4]==="không có")kq=`<div class="kq k">📝 Đã ghi mã đúng: <b>${esc(t[7])}</b>${t[8]?" · <i>mã mới</i>":""}<br><span class="meta">Đáp án cũ «${esc(r[4])}» sẽ bị bỏ khỏi bộ câu. Laptop lưu ảnh → mã đúng cho Max.</span></div>`;
     else kq=`<div class="kq ${t[4]==="đúng"?"d":"s"}">${t[4]==="đúng"?"✅ Đúng rồi!":"❌ Chưa đúng."} Đáp án: <b>${esc(r[4])}</b><br><span class="meta">Nguồn: ${esc(r[5])}${r[6]?" · Max từng đoán: "+esc(r[6]):""}</span></div>`;
-    kq+=daGiai(k)?`<div class="meta">💡 Đã lưu giải thích cho Max.</div>`:`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max (không bắt buộc) – dấu hiệu nhận biết chai này</label><textarea id="gtx" rows="2" placeholder="vd: nắp đen hình mũ, nơ khăn lụa = Twilly · hộp ghi 30ml · khác Terre d'Hermès ở chai vuông hồng"></textarea><button class="bt" id="gtl">Lưu giải thích</button></div>`}
+    {const cu=giaiCuoi(k);kq+=`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max ${cu?"(đã lưu – sửa được)":"(không bắt buộc) – dấu hiệu nhận biết chai này"}</label><textarea id="gtx" rows="2" placeholder="vd: nắp đen hình mũ, nơ khăn lụa = Twilly · hộp ghi 30ml · khác Terre d'Hermès ở chai vuông hồng">${esc(cu)}</textarea><button class="bt" id="gtl">${cu?"Lưu sửa giải thích":"Lưu giải thích"}</button>${moi["gt|"+k+"|"+ai]?'<span class="meta">✔ Đã lưu</span>':""}</div>`}}
   const khong=!t&&mo===k?`<div class="pan"><label class="meta" for="mx">Gõ mã đúng (gợi ý từ KiotViet Yupi):</label><input id="mx" autocomplete="off" placeholder="vd: twilly 30, libre chiết…"><div class="goi" id="goi"></div>
      <label class="meta" for="gtx2">💡 Giải thích cho Max (không bắt buộc)</label><textarea id="gtx2" rows="2" placeholder="Dấu hiệu nhận biết: màu chai, nắp, chữ trên hộp, dung tích…"></textarea>
      <div class="nav"><button class="bt ghost" id="huy">Hủy</button><button class="bt" id="guim">Gửi mã đúng</button></div></div>`:"";
@@ -86,7 +94,7 @@ function render(){
    <div class="q">Câu ${cur+1}/${ds.length}: Chai trong ảnh khách gửi là mã nào?</div>
    <div class="opts">${ops.map(o=>{let c="";if(t){if(o===r[4]&&t[4]!=="không có")c=" dung";else if(o===t[3])c=" sai"}return `<button class="op${c}" ${t?"disabled":""} data-o="${esc(o)}">${esc(o)}</button>`}).join("")}
    <button class="op khong${t&&t[4]==="không có"?" chon":""}" ${t?"disabled":""} id="khong">❌ Không có mã đúng</button></div>${khong}${kq}
-   <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Câu trước</button>${xong.length===ds.length?`<span class="meta" style="align-self:center">🎯 Xong: ${dung}/${xong.filter(x=>traLoi(x[7])[4]!=="không có").length} đúng</span>`:""}<button class="bt" id="sau" ${cur<ds.length-1?"":"disabled"}>Câu sau ›</button></div>`;
+   <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Câu trước</button>${xong.length===ds.length?`<span class="meta" style="align-self:center">🎯 Xong: ${dung}/${xong.filter(x=>traLoi(x[7])[4]!=="không có").length} đúng</span>`:""}${cur<ds.length-1?`<button class="bt" id="sau">Câu sau ›</button>`:`<button class="bt" id="xemkq">Xem kết quả ›</button>`}</div>`;
   $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
   $("#quiz").querySelectorAll(".op:not(.khong)").forEach(b=>b.onclick=()=>chon(r,b.dataset.o));
   const kh=$("#khong");if(kh)kh.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
@@ -96,7 +104,33 @@ function render(){
     mx.oninput=ve;$("#huy").onclick=()=>{mo=null;render()};
     $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=chonMa&&chonMa.h===v||KIOT.some(x=>x.h===v);guiKhong(r,v,!laKiot,($("#gtx2").value||"").trim())}}
   const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
-  const tr=$("#truoc"),sa=$("#sau");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render()};
+  const tr=$("#truoc"),sa=$("#sau"),xk=$("#xemkq");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render()};if(xk)xk.onclick=()=>{view="tk";render();scrollTo(0,0)};
+}
+
+function veTongKet(ds){
+  const tl=ds.map(x=>[x,traLoi(x[7])]);const cham=tl.filter(([x,t])=>t[4]!=="không có"),dung=cham.filter(([x,t])=>t[4]==="đúng");
+  const sai=tl.filter(([x,t])=>t[4]==="sai"),khong=tl.filter(([x,t])=>t[4]==="không có");
+  const homNayLa=ngay===homNay();
+  $("#quiz").innerHTML=`<div class="tk"><div class="tkso">${dung.length}<span>/${cham.length}</span></div><div class="q" style="text-align:center">câu đúng${khong.length?` · ${khong.length} câu đã sửa mã`:""}</div>
+   ${homNayLa?`<div class="meta" style="text-align:center">✅ Xong quiz hôm nay. Hẹn 8h30 mai có 5 câu mới.</div>`:""}</div>
+   ${sai.length?`<h2 style="font-size:16px">❌ Câu chọn sai</h2>`+sai.map(([x,t])=>`<div class="kq s"><b>Câu ${ds.indexOf(x)+1}</b> · chị chọn: ${esc(t[3])}<br>Đáp án đúng: <b>${esc(x[4])}</b></div>`).join(""):`<div class="kq d">🎉 Không sai câu nào.</div>`}
+   ${khong.length?`<h2 style="font-size:16px">📝 Câu đã sửa mã</h2>`+khong.map(([x,t])=>`<div class="kq k"><b>Câu ${ds.indexOf(x)+1}</b> · mã đúng: <b>${esc(t[7])}</b>${t[8]?" (mã mới)":""}</div>`).join(""):""}
+   <div class="tkbt">${sai.length?`<button class="bt" id="lamlai">🔁 Làm lại câu sai</button>`:""}<button class="bt ghost" id="xemlai">👀 Xem lại ${ds.length} câu</button><a class="bt ghost" href="./" style="text-decoration:none;text-align:center">‹ Về Bảng tổng</a></div>`;
+  const ll=$("#lamlai");if(ll)ll.onclick=()=>{luyen={ds:sai.map(([x])=>x),i:0};lkq={};render();scrollTo(0,0)};
+  $("#xemlai").onclick=()=>{view="cau";cur=0;render();scrollTo(0,0)};
+}
+function veLuyen(ds){
+  const L=luyen,r=L.ds[L.i],ops=String(r[3]||"").split(" || ").filter(Boolean),c=lkq[r[7]];
+  $("#quiz").innerHTML=`<div class="meta">🔁 Làm lại câu sai ${L.i+1}/${L.ds.length} (chỉ để luyện, không tính điểm)</div>
+   <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" decoding="async">
+   <div class="q">Câu ${ds.indexOf(r)+1}: Chai trong ảnh khách gửi là mã nào?</div>
+   <div class="opts">${ops.map(o=>{let k="";if(c){if(o===r[4])k=" dung";else if(o===c)k=" sai"}return `<button class="op${k}" ${c?"disabled":""} data-o="${esc(o)}">${esc(o)}</button>`}).join("")}</div>
+   ${c?`<div class="kq ${c===r[4]?"d":"s"}">${c===r[4]?"✅ Đúng rồi!":"❌ Chưa đúng."} Đáp án: <b>${esc(r[4])}</b></div>`:""}
+   <div class="nav"><button class="bt ghost" id="thoat">‹ Tổng kết</button>${L.i<L.ds.length-1?`<button class="bt" id="lsau" ${c?"":"disabled"}>Câu sau ›</button>`:`<button class="bt" id="lxong" ${c?"":"disabled"}>Xong ›</button>`}</div>`;
+  $("#quiz").querySelectorAll(".op").forEach(b=>b.onclick=()=>{lkq[r[7]]=b.dataset.o;render()});
+  $("#thoat").onclick=()=>{luyen=null;view="tk";render()};
+  const ls=$("#lsau");if(ls)ls.onclick=()=>{L.i++;render();scrollTo(0,0)};
+  const lx=$("#lxong");if(lx)lx.onclick=()=>{luyen=null;view="tk";render();scrollTo(0,0)};
 }
 async function ghiDong(row){await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:[row]});A.push(row)}
 async function chon(r,o){
@@ -113,8 +147,8 @@ async function guiKhong(r,ma,moiMa,gt){
 }
 async function luuGiai(r,gt){
   if(!gt){$("#gtx").focus();return}
-  const ai=$("#ai").value,k=r[7];const row=[vnNow(),ai,k,"","giải thích","",gt,"",""];moi["gt|"+k+"|"+ai]=1;render();
-  try{await ghiDong(row)}catch(e){delete moi["gt|"+k+"|"+ai]}
+  const ai=$("#ai").value,k=r[7];const row=[vnNow(),ai,k,"","giải thích","",gt,"",""];
+  try{await ghiDong(row);moi["gt|"+k+"|"+ai]=1}catch(e){}
   render();
 }
 function dauTuan(s){const d=new Date(s.slice(0,10)+"T00:00:00Z");const w=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-w);return d.toISOString().slice(0,10)}
