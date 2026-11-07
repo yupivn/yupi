@@ -69,7 +69,7 @@ a.card:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
       <div class="go"><span>Mở bảng</span><span>→</span></div>
     </a>
     <a class="card" href="quiz.html">
-      <div class="top"><span class="ic">🧠</span><div><h2>Quiz Max</h2><p>5 câu/ngày: ảnh khách thật, chọn đúng mã. Chọn đúng thì Max học thêm</p></div></div>
+      <div class="top"><span class="ic">🧠</span><div><h2>Dạy Max</h2><p>Ảnh khách thật + mã Max đoán: bấm Max đúng / Max sai để dạy Max</p></div></div>
       <div class="counts" id="c-quiz"><span class="c">Đang tải…</span></div>
       <div class="go"><span>Làm quiz</span><span>→</span></div>
     </a>
@@ -136,7 +136,7 @@ function onGhtk(rows){const t=new Date();t.setHours(0,0,0,0);
   fill("#c-ghtk",rows.length?`<span class="c"><b>${act.length}</b>đơn đang đi</span>`+chip(late.length,"trễ hẹn","bad"):`<span class="c">Chưa có đơn (chờ máy ghi tab GHTK)</span>`);}
 function onSot(rows){rows=rows.filter(r=>!/^xong/.test(r[6]||""));const n=k=>rows.filter(r=>r[2]===k).length;
   fill("#c-sot",`<span class="c ${rows.length?"bad":"ok"}"><b>${rows.length}</b>tin chờ xử lý</span>`+(rows.length?chip(n("Chưa lên đơn"),"chưa lên đơn","bad"):""));}
-function onQuiz(rows){const vn=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());const n=rows.filter(r=>r[0]===vn).length;fill("#c-quiz",n?`<span class="c wait"><b>${n}</b>câu hôm nay</span>`:`<span class="c">Chưa có câu hôm nay (8h30)</span>`);}
+function onQuiz(rows){const vn=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());const n=rows.filter(r=>r[0]===vn).length;fill("#c-quiz",n?`<span class="c wait"><b>${n}</b>ảnh dạy hôm nay</span>`:`<span class="c">Chưa có ảnh hôm nay (8h30)</span>`);}
 function onNcc(rows){
   const chuaNhap=rows.filter(r=>!/^da nhap/.test(norm(r[13]))).length;
   const chuaVon=rows.filter(r=>{const l=norm(r[11]);return !l||/xem kt_/.test(l);}).length;

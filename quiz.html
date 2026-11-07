@@ -1,176 +1,190 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Quiz Max</title>
+<title>Dạy Max</title>
 <script src="shim.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--panel:#e9edf6;--gold:#c9a227;--late:#c8372d;--late-soft:#fbe5e2;--ok:#1f8a5e;--ok-soft:#dcf3e8;--blue:#2b5cb8;--blue-soft:#e4ecfb;
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--panel:#e9edf6;--gold:#c9a227;--late:#c8372d;--late-soft:#fbe5e2;--ok:#1f8a5e;--ok-soft:#dcf3e8;--blue:#2b5cb8;--blue-soft:#e4ecfb;--warn:#a86a00;--warn-soft:#fdf0d5;
   --display:"Nunito","Be Vietnam Pro",system-ui,sans-serif;--body:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;--warn:#f0c060;--warn-soft:#3a2e14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;--warn:#f0c060;--warn-soft:#3a2e14;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 90px max(16px,env(safe-area-inset-left))}
 .wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 h1{font-family:var(--display);font-weight:900;font-size:26px;margin:0}
 .sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
 select,button{font:inherit}
 select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.dots{display:flex;gap:6px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
 .dot{width:30px;height:30px;border-radius:99px;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--panel);color:var(--muted);border:2px solid transparent;cursor:pointer}
 .dot.on{border-color:var(--gold)}.dot.d{background:var(--ok-soft);color:var(--ok)}.dot.s{background:var(--late-soft);color:var(--late)}
-.img{width:100%;aspect-ratio:1/1;max-height:62vh;object-fit:contain;background:var(--panel);border-radius:14px}
-.q{font-weight:700;font-size:16px}
-.opts{display:flex;flex-direction:column;gap:8px}
-.op{text-align:left;border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:14px;padding:12px 14px;font-weight:600;cursor:pointer}
-.op:disabled{cursor:default}.op.dung{border-color:var(--ok);background:var(--ok-soft)}.op.sai{border-color:var(--late);background:var(--late-soft)}
-.op.khong{border-style:dashed;color:var(--late)}.op.khong.chon{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
-.dot.k{background:var(--blue-soft);color:var(--blue)}.kq.k{background:var(--blue-soft)}
+.img{width:100%;aspect-ratio:1/1;max-height:58vh;object-fit:contain;background:var(--panel);border-radius:14px}
+.doan{display:flex;flex-direction:column;gap:6px;background:var(--panel);border-radius:14px;padding:12px}
+.doan .lb{font-size:12.5px;color:var(--muted)}.doan .ma{font-weight:800;font-size:16.5px;line-height:1.3}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;border-radius:99px}
+.chac{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}.chac b{color:var(--fg)}
+.pv{font-size:13px;color:var(--muted)}.pv b{color:var(--fg);font-weight:600}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn)}
+.hai{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.op{border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:14px;padding:14px 10px;font-weight:800;font-size:15.5px;cursor:pointer}
+.op.dg{border-color:var(--ok);color:var(--ok)}.op.sa{border-color:var(--late);color:var(--late)}
+.op:disabled{opacity:.45;cursor:default}
 .pan,.gt{display:flex;flex-direction:column;gap:7px;background:var(--panel);border-radius:14px;padding:10px}
 .pan input,textarea{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);width:100%}
 .goi{display:flex;flex-direction:column;gap:4px}.g{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}
-.tk{display:flex;flex-direction:column;gap:4px;padding:6px 0}.tkso{font-family:var(--display);font-weight:900;font-size:56px;text-align:center;color:var(--ok);line-height:1}.tkso span{font-size:28px;color:var(--muted)}
-.tkbt{display:flex;flex-direction:column;gap:8px}
+.g.nhanh{border-style:dashed}
 .kq{font-size:14px;padding:10px 12px;border-radius:12px;background:var(--panel)}
 .kq.d{background:var(--ok-soft)}.kq.s{background:var(--late-soft)}
-.nav{display:flex;justify-content:space-between;align-items:center;gap:8px}.nav .bt{white-space:nowrap;padding:10px 14px}.nav .meta{flex:1;text-align:center;font-size:12px}
-.bt{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--gold);color:#14213d;cursor:pointer}
-.bt.ghost{background:var(--panel);color:var(--fg)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px}.nav .bt{white-space:nowrap;padding:10px 14px}
+.bt{border:0;border-radius:12px;padding:10px 16px;font-weight:700;background:var(--gold);color:#14213d;cursor:pointer;text-decoration:none;text-align:center}
+.bt.ghost{background:var(--panel);color:var(--fg)}.bt:disabled{opacity:.45;cursor:default}
+.bt.nho{padding:8px 12px;font-size:13.5px;white-space:nowrap}
 .meta{font-size:12.5px;color:var(--muted)}
+.tk{display:flex;flex-direction:column;gap:4px;padding:6px 0;text-align:center}.tkso{font-family:var(--display);font-weight:900;font-size:54px;color:var(--ok);line-height:1}
+.tkbt{display:flex;flex-direction:column;gap:8px}
+.het{text-align:center;font-weight:700;color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:12px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:12.5px}
 td.n{font-variant-numeric:tabular-nums;text-align:right}th.n{text-align:right}
 .pct{font-weight:800}
 .empty{text-align:center;color:var(--muted);padding:30px 10px}
-h2{font-family:var(--display);font-size:18px;margin:0}
+h2{font-family:var(--display);font-size:18px;margin:0}h3{font-size:14px;margin:6px 0 0}
+.li{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}.li:last-child{border-bottom:0}
 </style></head><body>
 <div class="wrap">
-  <div><h1>🧠 Quiz Max</h1><p class="sub" id="sub">Đang đọc…</p></div>
-  <select id="ai"><option value="">— Ai đang làm quiz —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
-  <div class="card" id="quiz"><div class="empty">Đang tải câu hỏi…</div></div>
-  <div class="card"><h2>📊 Tỉ lệ đúng theo tuần</h2><div id="tuan"></div></div>
-  <p class="meta">Mỗi ngày 5 câu, laptop soạn lúc 8h30 từ ảnh khách thật. Ưu tiên các câu Max từng đoán sai bị chị/anh Trường sửa mã. Chọn đúng thì máy lưu cặp ảnh → mã để Max nhận ra nhanh hơn lần sau.</p>
+  <div class="hd"><div><h1>🧠 Dạy Max</h1><p class="sub" id="sub">Đang đọc…</p></div><button class="bt nho" id="themTren">➕ Dạy thêm 5 ảnh</button></div>
+  <select id="ai"><option value="">— Ai đang dạy Max —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
+  <div class="card" id="quiz"><div class="empty">Đang tải ảnh…</div></div>
+  <div class="card"><h2>📊 Max học đến đâu</h2><div id="tuan"></div></div>
+  <p class="meta">Mỗi thẻ là 1 ảnh khách thật và mã Max đoán. Chị/anh chỉ cần bấm <b>Max đúng</b> hoặc <b>Max sai</b> (chọn mã đúng + ghi dấu hiệu nhận biết). Laptop lưu ngay ảnh → mã vào kho ảnh đã biết và bài học của Max. Ưu tiên ảnh Max từng đoán sai, ảnh Max chưa chắc (&lt; 80%) và các cặp dễ nhầm.</p>
 </div>
 <script>
 const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",SV="Google Sheets",TQ="Quiz",TT="Quiz trả lời",TW="Quiz tuần";
+const NGUOI=["Chị Phương","Anh Trường","Anh Luật"];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let mcp,Q=[],A=[],W=[],cur=0,ngay="",moi={},KIOT=[];
-try{const a=localStorage.getItem("yupi_ai");if(a)$("#ai").value=a}catch(_){}
-$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};cur=0;view=null;luyen=null;render()};
+let mcp,Q=[],A=[],W=[],KIOT=[],IM={},moi={},lo=null,cur=0,mo=null,goi=[],xong=false,daLoad={q:0,a:0};
+try{const a=localStorage.getItem("yupi_ai");if(a&&NGUOI.includes(a))$("#ai").value=a}catch(_){}
+$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};render()};
 function vnNow(){return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace("T"," ")}
 const homNay=()=>vnNow().slice(0,10);
-let IM={};
 const anh=id=>String(id).startsWith("img:")?(window.yupiAnh?window.yupiAnh(String(id).slice(4)):(IM[String(id).slice(4)]||"")):"https://drive.google.com/thumbnail?id="+encodeURIComponent(id)+"&sz=w1000";
-const LAM=["đúng","sai","không có"];
-function traLoi(k){const ai=$("#ai").value;if(moi[k+"|"+ai])return moi[k+"|"+ai];return A.filter(r=>r[2]===k&&r[1]===ai&&LAM.includes(r[4])).pop()}
-function daGiai(k){const ai=$("#ai").value;return A.some(r=>r[2]===k&&r[1]===ai&&String(r[6]||"").trim())||moi["gt|"+k+"|"+ai]}
-let mo=null,goi=[],view=null,luyen=null,lkq={};
-function giaiCuoi(k){const ai=$("#ai").value;const x=A.filter(r=>r[2]===k&&r[1]===ai&&String(r[6]||"").trim()).pop();return x?String(x[6]):""}
+const DAY=["max đúng","max sai","đúng","sai","không có"];
 const kd=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[’']/g,"'");
-function timMa(q){const w=kd(q).split(/\s+/).filter(Boolean);if(!w.length)return[];const o=[];for(const x of KIOT){const t=x.k;if(w.every(z=>t.includes(z))){o.push(x);if(o.length>=8)break}}return o}
+const gon=s=>String(s||"").replace(/^CHRISTIAN DIOR\s+/i,"").replace(/\s*-\s*(Fullseal|Tester|Mini|Chiết|Refill|Gốc|Share).*$/i,"").replace(/\s*\((Chai|Set|Ống)\)\s*(full)?$/i,"").replace(/\s+full$/i,"").trim();
+function timMa(q){const w=kd(q).split(/\s+/).filter(Boolean);if(!w.length)return[];const o=[];for(const x of KIOT){if(w.every(z=>x.k.includes(z))){o.push(x);if(o.length>=8)break}}return o}
+// the cu (Quiz 5 cau truoc 08/11): cot E la dap an, G la ten Max doan; the moi: E = Max doan, G = % chac
+const laMoi=r=>/^\d+$/.test(String(r[6]||""));
+const maxDoan=r=>laMoi(r)?r[4]:(r[6]||r[4]);
+function day(k){if(moi[k])return moi[k];return A.filter(r=>r[2]===k&&DAY.includes(r[4])).pop()}
+function giaiCuoi(k){const x=A.filter(r=>r[2]===k&&String(r[6]||"").trim()).pop();return x?String(x[6]):""}
+const ketQua=t=>t?(t[4]==="max đúng"||t[4]==="đúng"?"d":"s"):"";
+function theHom(){const h=homNay();return Q.filter(r=>r[0]===h)}
+function choDay(){return theHom().filter(r=>!day(r[7]))}
+function soDaDayHom(){const h=homNay();const s=new Set(A.filter(r=>String(r[0]).startsWith(h)&&DAY.includes(r[4])).map(r=>r[2]));Object.keys(moi).forEach(k=>s.add(k));return s.size}
+function layLo(){const c=choDay();lo=c.slice(0,5).map(r=>r[7]);cur=0;mo=null;xong=!lo.length}
+function themNut(){const c=choDay().length;const b=$("#themTren");b.disabled=false;b.textContent=c?"➕ Dạy thêm 5 ảnh":"➕ Dạy thêm 5 ảnh";return c}
+function batDauThem(){if(!$("#ai").value){render();return}if(!choDay().length){xong=true;lo=lo||[];render();const h=$("#hetanh");if(h)h.scrollIntoView({block:"center"});return}layLo();render();scrollTo(0,0)}
+$("#themTren").onclick=batDauThem;
 function render(){
-  const ae=document.activeElement;if(ae&&/TEXTAREA|INPUT/.test(ae.tagName)&&$("#quiz").contains(ae)&&ae.value)return;   // dang go giai thich/ma -> khong ve lai
-  const ds=Q.filter(r=>r[0]===ngay);const ai=$("#ai").value;
-  if(!ds.length){$("#quiz").innerHTML='<div class="empty">Hôm nay chưa có câu hỏi – laptop soạn lúc 8h30.</div>';return}
-  if(!ai){$("#quiz").innerHTML='<div class="empty">👆 Chọn tên người làm quiz ở trên trước nha.</div>';return}
-  const xongHet=ds.every(x=>traLoi(x[7]));
-  if(view===null&&A.length)view=xongHet?"tk":"cau";
-  if(luyen)return veLuyen(ds);
-  if(view==="tk"&&xongHet)return veTongKet(ds);
-  cur=Math.min(cur,ds.length-1);const r=ds[cur],k=r[7],ops=String(r[3]||"").split(" || ").filter(Boolean),t=traLoi(k);
-  const dots=ds.map((x,i)=>{const tt=traLoi(x[7]);return `<span class="dot${i===cur?" on":""}${tt?(tt[4]==="đúng"?" d":tt[4]==="không có"?" k":" s"):""}" data-i="${i}">${i+1}</span>`}).join("");
-  const xong=ds.filter(x=>traLoi(x[7])),dung=xong.filter(x=>traLoi(x[7])[4]==="đúng").length;
+  const ae=document.activeElement;if(ae&&/TEXTAREA|INPUT/.test(ae.tagName)&&$("#quiz").contains(ae)&&ae.value)return;
+  const conCho=choDay().length;themNut();
+  $("#sub").textContent=daLoad.q&&daLoad.a?`Hôm nay đã dạy Max ${soDaDayHom()} ảnh · còn ${conCho} ảnh chờ`:"Đang đọc…";
+  if(!daLoad.q||!daLoad.a)return;
+  const ai=$("#ai").value;
+  if(!ai){$("#quiz").innerHTML='<div class="empty">👆 Chọn tên người dạy Max ở trên trước nha (chỉ chị Phương, anh Trường, anh Luật).</div>';return}
+  if(lo===null)layLo();
+  if(xong||!lo.length)return veKetThuc();
+  cur=Math.min(cur,lo.length-1);const k=lo[cur],r=Q.find(x=>x[7]===k);if(!r){layLo();return render()}
+  const t=day(k),md=maxDoan(r),chac=laMoi(r)?+r[6]:null,pv=String(laMoi(r)?r[3]:"").split(" || ").filter(Boolean);
+  const dots=lo.map((kk,i)=>{const tt=day(kk);return `<span class="dot${i===cur?" on":""}${tt?" "+ketQua(tt):""}" data-i="${i}">${i+1}</span>`}).join("");
+  const mau=chac==null?"var(--muted)":chac<60?"var(--late)":chac<80?"var(--warn)":"var(--ok)";
   let kq="";
-  if(t){if(t[4]==="không có")kq=`<div class="kq k">📝 Đã ghi mã đúng: <b>${esc(t[7])}</b>${t[8]?" · <i>mã mới</i>":""}<br><span class="meta">Đáp án cũ «${esc(r[4])}» sẽ bị bỏ khỏi bộ câu. Laptop lưu ảnh → mã đúng cho Max.</span></div>`;
-    else kq=`<div class="kq ${t[4]==="đúng"?"d":"s"}">${t[4]==="đúng"?"✅ Đúng rồi!":"❌ Chưa đúng."} Đáp án: <b>${esc(r[4])}</b><br><span class="meta">Nguồn: ${esc(r[5])}${r[6]?" · Max từng đoán: "+esc(r[6]):""}</span></div>`;
-    {const cu=giaiCuoi(k);kq+=`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max ${cu?"(đã lưu – sửa được)":"(không bắt buộc) – dấu hiệu nhận biết chai này"}</label><textarea id="gtx" rows="2" placeholder="vd: nắp đen hình mũ, nơ khăn lụa = Twilly · hộp ghi 30ml · khác Terre d'Hermès ở chai vuông hồng">${esc(cu)}</textarea><button class="bt" id="gtl">${cu?"Lưu sửa giải thích":"Lưu giải thích"}</button>${moi["gt|"+k+"|"+ai]?'<span class="meta">✔ Đã lưu</span>':""}</div>`}}
-  const khong=!t&&mo===k?`<div class="pan"><label class="meta" for="mx">Gõ mã đúng (gợi ý từ KiotViet Yupi):</label><input id="mx" autocomplete="off" placeholder="vd: twilly 30, libre chiết…"><div class="goi" id="goi"></div>
-     <label class="meta" for="gtx2">💡 Giải thích cho Max (không bắt buộc)</label><textarea id="gtx2" rows="2" placeholder="Dấu hiệu nhận biết: màu chai, nắp, chữ trên hộp, dung tích…"></textarea>
-     <div class="nav"><button class="bt ghost" id="huy">Hủy</button><button class="bt" id="guim">Gửi mã đúng</button></div></div>`:"";
+  if(t){kq=ketQua(t)==="d"?`<div class="kq d">✅ Đã dạy: <b>Max đúng</b> – ${esc(md)}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`
+      :`<div class="kq s">📝 Đã dạy: Max sai – mã đúng là <b>${esc(t[7]||r[4])}</b>${t[8]?" · <i>mã mới</i>":""}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`;
+    const cu=giaiCuoi(k);kq+=`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max ${cu?"(đã lưu – sửa được)":"(không bắt buộc) – dấu hiệu nhận biết"}</label><textarea id="gtx" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM · nước xanh đậm · nắp đen hình mũ">${esc(cu)}</textarea><button class="bt" id="gtl">${cu?"Lưu sửa giải thích":"Lưu giải thích"}</button>${moi["gt|"+k]?'<span class="meta">✔ Đã lưu – Max học ngay</span>':""}</div>`}
+  const pan=!t&&mo===k?`<div class="pan"><label class="meta" for="mx">Mã đúng là gì? (gợi ý tên đầy đủ theo KiotViet Yupi)</label>
+     ${pv.length?`<div class="goi">${pv.map((p,i)=>`<button class="g nhanh" data-p="${i}">${esc(p)}</button>`).join("")}</div>`:""}
+     <input id="mx" autocomplete="off" placeholder="gõ tên, vd: sauvage edp 100"><div class="goi" id="goi"></div>
+     <label class="meta" for="gtx2">💡 Giải thích cho Max – dấu hiệu nhận biết</label><textarea id="gtx2" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM, nước xanh đậm hơn EDT"></textarea>
+     <div class="nav"><button class="bt ghost" id="huy">Hủy</button><button class="bt" id="guim">Lưu dạy Max</button></div></div>`:"";
   $("#quiz").innerHTML=`<div class="dots">${dots}</div>
-   <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" loading="lazy" decoding="async">
-   <div class="q">Câu ${cur+1}/${ds.length}: Chai trong ảnh khách gửi là mã nào?</div>
-   <div class="opts">${ops.map(o=>{let c="";if(t){if(o===r[4]&&t[4]!=="không có")c=" dung";else if(o===t[3])c=" sai"}return `<button class="op${c}" ${t?"disabled":""} data-o="${esc(o)}">${esc(o)}</button>`}).join("")}
-   <button class="op khong${t&&t[4]==="không có"?" chon":""}" ${t?"disabled":""} id="khong">❌ Không có mã đúng</button></div>${khong}${kq}
-   <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Câu trước</button>${xong.length===ds.length?`<span class="meta" style="align-self:center">🎯 Xong: ${dung}/${xong.filter(x=>traLoi(x[7])[4]!=="không có").length} đúng</span>`:""}${cur<ds.length-1?`<button class="bt" id="sau">Câu sau ›</button>`:`<button class="bt" id="xemkq">Xem kết quả ›</button>`}</div>`;
-  $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
-  $("#quiz").querySelectorAll(".op:not(.khong)").forEach(b=>b.onclick=()=>chon(r,b.dataset.o));
-  const kh=$("#khong");if(kh)kh.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
-  const mx=$("#mx");let chonMa=null;
-  if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g" data-i="${i}">${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Gửi mã đúng» để ghi tên này là <b>mã mới</b>.</div>`:"");
-      $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta">✔ Đã chọn mã Kiot ${esc(x.m)}</div>`})};
-    mx.oninput=ve;$("#huy").onclick=()=>{mo=null;render()};
-    $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=chonMa&&chonMa.h===v||KIOT.some(x=>x.h===v);guiKhong(r,v,!laKiot,($("#gtx2").value||"").trim())}}
-  const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
-  const tr=$("#truoc"),sa=$("#sau"),xk=$("#xemkq");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render()};if(xk)xk.onclick=()=>{view="tk";render();scrollTo(0,0)};
-}
-
-function veTongKet(ds){
-  const tl=ds.map(x=>[x,traLoi(x[7])]);const cham=tl.filter(([x,t])=>t[4]!=="không có"),dung=cham.filter(([x,t])=>t[4]==="đúng");
-  const sai=tl.filter(([x,t])=>t[4]==="sai"),khong=tl.filter(([x,t])=>t[4]==="không có");
-  const homNayLa=ngay===homNay();
-  $("#quiz").innerHTML=`<div class="tk"><div class="tkso">${dung.length}<span>/${cham.length}</span></div><div class="q" style="text-align:center">câu đúng${khong.length?` · ${khong.length} câu đã sửa mã`:""}</div>
-   ${homNayLa?`<div class="meta" style="text-align:center">✅ Xong quiz hôm nay. Hẹn 8h30 mai có 5 câu mới.</div>`:""}</div>
-   ${sai.length?`<h2 style="font-size:16px">❌ Câu chọn sai</h2>`+sai.map(([x,t])=>`<div class="kq s"><b>Câu ${ds.indexOf(x)+1}</b> · chị chọn: ${esc(t[3])}<br>Đáp án đúng: <b>${esc(x[4])}</b></div>`).join(""):`<div class="kq d">🎉 Không sai câu nào.</div>`}
-   ${khong.length?`<h2 style="font-size:16px">📝 Câu đã sửa mã</h2>`+khong.map(([x,t])=>`<div class="kq k"><b>Câu ${ds.indexOf(x)+1}</b> · mã đúng: <b>${esc(t[7])}</b>${t[8]?" (mã mới)":""}</div>`).join(""):""}
-   <div class="tkbt">${sai.length?`<button class="bt" id="lamlai">🔁 Làm lại câu sai</button>`:""}<button class="bt ghost" id="xemlai">👀 Xem lại ${ds.length} câu</button><a class="bt ghost" href="./" style="text-decoration:none;text-align:center">‹ Về Bảng tổng</a></div>`;
-  const ll=$("#lamlai");if(ll)ll.onclick=()=>{luyen={ds:sai.map(([x])=>x),i:0};lkq={};render();scrollTo(0,0)};
-  $("#xemlai").onclick=()=>{view="cau";cur=0;render();scrollTo(0,0)};
-}
-function veLuyen(ds){
-  const L=luyen,r=L.ds[L.i],ops=String(r[3]||"").split(" || ").filter(Boolean),c=lkq[r[7]];
-  $("#quiz").innerHTML=`<div class="meta">🔁 Làm lại câu sai ${L.i+1}/${L.ds.length} (chỉ để luyện, không tính điểm)</div>
    <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" decoding="async">
-   <div class="q">Câu ${ds.indexOf(r)+1}: Chai trong ảnh khách gửi là mã nào?</div>
-   <div class="opts">${ops.map(o=>{let k="";if(c){if(o===r[4])k=" dung";else if(o===c)k=" sai"}return `<button class="op${k}" ${c?"disabled":""} data-o="${esc(o)}">${esc(o)}</button>`}).join("")}</div>
-   ${c?`<div class="kq ${c===r[4]?"d":"s"}">${c===r[4]?"✅ Đúng rồi!":"❌ Chưa đúng."} Đáp án: <b>${esc(r[4])}</b></div>`:""}
-   <div class="nav"><button class="bt ghost" id="thoat">‹ Tổng kết</button>${L.i<L.ds.length-1?`<button class="bt" id="lsau" ${c?"":"disabled"}>Câu sau ›</button>`:`<button class="bt" id="lxong" ${c?"":"disabled"}>Xong ›</button>`}</div>`;
-  $("#quiz").querySelectorAll(".op").forEach(b=>b.onclick=()=>{lkq[r[7]]=b.dataset.o;render()});
-  $("#thoat").onclick=()=>{luyen=null;view="tk";render()};
-  const ls=$("#lsau");if(ls)ls.onclick=()=>{L.i++;render();scrollTo(0,0)};
-  const lx=$("#lxong");if(lx)lx.onclick=()=>{luyen=null;view="tk";render();scrollTo(0,0)};
+   <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
+     ${chac!=null?`<div class="chac"><span>Mức chắc chắn</span><b>${chac}%</b></div><div class="bar"><i style="width:${Math.max(4,Math.min(100,chac))}%;background:${mau}"></i></div>`:""}
+     ${pv.length?`<div class="pv">Max phân vân với: ${pv.map(p=>`<b>${esc(gon(p))}</b>`).join(" · ")}</div>`:""}</div>
+   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>${pan}${kq}
+   <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Ảnh trước</button>${cur<lo.length-1?`<button class="bt" id="sau">Ảnh sau ›</button>`:`<button class="bt" id="ket">Xong ${lo.length} ảnh ›</button>`}</div>`;
+  $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
+  const bd=$("#dung");if(bd)bd.onclick=()=>dayMax(r,"max đúng","","",false);
+  const bs=$("#sai");if(bs)bs.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
+  const mx=$("#mx");let chonMa=null;
+  if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g" data-i="${i}">${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Lưu dạy Max» để ghi tên này là <b>mã mới</b>.</div>`:"");
+      $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta">✔ Đã chọn mã Kiot ${esc(x.m)}</div>`})};
+    mx.oninput=ve;$("#quiz").querySelectorAll(".g.nhanh").forEach(g=>g.onclick=()=>{mx.value=pv[+g.dataset.p];ve()});
+    $("#huy").onclick=()=>{mo=null;render()};
+    $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=(chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v);dayMax(r,"max sai",v,($("#gtx2").value||"").trim(),!laKiot)}}
+  const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
+  const tr=$("#truoc"),sa=$("#sau"),ke=$("#ket");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render();scrollTo(0,0)};if(ke)ke.onclick=()=>{xong=true;render();scrollTo(0,0)};
+}
+function veKetThuc(){
+  const n=soDaDayHom(),con=choDay().length,ds=(lo||[]).map(k=>[Q.find(x=>x[7]===k),day(k)]).filter(x=>x[0]&&x[1]);
+  const sai=ds.filter(([r,t])=>ketQua(t)==="s");
+  $("#quiz").innerHTML=`<div class="tk"><div class="tkso">${n}</div><div class="q" style="font-weight:700">Đã dạy Max ${n} ảnh hôm nay</div>
+    ${ds.length?`<div class="meta">Lượt vừa rồi: Max đúng ${ds.length-sai.length}/${ds.length} ảnh</div>`:""}</div>
+   ${sai.length?`<h3>📝 Max đã học lại</h3>`+sai.map(([r,t])=>`<div class="kq s">Max đoán <b>${esc(gon(maxDoan(r)))}</b> → đúng là <b>${esc(t[7]||r[4])}</b></div>`).join(""):""}
+   <div class="tkbt"><button class="bt" id="them">➕ Dạy thêm 5 ảnh</button>${con?"":`<div class="het" id="hetanh">Hết ảnh để dạy hôm nay</div>`}<a class="bt ghost" href="./">‹ Về Bảng tổng</a></div>`;
+  $("#them").onclick=batDauThem;
 }
 async function ghiDong(row){await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:[row]});A.push(row)}
-async function chon(r,o){
-  const ai=$("#ai").value,k=r[7];if(traLoi(k))return;
-  const row=[vnNow(),ai,k,o,o===r[4]?"đúng":"sai","","","",""];moi[k+"|"+ai]=row;render();
-  try{await ghiDong(row);delete moi[k+"|"+ai]}catch(e){delete moi[k+"|"+ai];render();return}
-  tuan();
+async function dayMax(r,kqA,maDung,gt,moiMa){
+  const ai=$("#ai").value,k=r[7];if(!NGUOI.includes(ai)||day(k))return;
+  const row=[vnNow(),ai,k,maxDoan(r)||"",kqA,"",gt,maDung,moiMa?"mã mới":""];moi[k]=row;mo=null;render();
+  try{await ghiDong(row)}catch(e){delete moi[k];render();alertNho("Chưa lưu được, thử lại nha");return}
+  delete moi[k];tuan();render();
 }
-async function guiKhong(r,ma,moiMa,gt){
-  const ai=$("#ai").value,k=r[7];if(traLoi(k))return;
-  const row=[vnNow(),ai,k,"","không có","",gt,ma,moiMa?"mã mới":""];moi[k+"|"+ai]=row;mo=null;render();
-  try{await ghiDong(row);delete moi[k+"|"+ai]}catch(e){delete moi[k+"|"+ai];render();return}
-  render();
-}
+function alertNho(s){const d=document.createElement("div");d.className="kq s";d.textContent=s;$("#quiz").prepend(d);setTimeout(()=>d.remove(),3000)}
 async function luuGiai(r,gt){
   if(!gt){$("#gtx").focus();return}
-  const ai=$("#ai").value,k=r[7];const row=[vnNow(),ai,k,"","giải thích","",gt,"",""];
-  try{await ghiDong(row);moi["gt|"+k+"|"+ai]=1}catch(e){}
+  const ai=$("#ai").value,k=r[7];if(!NGUOI.includes(ai))return;const t=day(k);
+  const ma=t?(ketQua(t)==="d"?maxDoan(r):(t[7]||"")):"";
+  const row=[vnNow(),ai,k,maxDoan(r)||"","giải thích","",gt,ma,""];
+  try{await ghiDong(row);moi["gt|"+k]=1}catch(e){}
   render();
 }
-function dauTuan(s){const d=new Date(s.slice(0,10)+"T00:00:00Z");const w=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-w);return d.toISOString().slice(0,10)}
+function dauTuan(s){const d=new Date(String(s).slice(0,10)+"T00:00:00Z");const w=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-w);return d.toISOString().slice(0,10)}
 function tuan(){
-  const g={};A.forEach(r=>{if(!r[0]||!r[1]||(r[4]!=="đúng"&&r[4]!=="sai"))return;const w=dauTuan(r[0]);g[w]=g[w]||{};const p=g[w][r[1]]=g[w][r[1]]||[0,0];if(r[4]!=="đúng"&&r[4]!=="sai")return;p[1]++;if(r[4]==="đúng")p[0]++});
-  const mx={};W.forEach(r=>{if(r[3])mx[r[3]]=[+r[1]||0,+r[2]||0]});
-  const ws=[...new Set([...Object.keys(g),...Object.keys(mx)])].sort().reverse().slice(0,6);
-  if(!ws.length){$("#tuan").innerHTML='<div class="empty">Chưa có dữ liệu.</div>';return}
-  const ng=["Chị Phương","Anh Trường","Anh Luật"];
-  const f=p=>p&&p[1]?`<span class="pct">${Math.round(p[0]*100/p[1])}%</span> <span class="meta">${p[0]}/${p[1]}</span>`:'<span class="meta">–</span>';
-  $("#tuan").innerHTML=`<table><thead><tr><th>Tuần</th>${ng.map(n=>`<th class="n">${n.replace("Anh ","A. ").replace("Chị ","C. ")}</th>`).join("")}<th class="n">🤖 Max</th></tr></thead><tbody>${ws.map(w=>`<tr><td>${w.slice(8,10)}/${w.slice(5,7)}</td>${ng.map(n=>`<td class="n">${f(g[w]&&g[w][n])}</td>`).join("")}<td class="n">${f(mx[w])}</td></tr>`).join("")}</tbody></table><p class="meta">🤖 Max = tỉ lệ Max đoán đúng mã ảnh khách khi làm việc thật (người duyệt / sửa mã).</p>`;
+  // 1) Max doan dung theo tuan = cac lan day (max đúng/max sai) + luc lam viec that (tab Quiz tuần, laptop tinh tu so loi)
+  const g={};const them=(w,ok)=>{g[w]=g[w]||{d:0,t:0,day:0};g[w].t++;if(ok)g[w].d++};
+  const kTuan={};
+  A.forEach(r=>{if(!r[0])return;const w=dauTuan(r[0]);if(r[4]==="max đúng"||r[4]==="max sai"){them(w,r[4]==="max đúng")}
+    if(DAY.includes(r[4])){kTuan[w]=kTuan[w]||new Set();kTuan[w].add(r[2])}});
+  W.forEach(r=>{if(!r[3])return;const w=r[3];g[w]=g[w]||{d:0,t:0};g[w].d+=+r[1]||0;g[w].t+=+r[2]||0});
+  const ws=[...new Set([...Object.keys(g),...Object.keys(kTuan)])].sort().reverse().slice(0,6);
+  // 2) cap de nham: Max doan X nhung dung la Y
+  const cap={};A.forEach(r=>{if(r[4]==="max sai"&&r[3]&&r[7]){const a=gon(r[3]),b=gon(r[7]);if(kd(a)===kd(b))return;const key=[a,b].sort().join(" ↔ ");cap[key]=(cap[key]||0)+1}});
+  const caps=Object.entries(cap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  // 3) ai da day bao nhieu anh
+  const ai={};const daK=new Set();A.forEach(r=>{if(DAY.includes(r[4])&&r[1]){const key=r[1]+"|"+r[2];if(daK.has(key))return;daK.add(key);ai[r[1]]=(ai[r[1]]||0)+1}});
+  const tong=new Set(A.filter(r=>DAY.includes(r[4])).map(r=>r[2])).size;
+  const f=p=>p&&p.t?`<span class="pct">${Math.round(p.d*100/p.t)}%</span> <span class="meta">${p.d}/${p.t}</span>`:'<span class="meta">–</span>';
+  $("#tuan").innerHTML=(ws.length?`<table><thead><tr><th>Tuần</th><th class="n">🤖 Max đoán đúng</th><th class="n">Ảnh đã dạy</th></tr></thead><tbody>${ws.map(w=>`<tr><td>${w.slice(8,10)}/${w.slice(5,7)}</td><td class="n">${f(g[w])}</td><td class="n">${kTuan[w]?kTuan[w].size:0}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Chưa có dữ liệu.</div>')
+   +`<p class="meta">Max đoán đúng = lúc làm việc thật (người duyệt/sửa mã) + các lần dạy ở đây. Tổng đã dạy: <b>${tong}</b> ảnh.</p>`
+   +`<h3>🔀 Cặp dễ nhầm (số lần Max sai)</h3>`+(caps.length?caps.map(([k,n])=>`<div class="li"><span>${esc(k)}</span><b>${n}</b></div>`).join(""):'<div class="meta">Chưa có.</div>')
+   +`<h3>👩‍🏫 Ai đã dạy</h3>`+NGUOI.map(n=>`<div class="li"><span>${n}</span><b>${ai[n]||0} ảnh</b></div>`).join("");
 }
 (async()=>{
   mcp=await window.claude.use("mcp");
   const w=(rg,cb)=>mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:rg},ev=>{if(ev.type!=="data"){$("#sub").textContent="Không đọc được sheet: "+ev.error;return}cb((ev.result.payload.values||[]).slice(1))},{refetchInterval:60000});
-  w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);const h=homNay();ngay=Q.some(r=>r[0]===h)?h:(Q.length?Q[Q.length-1][0]:h);
-    $("#sub").textContent=Q.length?`Bộ câu ngày ${ngay.slice(8,10)}/${ngay.slice(5,7)} · ${Q.filter(r=>r[0]===ngay).length} câu`:"Chưa có câu hỏi";render()});
-  w(TT+"!A1:I5000",v=>{A=v.filter(r=>r&&r[2]);render();tuan()});
+  w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);daLoad.q=1;if(lo&&!lo.length&&choDay().length&&!xong)layLo();render()});
+  w(TT+"!A1:I5000",v=>{A=v.filter(r=>r&&r[2]);daLoad.a=1;render();tuan()});
   w(TW+"!A1:D200",v=>{W=v;tuan()});
   mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:C9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",k:kd(x[0]+" "+(x[1]||""))}))}},{refetchInterval:3600000});
   window.addEventListener("yupi-anh",render);
-  if(!window.yupiAnh)mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Quiz ảnh!A1:B400"},ev=>{if(ev.type==="data"){(ev.result.payload.values||[]).slice(1).forEach(r=>{if(r[0]&&r[1])IM[r[0]]=r[1]});render()}},{refetchInterval:600000});
+  if(!window.yupiAnh)mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Quiz ảnh!A1:B3000"},ev=>{if(ev.type==="data"){(ev.result.payload.values||[]).slice(1).forEach(r=>{if(r[0]&&r[1])IM[r[0]]=r[1]});render()}},{refetchInterval:600000});
 })();
 </script>
 </body></html>
