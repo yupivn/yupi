@@ -1,0 +1,102 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Tin khách còn sót</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--panel:#e9edf6;--gold:#c9a227;--accent:#1f3a6e;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--blue:#2b5cb8;--blue-soft:#e4ecfb;
+  --display:"Nunito","Be Vietnam Pro",system-ui,sans-serif;--body:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--accent:#e3c15a;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--accent:#e3c15a;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 90px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,button{font:inherit}
+select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:99px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.tab b{font-family:var(--display);margin-left:4px}
+.tab.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.list{display:flex;flex-direction:column;gap:10px}
+.it{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--muted);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:7px}
+.it.don{border-left-color:var(--late)}.it.gia{border-left-color:var(--warn)}.it.hoi{border-left-color:var(--blue)}
+.row1{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+.ten{font-weight:700;font-size:15px;word-break:break-word}
+.ma{color:var(--muted);font-size:12.5px;font-weight:500}
+.lo{flex:none;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--panel);color:var(--muted)}
+.don .lo{background:var(--late-soft);color:var(--late)}.gia .lo{background:var(--warn-soft);color:var(--warn)}.hoi .lo{background:var(--blue-soft);color:var(--blue)}
+.msg{background:var(--panel);border-radius:12px;padding:8px 11px;font-size:14px;word-break:break-word}
+.meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.meta .cho{font-weight:700}.meta .cho.lau{color:var(--late)}
+.act{display:flex;gap:8px;flex-wrap:wrap}
+.bt{border:0;border-radius:11px;padding:9px 14px;font-weight:700;font-size:13.5px;cursor:pointer}
+.bt.max{background:var(--gold);color:#14213d}.bt.xong{background:var(--ok-soft);color:var(--ok)}
+.bt:disabled{opacity:.55;cursor:default}
+.res{font-size:12.5px;color:var(--muted)}.res.bad{color:var(--late)}.res.ok{color:var(--ok)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px;background:var(--card);border-radius:16px;border:1px dashed var(--line)}
+.note{font-size:12.5px;color:var(--muted)}
+</style></head><body>
+<div class="wrap">
+  <div><h1>🕵️ Tin khách còn sót</h1><p class="sub" id="sub">Đang đọc…</p></div>
+  <div class="bar"><select id="ai"><option value="">— Ai đang bấm —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="list" id="list"></div>
+  <p class="note">Laptop quét Zalo Gia Di lúc 7h45 sáng (gom tin ban đêm) rồi 30 phút/lần đến 22h30. Tin cuối của nhóm KHS/KS- là của khách, chờ quá 30 phút thì hiện ở đây. Có người trả lời trên Zalo hoặc Kiot có phiếu thì tin tự ẩn ở lần quét sau. «Max xử lý» = laptop đọc nhóm và soạn trả lời chờ duyệt (như nút Xử lý ở Hộp duyệt).</p>
+</div>
+<script>
+const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",SV="Google Sheets",TAB="Tin sót";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LO={"Chưa lên đơn":"don","Chưa báo giá":"gia","Chưa giải đáp":"hoi","Cần xem":"xem"};
+let mcp=null,rows=[],quet="",loc="all",an={},msgs={};
+try{const a=localStorage.getItem("yupi_ai");if(a)$("#ai").value=a}catch(_){}
+$("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){}};
+function vnNow(){return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace("T"," ")}
+function choTxt(m){m=+m||0;if(m<60)return m+" phút";const h=Math.floor(m/60);if(h<24)return h+" giờ "+(m%60?m%60+"p":"");return Math.floor(h/24)+" ngày "+(h%24)+" giờ"}
+function render(){
+  const ds=rows.filter(r=>!an[r[7]]&&!/^xong/.test(r[6]||""));
+  const dem=k=>ds.filter(r=>r[2]===k).length;
+  $("#tabs").innerHTML=[["all","Tất cả",ds.length],...Object.keys(LO).map(k=>[k,k,dem(k)])].map(([k,t,n])=>`<button class="tab${loc===k?" on":""}" data-k="${esc(k)}">${esc(t)}<b>${n}</b></button>`).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(b=>b.onclick=()=>{loc=b.dataset.k;render()});
+  const v=ds.filter(r=>loc==="all"||r[2]===loc);
+  $("#list").innerHTML=v.length?v.map((r,i)=>{const k=r[7],m=msgs[k];return `<article class="it ${LO[r[2]]||"xem"}">
+    <div class="row1"><div class="ten">${esc(r[0])}${r[1]?` <span class="ma">· ${esc(r[1])}</span>`:""}</div><span class="lo">${esc(r[2])}</span></div>
+    <div class="msg">${esc(r[3])}</div>
+    <div class="meta"><span>🕒 ${esc(r[4])}</span><span class="cho${+r[5]>=120?" lau":""}">⏳ chờ ${esc(choTxt(r[5]))}</span></div>
+    <div class="act"><button class="bt max" data-i="${esc(k)}" data-a="max">🤖 Max xử lý</button><button class="bt xong" data-i="${esc(k)}" data-a="xong">✅ Đã xong</button></div>
+    ${m?`<div class="res ${m.c||""}">${esc(m.t)}</div>`:""}</article>`}).join(""):`<div class="empty">${rows.length||quet?"🎉 Không còn tin khách nào bị sót.":"Chưa có dữ liệu – chờ laptop quét lần đầu."}</div>`;
+  $("#list").querySelectorAll(".bt").forEach(b=>b.onclick=()=>bam(b.dataset.a,b.dataset.i,b));
+  $("#sub").textContent=quet?`Laptop quét lần cuối lúc ${quet.slice(11,16)} ngày ${quet.slice(8,10)}/${quet.slice(5,7)} · ${ds.length} tin còn sót`:"Đang đọc…";
+}
+async function bam(a,k,btn){
+  const ai=$("#ai").value;if(!ai){$("#ai").focus();msgs[k]={t:"Chọn tên người bấm ở trên trước nha",c:"bad"};render();return}
+  const r=rows.find(x=>x[7]===k);if(!r)return;btn.disabled=true;
+  try{
+    if(a==="max"){
+      await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:"Lệnh!A1",values:[[vnNow(),ai,"xu_ly",r[0],"",""]]});
+      msgs[k]={t:"⏳ Đã giao Max, laptop đọc nhóm và soạn trả lời chờ duyệt ở Hộp duyệt (10–30 giây)…",c:"ok"};
+    }else{
+      const g=await mcp.callTool(SV,"get_values",{spreadsheetId:SID,range:TAB+"!A1:H500"});
+      const v=(g.payload&&g.payload.values)||[];const i=v.findIndex(x=>x[7]===k);
+      if(i>0)await mcp.callTool(SV,"update_values",{spreadsheetId:SID,range:TAB+"!G"+(i+1),values:[["xong|"+ai+"|"+vnNow()]]});
+      an[k]=1;
+    }
+  }catch(e){msgs[k]={t:"⚠️ Không ghi được: "+(e.message||e),c:"bad"};btn.disabled=false}
+  render();
+}
+(async()=>{
+  mcp=await window.claude.use("mcp");
+  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:TAB+"!A1:K500"},ev=>{
+    if(ev.type!=="data"){$("#sub").textContent="Không đọc được sheet: "+ev.error;return}
+    const v=ev.result.payload.values||[];quet=(v[0]&&v[0][10])||"";rows=v.slice(1).filter(r=>r&&r[0]&&r[7]);render();
+  },{refetchInterval:60000});
+})();
+</script>
+</body></html>
