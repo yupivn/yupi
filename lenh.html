@@ -1,0 +1,104 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Ra lệnh cho Max</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--gold:#c9a227;--accent:#1f3a6e;--accent-soft:#e4eaf6;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--shadow:0 6px 20px rgba(20,33,61,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--gold:#e3c15a;--accent:#e3c15a;--accent-soft:#3a3320;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--shadow:0 6px 20px rgba(0,0,0,.35);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Be Vietnam Pro",system-ui,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:"Nunito",system-ui,sans-serif;font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+label{font-weight:700;font-size:13.5px;display:block;margin-bottom:6px}
+select,textarea{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+button.send{flex:1;min-width:180px;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:800;font-size:16px;background:var(--gold);color:#14213d;cursor:pointer}
+button.send:disabled{opacity:.55;cursor:default}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--accent-soft);color:var(--fg);font:inherit;font-size:13px;border-radius:99px;padding:6px 11px;cursor:pointer}
+.msg{font-size:14px;min-height:20px;margin-top:8px}
+h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;margin:4px 0 0}
+.it{border-top:1px dashed var(--line);padding:12px 0}
+.it:first-child{border-top:0;padding-top:4px}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.cmd{font-weight:600;margin:4px 0;white-space:pre-wrap;word-break:break-word}
+.st{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px}
+.st.cho{background:var(--warn-soft);color:var(--warn)} .st.lam{background:var(--accent-soft);color:var(--accent)}
+.st.xong{background:var(--ok-soft);color:var(--ok)} .st.loi{background:var(--late-soft);color:var(--late)}
+.kq{font-size:13.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;margin-top:6px;max-height:9.5em;overflow:auto}
+.empty{color:var(--muted);font-size:14px}
+</style></head><body>
+<div class="wrap">
+  <div><h1>🤖 Ra lệnh cho Max</h1><p class="sub">Gõ việc cần làm, Max trên laptop của chị Phương nhận và làm như khi nhắn «max ơi» trên Telegram.</p></div>
+
+  <div class="card">
+    <label for="ai">Ai ra lệnh</label>
+    <select id="ai"><option value="">— Chọn tên —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
+    <label for="nd" style="margin-top:12px">Việc cần Max làm</label>
+    <textarea id="nd" placeholder="Ví dụ: lên đơn cho chị Như KS-N 2 Sauvage EDP 100ml"></textarea>
+    <div class="chips" id="mau"></div>
+    <div class="row"><button class="send" id="gui">📨 Gửi lệnh cho Max</button></div>
+    <div class="msg" id="msg"></div>
+    <div class="hint">• Tin gửi khách vẫn phải được duyệt như cũ.<br>• Laptop tắt thì lệnh nằm chờ, máy bật lại mới chạy. Lệnh chờ quá 30 phút sẽ bị bỏ, cần gửi lại.<br>• Kết quả báo trong nhóm «Nội bộ Yupi Max» và hiện ở dưới đây.</div>
+  </div>
+
+  <div class="card">
+    <h2>🕘 Lệnh gần đây</h2>
+    <div id="ds"><div class="empty">Đang tải…</div></div>
+  </div>
+</div>
+<script>
+const HOP="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
+$("#ai").value=ls("ai")||"";
+$("#ai").onchange=()=>ls("ai",$("#ai").value);
+$("#nd").value=ls("lenh_nhap")||"";
+$("#nd").oninput=()=>ls("lenh_nhap",$("#nd").value);
+["lên đơn cho ","báo giá ","nhập hàng ","tạo đơn GHTK cho ","dời giờ hóa đơn "].forEach(t=>{const b=document.createElement("button");b.type="button";b.textContent=t.trim()+"…";
+  b.onclick=()=>{$("#nd").value=t;$("#nd").focus();};$("#mau").appendChild(b);});
+// Giờ Việt Nam dạng yyyy-MM-dd HH:mm:ss (máy laptop đọc theo định dạng này)
+function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
+  const g=k=>p.find(x=>x.type===k).value;return `${g("year")}-${g("month")}-${g("day")} ${g("hour")==="24"?"00":g("hour")}:${g("minute")}:${g("second")}`;}
+function badge(tt,kq){const t=String(tt||"").toLowerCase();
+  if(!t)return '<span class="st cho">⏳ Chờ máy nhận</span>';
+  if(t.includes("giao"))return '<span class="st lam">🛠 Max đang làm</span>';
+  if(t.includes("lỗi"))return '<span class="st loi">⚠️ Lỗi</span>';
+  return '<span class="st xong">✅ Xong</span>';}
+let mcp=null;
+function ve(rows){const ds=(rows||[]).slice(1).map((r,i)=>({r,hang:i+2})).filter(x=>String(x.r[2]||"").trim()==="max").slice(-20).reverse();
+  if(!ds.length){$("#ds").innerHTML='<div class="empty">Chưa có lệnh nào.</div>';return;}
+  $("#ds").innerHTML=ds.map(({r})=>`<div class="it"><div class="top"><span>${esc(r[1])} · ${esc(String(r[0]||"").slice(11,16))} ${esc(String(r[0]||"").slice(8,10))}/${esc(String(r[0]||"").slice(5,7))}</span>${badge(r[6],r[7])}</div>
+    <div class="cmd">${esc(r[5])}</div>${r[7]?`<div class="kq">${esc(r[7])}</div>`:""}</div>`).join("");}
+(async()=>{
+  try{mcp=await window.claude.use("mcp")}catch(e){}
+  if(!mcp){$("#ds").innerHTML='<div class="empty">Chưa kết nối được dữ liệu.</div>';return;}
+  mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Lệnh!A1:H400"},ev=>{
+    if(ev.type!=="data"){$("#ds").innerHTML='<div class="empty">Chưa đọc được danh sách lệnh, thử lại sau.</div>';return;}
+    ve(ev.result.payload&&ev.result.payload.values);},{refetchInterval:30000});
+})();
+$("#gui").onclick=async()=>{
+  const ai=$("#ai").value,nd=$("#nd").value.trim();
+  if(!ai){$("#msg").textContent="Chọn tên người ra lệnh giúp em.";return;}
+  if(nd.length<4){$("#msg").textContent="Gõ rõ việc cần làm giúp em.";return;}
+  if(!mcp){$("#msg").textContent="Chưa kết nối được dữ liệu.";return;}
+  $("#gui").disabled=true;$("#msg").textContent="Đang gửi…";
+  try{
+    await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Lệnh!A1",values:[[gioVN(),ai,"max","","",nd]]});
+    $("#msg").textContent="✅ Đã gửi. Max nhận trong vài giây khi laptop đang bật.";$("#nd").value="";ls("lenh_nhap","");
+    setTimeout(()=>mcp.invalidate(),5000);setTimeout(()=>mcp.invalidate(),15000);
+  }catch(e){$("#msg").textContent="⚠️ Chưa gửi được: "+(e&&e.message||e);}
+  $("#gui").disabled=false;
+};
+</script>
+</body></html>
