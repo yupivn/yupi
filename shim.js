@@ -2,18 +2,16 @@
    08/11/2026: thêm BẢN NHANH (Cloudflare Worker + D1). Bản cũ (Apps Script + Google Sheet) vẫn chạy song song đến khi chị duyệt.
    - Mở app: hiện ngay dữ liệu đã lưu trên máy, tải bản mới phía sau
    - Bản nhanh: 1 lần hỏi/4 giây cho mọi bảng, chỉ tải bảng có thay đổi; bấm nút báo ✅ ngay khi máy chủ nhận, lỗi thì báo lại
-   - 08/11 15h (chi Phuong): BỎ nút chuyển bản – app luôn chạy bản nhanh; chỉ tự về bản cũ tạm thời khi bản nhanh lỗi */
+   - 08/11 15h20 (chi Phuong): BỎ HẲN bản cũ (cả dự phòng). Máy chủ app lỗi -> dải đỏ báo + khóa nút + link duyệt tạm trên Telegram; chạy lại tự hết */
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyayRLS2PuNXLdV2TrxU2jwsCb5Z21Q90osSCXppZSq5sgqx3dVyjO_K2iYjGK5BnlX/exec';
   var CF = 'https://yupi-bang-tong.haphuongphuong96.workers.dev';
   var KEY = 'yupi_pw';
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
-  ls('yupi_nhanh', null);   // 08/11 15h: bỏ chọn bản cũ bằng tay (máy nào từng bấm về bản cũ cũng quay về bản nhanh)
-  // 08/11 12h (chi Phuong): ban nhanh loi -> tam ve ban cu (Apps Script) 10 phut, tu thu lai ban nhanh moi 30 giay
-  var TAM = +(ls('yupi_tam_cu') || 0); if (TAM && Date.now() - TAM > 10 * 60e3) { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); TAM = 0; }
-  var MUON_NHANH = true;
-  var NHANH = MUON_NHANH && !TAM;
+  ls('yupi_nhanh', null); ls('yupi_tam_cu', null); ls('yupi_tam_ly', null);   // 08/11 15h20: không còn bản cũ
+  var NHANH = true;
   var HOP = '1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M';
+  var TG_DUYET = 'https://t.me/c/3986855047';   // nhóm Telegram "Zalo Gia Di – Tin khách"
   // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
   function getPw() {
     var v = ls(KEY) || '';
@@ -79,13 +77,7 @@
   }
   function call(body, pw) {
     body.pw = pw;
-    if (!NHANH) return post(API, body);
-    return post(CF + '/api', body).catch(function (e) {
-      var m = String(e && e.message || e);
-      if (m === 'SAI_MAT_KHAU' || /ĐÃ GỬI/.test(m) || body.op === 'sync') throw e;
-      if (body.op === 'append' || body.op === 'update') throw e;   // không gửi 2 nơi khi ghi
-      return post(API, body);   // đọc: máy chủ nhanh lỗi -> lấy bản cũ
-    });
+    return post(CF + '/api', body);   // 08/11 15h20: chỉ còn bản nhanh, lỗi thì báo lỗi (không lấy bản cũ)
   }
   function api(body) {
     return needPw().then(function (pw) {
@@ -131,29 +123,40 @@
     var o = null; try { o = JSON.parse(ls('yt:' + k) || 'null'); } catch (e) {}
     return (tabs[k] = o || { id: id, ten: ten, v: 0, rows: null });
   }
-  // ---- 08/11 12h: phân biệt "Máy chủ app đang lỗi" với "Laptop tắt"; bản nhanh lỗi -> tự về bản cũ ----
+  // ---- 08/11 15h20: máy chủ app lỗi -> dải đỏ + khóa nút + link duyệt tạm trên Telegram; chạy lại thì tự hết ----
   var loiTu = 0, mcLoi = '', lanKtCu = 0;
   function vn(s) { return s ? new Date(String(s).replace(' ', 'T') + 'Z').getTime() - 7 * 3600e3 : 0; }   // giờ VN dạng chữ -> ms
-  function choTaiLai() { var a = document.activeElement; if (a && /TEXTAREA|INPUT/.test(a.tagName) && a.value) return setTimeout(choTaiLai, 2000); location.reload(); }
-  function veCu(ly) {
-    if (mcLoi) return; mcLoi = ly; try { window.dispatchEvent(new Event('yupi-mc')); } catch (e) {}
-    ls('yupi_tam_cu', String(Date.now())); ls('yupi_tam_ly', ly);
-    toast('⚠️ ' + ly + ' – app tự chuyển về bản cũ', true); setTimeout(choTaiLai, 1500);
+  function veDai() {
+    var d = document.getElementById('yupi-mc-dai');
+    if (!mcLoi) { if (d) d.remove(); return; }
+    if (!document.body) return;
+    if (!d) { d = document.createElement('div'); d.id = 'yupi-mc-dai'; d.setAttribute('style', 'position:sticky;top:0;z-index:9998;background:#c8372d;color:#fff;font:600 13px system-ui,sans-serif;padding:9px 12px;text-align:center;line-height:1.45'); document.body.insertBefore(d, document.body.firstChild); }
+    d.innerHTML = '⛔ <b></b> – các nút tạm khóa, chờ máy chủ chạy lại. <a target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;font-weight:800;margin-left:4px;white-space:nowrap">Duyệt tạm trên Telegram ›</a>';
+    d.querySelector('b').textContent = mcLoi; d.querySelector('a').href = TG_DUYET;
   }
-  function loiSync(m) { if (m === 'SAI_MAT_KHAU') return; if (!loiTu) loiTu = Date.now(); if (Date.now() - loiTu > 12000) veCu('Máy chủ app đang lỗi'); }
+  function datLoi(ly) {
+    if (ly === mcLoi) return; var coLoi = !!mcLoi; mcLoi = ly;
+    try { document.body.classList.toggle('yupi-mcloi', !!ly); } catch (e) {}
+    veDai(); try { window.dispatchEvent(new Event('yupi-mc')); } catch (e) {}
+    if (ly) toast('⛔ ' + ly + ' – duyệt tin khách tạm trên Telegram', true);
+    else if (coLoi) toast('✅ Máy chủ app chạy lại – bấm nút bình thường');
+  }
+  function loiSync(m) { if (m === 'SAI_MAT_KHAU') return; if (!loiTu) loiTu = Date.now(); if (Date.now() - loiTu > 12000) datLoi('Máy chủ app đang lỗi'); }
   function suKhoe(j) {
     loiTu = 0;
     var bay = vn(j.bay), cho = vn(j.cho), may = vn(j.may);
     var cu = bay && ((cho && bay - cho > 90000) || (may && bay - may > 90000));
-    if (!cu || mcLoi || Date.now() - lanKtCu < 30000) return;
+    if (!cu) { datLoi(''); return; }
+    if (Date.now() - lanKtCu < 30000) return;
     lanKtCu = Date.now();
-    // máy chủ nhanh không thấy laptop -> hỏi bản cũ (Google) xem laptop còn bật không
+    // máy chủ không thấy laptop -> hỏi Google xem laptop còn bật không (chỉ để báo đúng: máy chủ lỗi hay laptop tắt)
     post(API, { op: 'get', id: HOP, range: 'Trạng thái!A1:B3', pw: getPw() }).then(function (r) {
       var cap = ''; (r.values || []).forEach(function (x) { if (x[0] === 'Cập nhật lúc') cap = x[1]; });
-      if (cap && Date.now() - vn(cap) < 180000) veCu('Máy chủ app đang lỗi – laptop vẫn bật');
+      datLoi(cap && Date.now() - vn(cap) < 180000 ? 'Máy chủ app đang lỗi – laptop vẫn bật' : '');
     }).catch(function () {});
   }
   window.yupiMayChuLoi = function () { return mcLoi; };
+  (function () { var f = function () { var s = document.createElement('style'); s.textContent = 'body.yupi-mcloi .b-ok,body.yupi-mcloi .b-acc,body.yupi-mcloi .b-soft{opacity:.45;filter:grayscale(1)}'; document.head.appendChild(s); }; if (document.head) f(); else document.addEventListener('DOMContentLoaded', f); })();
   var dangSync = false, lanSync = 0;
   function sync() {
     if (!NHANH || dangSync || !watchers.length) return Promise.resolve();
@@ -169,14 +172,6 @@
     }, function (e) { dangSync = false; var m = String(e && e.message || e); loiSync(m); watchers.forEach(function (w) { w.cb({ type: 'error', error: 'Máy chủ nhanh: ' + m }); }); });
   }
   if (NHANH) setInterval(function () { if (document.visibilityState === 'visible' && Date.now() - lanSync > 3500) sync(); }, 1000);
-  // đang tạm dùng bản cũ: 30 giây thử bản nhanh 1 lần, chạy lại (laptop chờ lệnh + đẩy dữ liệu đều) thì tự quay về
-  if (!NHANH && TAM && MUON_NHANH) setInterval(function () {
-    if (document.visibilityState !== 'visible') return;
-    post(CF + '/api', { op: 'sync', tabs: [], pw: getPw() }).then(function (j) {
-      var bay = vn(j.bay), cho = vn(j.cho), may = vn(j.may);
-      if (bay && cho && may && bay - cho < 60000 && bay - may < 60000) { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); toast('⚡ Bản nhanh chạy lại – app quay về bản nhanh'); setTimeout(choTaiLai, 1500); }
-    }).catch(function () {});
-  }, 30000);
 
   var mcp = {
     watchTool: function (server, tool, args, cb, opts) {
@@ -197,6 +192,8 @@
       var op = tool === 'update_values' ? 'update' : tool === 'append_values' ? 'append' : tool === 'get_values' ? 'get' : null;
       if (!op) return Promise.reject(new Error('Lệnh chưa hỗ trợ: ' + tool));
       var t0 = Date.now();
+      // 08/11 15h20: máy chủ app đang lỗi -> khóa nút ghi, báo rõ (không gửi hụt)
+      if (op !== 'get' && mcLoi) { toast('⛔ ' + mcLoi + ' – chưa gửi được. Duyệt tin khách tạm trên Telegram', true); return Promise.reject(new Error(mcLoi)); }
       return api({ op: op, id: args.spreadsheetId, range: args.range, values: args.values }).then(function (j) {
         if (op !== 'get') {
           toast('✅ Đã gửi' + (NHANH ? ' (' + ((Date.now() - t0) / 1000).toFixed(1) + ' giây) – máy đang làm' : ''));
@@ -240,10 +237,8 @@
       b.setAttribute('style', 'position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;background:#14213d;color:#fff;font:700 14px system-ui,sans-serif;padding:11px 16px;border-radius:99px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);border:2px solid #c9a227');
       document.body.appendChild(b);
     }
-    // 08/11 15h: không còn nút chuyển bản; chỉ hiện dải báo khi bản nhanh lỗi và app đang tạm dùng bản cũ
-    var tam = !NHANH && TAM;
-    if (tam) { var bn = document.createElement('div'); bn.textContent = '⚠️ ' + (ls('yupi_tam_ly') || 'Máy chủ app đang lỗi') + ' – đang tạm dùng bản cũ (chậm hơn chút), bấm nút vẫn chạy. Bản nhanh chạy lại app tự quay về.';
-      bn.setAttribute('style', 'position:sticky;top:0;z-index:9998;background:#fff4d6;color:#7a4b00;border-bottom:2px solid #c9a227;font:600 13px system-ui,sans-serif;padding:8px 12px;text-align:center'); document.body.insertBefore(bn, document.body.firstChild); }
+    // 08/11 15h20: không còn nút chuyển bản; máy chủ lỗi thì hiện dải đỏ
+    veDai(); if (mcLoi) document.body.classList.add('yupi-mcloi');
   };
   if (document.body) them(); else document.addEventListener('DOMContentLoaded', them);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});

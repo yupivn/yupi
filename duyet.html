@@ -124,7 +124,7 @@ function status(){
   if(!cap){return}
   const m=minsSince(cap);const st=$("#st");
   const mc=window.yupiMayChuLoi&&yupiMayChuLoi();
-  if(mc){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>'+esc(mc)+'</b> – app đang tự chuyển về bản cũ, chờ vài giây.</span>';return}
+  if(mc){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>'+esc(mc)+'</b> – nút tạm khóa. <a href="https://t.me/c/3986855047" target="_blank" rel="noopener">Duyệt tạm trên Telegram ›</a></span>';return}
   if(m>2.5){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>Laptop tắt hoặc mất mạng</b> – cập nhật lần cuối lúc '+esc(cap.slice(11,16))+' ngày '+esc(cap.slice(8,10)+"/"+cap.slice(5,7))+'. Bấm nút lúc này sẽ chờ laptop bật lại.</span>'}
   else{st.className="st";st.innerHTML='<span class="dot ok"></span><span>Laptop đang bật · cập nhật '+esc(cap.slice(11,19))+'</span><span class="r">'+(tt["Chế độ"]==="thu"?"🧪 Bản thử – nhóm test":"Chạy thật")+'</span>'}
 }
@@ -154,7 +154,7 @@ function anhUrl(k){return k&&window.yupiAnh?window.yupiAnh(k):""}
 window.addEventListener("yupi-anh",()=>render());
 window.addEventListener("yupi-mc",()=>{try{status();render()}catch(e){}});
 function mcL(){return window.yupiMayChuLoi&&window.yupiMayChuLoi()}
-const MC_LOI="⏳ Máy chủ app đang lỗi – app đang chuyển về bản cũ, bấm lại sau vài giây";
+const MC_LOI="⛔ Máy chủ app đang lỗi – chưa gửi được. Duyệt tạm trên Telegram";
 function mayTat(){
   if(mcL())return false;
   const bay=window.__yupiBay,cho=window.__yupiCho;
