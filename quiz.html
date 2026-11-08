@@ -135,7 +135,7 @@ function render(){
      ${pv.length?`<div class="goi">${pv.map((p,i)=>`<button class="g nhanh" data-p="${i}">${esc(p)}</button>`).join("")}</div>`:""}
      <input id="mx" autocomplete="off" placeholder="gõ tên, vd: sauvage edp 100"><div class="goi" id="goi"></div>
      
-     <div class="nav">${tuMo?"<span></span>":`<button class="bt ghost" id="huy">Hủy</button>`}<button class="bt" id="guim">Lưu dạy Max</button></div></div>`:"";
+     <div class="nav">${tuMo?"<span></span>":`<button class="bt ghost" id="huy">Hủy</button>`}<button class="bt" id="guim">Lưu dạy Max</button></div><button class="bt ghost" id="chuaKiot">🚫 Chưa có trên Kiot</button></div>`:"";
   $("#quiz").innerHTML=`<div class="dots">${dots}</div>
    <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" decoding="async">
    ${gm&&!t?`<div class="doan"><span class="lb">🔗 Ghép mã kho NCC – dòng kho này là mã Kiot nào? (số 1-2-3 trên ảnh)</span></div><div class="gm">${opts.map((p,i)=>`<button class="op dg gmb" data-i="${i}"><b>${i+1}</b>${esc(p)}</button>`).join("")}<button class="op sa" id="gmKo">🚫 Không có mã nào</button><button class="bt ghost" id="gmTim">🔎 Mã khác – gõ tìm</button></div>`:`   <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
@@ -154,6 +154,7 @@ function render(){
       $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta da">${x.a?`<img src="${esc(x.a)}" alt="">`:""}<span>✔ Đã chọn mã Kiot <b>${esc(x.m)}</b> – bấm «Lưu dạy Max» để lưu</span></div>`})};
     mx.oninput=ve;$("#quiz").querySelectorAll(".g.nhanh").forEach(g=>g.onclick=()=>{$("#quiz").querySelectorAll(".g.nhanh").forEach(b=>b.classList.remove("chon"));g.classList.add("chon");mx.value=pv[+g.dataset.p];ve();if(goi.length){const x=goi[0];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta da">${x.a?`<img src="${esc(x.a)}" alt="">`:""}<span>✔ Đã chọn mã Kiot <b>${esc(x.m)}</b> – bấm «Lưu dạy Max» để lưu</span></div>`}});
     const hy=$("#huy");if(hy)hy.onclick=()=>{mo=null;render()};
+    const ck=$("#chuaKiot");if(ck)ck.onclick=()=>{const v=mx.value.trim();const laKiot=v&&((chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v));dayMax(r,"max sai",laKiot?"":v,(ghiChu[k]||"").trim(),true)};
     $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=(chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v);dayMax(r,"max sai",v,(ghiChu[k]||"").trim(),!laKiot)}}
   const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
   const tr=$("#truoc"),sa=$("#sau"),ke=$("#ket");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render();scrollTo(0,0)};if(ke)ke.onclick=()=>{xong=true;render();scrollTo(0,0)};
