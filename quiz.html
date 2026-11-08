@@ -37,7 +37,8 @@ select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);backgrou
 .pan,.gt{display:flex;flex-direction:column;gap:7px;background:var(--panel);border-radius:14px;padding:10px}
 .pan input,textarea{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);width:100%}
 .goi{display:flex;flex-direction:column;gap:4px}.g{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}
-.g.nhanh{border-style:dashed}
+.g.nhanh{border-style:dashed}.ga{display:flex;align-items:center;gap:8px}.ga img,.ga .ko{width:40px;height:40px;flex:0 0 40px;object-fit:contain;background:#fff;border-radius:6px}.da{display:flex;align-items:center;gap:8px}.da img{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}.g.chon{border:2px solid var(--ok);background:var(--ok-soft)}
+*,*::before,*::after{box-sizing:border-box}html,body{overflow-x:hidden;max-width:100%}.g,.pv,.meta,label{overflow-wrap:anywhere}.pan input{min-width:0;max-width:100%}
 .kq{font-size:14px;padding:10px 12px;border-radius:12px;background:var(--panel)}
 .kq.d{background:var(--ok-soft)}.kq.s{background:var(--late-soft)}
 .nav{display:flex;justify-content:space-between;align-items:center;gap:8px}.nav .bt{white-space:nowrap;padding:10px 14px}
@@ -77,7 +78,7 @@ const anh=id=>String(id).startsWith("img:")?(window.yupiAnh?window.yupiAnh(Strin
 const DAY=["max đúng","max sai","đúng","sai","không có"];
 const kd=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[’']/g,"'");
 const gon=s=>String(s||"").replace(/^CHRISTIAN DIOR\s+/i,"").replace(/\s*-\s*(Fullseal|Tester|Mini|Chiết|Refill|Gốc|Share).*$/i,"").replace(/\s*\((Chai|Set|Ống)\)\s*(full)?$/i,"").replace(/\s+full$/i,"").trim();
-function timMa(q){const w=kd(q).split(/\s+/).filter(Boolean);if(!w.length)return[];const o=[];for(const x of KIOT){if(w.every(z=>x.k.includes(z))){o.push(x);if(o.length>=8)break}}return o}
+function timMa(q){const w=kd(q).replace(/[()\[\]|,;:·]/g," ").split(/\s+/).filter(z=>z&&z!=="-"&&z!=="chai");if(!w.length)return[];const o=[];for(const x of KIOT){if(w.every(z=>x.k.includes(z))){o.push(x);if(o.length>=8)break}}return o}
 // the cu (Quiz 5 cau truoc 08/11): cot E la dap an, G la ten Max doan; the moi: E = Max doan, G = % chac
 const laMoi=r=>/^\d+$/.test(String(r[6]||""));
 const maxDoan=r=>laMoi(r)?r[4]:(r[6]||r[4]);
@@ -149,9 +150,9 @@ function render(){
   const gk=$("#gmKo");if(gk)gk.onclick=()=>dayMax(r,"không có","",(ghiChu[k]||"").trim(),false);const gtm=$("#gmTim");if(gtm)gtm.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const bs=$("#sai");if(bs)bs.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const mx=$("#mx");let chonMa=null;
-  if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g" data-i="${i}">${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Lưu dạy Max» để ghi tên này là <b>mã mới</b>.</div>`:"");
-      $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta">✔ Đã chọn mã Kiot ${esc(x.m)}</div>`})};
-    mx.oninput=ve;$("#quiz").querySelectorAll(".g.nhanh").forEach(g=>g.onclick=()=>{mx.value=pv[+g.dataset.p];ve()});
+  if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g ga" data-i="${i}">${x.a?`<img src="${esc(x.a)}" loading="lazy" alt="">`:`<span class="ko"></span>`}<span>${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Lưu dạy Max» để ghi tên này là <b>mã mới</b>.</div>`:"");
+      $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta da">${x.a?`<img src="${esc(x.a)}" alt="">`:""}<span>✔ Đã chọn mã Kiot <b>${esc(x.m)}</b> – bấm «Lưu dạy Max» để lưu</span></div>`})};
+    mx.oninput=ve;$("#quiz").querySelectorAll(".g.nhanh").forEach(g=>g.onclick=()=>{$("#quiz").querySelectorAll(".g.nhanh").forEach(b=>b.classList.remove("chon"));g.classList.add("chon");mx.value=pv[+g.dataset.p];ve();if(goi.length){const x=goi[0];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta da">${x.a?`<img src="${esc(x.a)}" alt="">`:""}<span>✔ Đã chọn mã Kiot <b>${esc(x.m)}</b> – bấm «Lưu dạy Max» để lưu</span></div>`}});
     const hy=$("#huy");if(hy)hy.onclick=()=>{mo=null;render()};
     $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=(chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v);dayMax(r,"max sai",v,(ghiChu[k]||"").trim(),!laKiot)}}
   const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
@@ -209,7 +210,7 @@ function tuan(){
   w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);daLoad.q=1;if(xin&&xong&&choDay().length){xin=null;xong=false;layLo();scrollTo(0,0)}else if(lo&&!lo.length&&choDay().length&&!xong)layLo();render()});
   w(TT+"!A1:I5000",v=>{A=v.filter(r=>r&&r[2]);daLoad.a=1;render();tuan()});
   w(TW+"!A1:D200",v=>{W=v;tuan()});
-  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:C9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",k:kd(x[0]+" "+(x[1]||""))}))}},{refetchInterval:3600000});
+  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:D9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",a:x[3]||"",k:kd(x[0]+" "+(x[1]||""))}))}},{refetchInterval:3600000});
   window.addEventListener("yupi-anh",render);
   if(!window.yupiAnh)mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Quiz ảnh!A1:B3000"},ev=>{if(ev.type==="data"){(ev.result.payload.values||[]).slice(1).forEach(r=>{if(r[0]&&r[1])IM[r[0]]=r[1]});render()}},{refetchInterval:600000});
 })();
