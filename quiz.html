@@ -26,6 +26,7 @@ select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);backgrou
 .doan .lb{font-size:12.5px;color:var(--muted)}.doan .ma{font-weight:800;font-size:16.5px;line-height:1.3}
 .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;border-radius:99px}
 .chac{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}.chac b{color:var(--fg)}
+.gm{display:flex;flex-direction:column;gap:8px;margin:10px 0}.gm .op{text-align:left;width:100%}.gm .op b{font-size:18px;margin-right:6px}
 .pv{font-size:13px;color:var(--muted)}.pv b{color:var(--fg);font-weight:600}
 .tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn)}
 .hai{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -122,7 +123,8 @@ function render(){
   const dots=lo.map((kk,i)=>{const tt=day(kk);return `<span class="dot${i===cur?" on":""}${tt?" "+ketQua(tt):""}" data-i="${i}">${i+1}</span>`}).join("");
   const mau=chac==null?"var(--muted)":chac<60?"var(--late)":chac<80?"var(--warn)":"var(--ok)";
   let kq="";
-  if(t){kq=ketQua(t)==="d"?`<div class="kq d">✅ Đã dạy: <b>Max đúng</b> – ${esc(md)}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`
+  const gm=r[5]==="Ghép mã NCC",opts=gm?[md,...pv].filter(Boolean):[];
+  if(t){kq=t[4]==="không có"&&gm?`<div class="kq s">🚫 Đã dạy: <b>không có mã nào trên Kiot</b>${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`:ketQua(t)==="d"?`<div class="kq d">✅ Đã dạy: <b>Max đúng</b> – ${esc(md)}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`
       :`<div class="kq s">📝 Đã dạy: Max sai – mã đúng là <b>${esc(t[7]||r[4])}</b>${t[8]?" · <i>mã mới</i>":""}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`;
     const cu=giaiCuoi(k);kq+=`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max ${cu?"(đã lưu – sửa được)":"(không bắt buộc) – dấu hiệu nhận biết"}</label><textarea id="gtx" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM · nước xanh đậm · nắp đen hình mũ">${esc(cu)}</textarea><button class="bt" id="gtl">${cu?"Lưu sửa giải thích":"Lưu giải thích"}</button>${moi["gt|"+k]?'<span class="meta">✔ Đã lưu – Max học ngay</span>':""}</div>`}
   const pan=!t&&mo===k?`<div class="pan"><label class="meta" for="mx">Mã đúng là gì? (gợi ý tên đầy đủ theo KiotViet Yupi)</label>
@@ -132,14 +134,16 @@ function render(){
      <div class="nav"><button class="bt ghost" id="huy">Hủy</button><button class="bt" id="guim">Lưu dạy Max</button></div></div>`:"";
   $("#quiz").innerHTML=`<div class="dots">${dots}</div>
    <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" decoding="async">
-   <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
+   ${gm&&!t?`<div class="doan"><span class="lb">🔗 Ghép mã kho NCC – dòng kho này là mã Kiot nào? (số 1-2-3 trên ảnh)</span></div><div class="gm">${opts.map((p,i)=>`<button class="op dg gmb" data-i="${i}"><b>${i+1}</b>${esc(p)}</button>`).join("")}<button class="op sa" id="gmKo">🚫 Không có mã nào</button><button class="bt ghost" id="gmTim">🔎 Mã khác – gõ tìm</button></div>`:`   <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
      ${chac!=null?`<div class="chac"><span>Mức chắc chắn</span><b>${chac}%</b></div><div class="bar"><i style="width:${Math.max(4,Math.min(100,chac))}%;background:${mau}"></i></div>`:""}
      ${pv.length?`<div class="pv">Max phân vân với: ${pv.map(p=>`<b>${esc(gon(p))}</b>`).join(" · ")}</div>`:""}</div>
-   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>${pan}${kq}${t?"":`<div class="doi"><button class="bt ghost" id="doi1">🔄 Câu này xàm – đổi câu khác</button><button class="bt ghost" id="doiBo">🔄 Đổi cả bộ</button></div>`}
+   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>`}${pan}${kq}${t?"":`<div class="doi"><button class="bt ghost" id="doi1">🔄 Câu này xàm – đổi câu khác</button><button class="bt ghost" id="doiBo">🔄 Đổi cả bộ</button></div>`}
    <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Ảnh trước</button>${cur<lo.length-1?`<button class="bt" id="sau">Ảnh sau ›</button>`:`<button class="bt" id="ket">Xong ${lo.length} ảnh ›</button>`}</div>`;
   $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
   const d1=$("#doi1");if(d1)d1.onclick=()=>doiCau([k]);const db=$("#doiBo");if(db)db.onclick=()=>doiCau(lo.slice());
   const bd=$("#dung");if(bd)bd.onclick=()=>dayMax(r,"max đúng","","",false);
+  $("#quiz").querySelectorAll(".gmb").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;dayMax(r,i===0?"max đúng":"max sai",i===0?"":opts[i],"",false)});
+  const gk=$("#gmKo");if(gk)gk.onclick=()=>dayMax(r,"không có","","",false);const gtm=$("#gmTim");if(gtm)gtm.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const bs=$("#sai");if(bs)bs.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const mx=$("#mx");let chonMa=null;
   if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g" data-i="${i}">${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Lưu dạy Max» để ghi tên này là <b>mã mới</b>.</div>`:"");
