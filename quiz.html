@@ -66,7 +66,7 @@ const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",SV="Google Sheets",TQ="
 const NGUOI=["Chị Phương","Anh Trường","Anh Luật"];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let mcp,Q=[],A=[],W=[],KIOT=[],IM={},moi={},lo=null,cur=0,mo=null,goi=[],xong=false,daLoad={q:0,a:0};
+let mcp,Q=[],A=[],W=[],KIOT=[],IM={},moi={},lo=null,cur=0,mo=null,goi=[],xong=false,daLoad={q:0,a:0},xin=null;
 try{const a=localStorage.getItem("yupi_ai");if(a&&NGUOI.includes(a))$("#ai").value=a}catch(_){}
 $("#ai").onchange=()=>{try{localStorage.setItem("yupi_ai",$("#ai").value)}catch(_){};render()};
 function vnNow(){return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace("T"," ")}
@@ -87,7 +87,14 @@ function choDay(){return theHom().filter(r=>!day(r[7]))}
 function soDaDayHom(){const h=homNay();const s=new Set(A.filter(r=>String(r[0]).startsWith(h)&&DAY.includes(r[4])).map(r=>r[2]));Object.keys(moi).forEach(k=>s.add(k));return s.size}
 function layLo(){const c=choDay();lo=c.slice(0,5).map(r=>r[7]);cur=0;mo=null;xong=!lo.length}
 function themNut(){const c=choDay().length;const b=$("#themTren");b.disabled=false;b.textContent=c?"➕ Dạy thêm 5 ảnh":"➕ Dạy thêm 5 ảnh";return c}
-function batDauThem(){if(!$("#ai").value){render();return}if(!choDay().length){xong=true;lo=lo||[];render();const h=$("#hetanh");if(h)h.scrollIntoView({block:"center"});return}layLo();render();scrollTo(0,0)}
+// 09/11 (chi Phuong, cach B): het the ma bam "Day them" -> ghi "xin thêm" -> laptop soan them ngay (moi gio), app tu hien anh moi
+const XIN_CHO=4*60*1000;
+function xinTT(){if(!xin)return"";const r=A.find(x=>x[2]===xin.k);const f=r?String(r[5]||""):"";
+  if(choDay().length)return"";if(f.startsWith("hết"))return"het";if(f)return"xong";return Date.now()-xin.t<XIN_CHO?"cho":"lau"}
+async function xinThem(){const k="xin#"+Date.now();xin={k,t:Date.now()};render();
+  try{await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:[[vnNow(),$("#ai").value,k,"","xin thêm"]]})}catch(e){xin=null;render()}}
+setInterval(()=>{if(xin&&xinTT()&&document.visibilityState==="visible"&&xong)render()},15000);
+function batDauThem(){if(!$("#ai").value){render();return}if(!choDay().length){xong=true;lo=lo||[];const tt=xinTT();if(tt!=="cho"&&tt!=="xong")xinThem();else render();const h=$("#hetanh");if(h)h.scrollIntoView({block:"center"});return}xin=null;layLo();render();scrollTo(0,0)}
 $("#themTren").onclick=batDauThem;
 function render(){
   const ae=document.activeElement;if(ae&&/TEXTAREA|INPUT/.test(ae.tagName)&&$("#quiz").contains(ae)&&ae.value)return;
@@ -136,7 +143,7 @@ function veKetThuc(){
   $("#quiz").innerHTML=`<div class="tk"><div class="tkso">${n}</div><div class="q" style="font-weight:700">Đã dạy Max ${n} ảnh hôm nay</div>
     ${ds.length?`<div class="meta">Lượt vừa rồi: Max đúng ${ds.length-sai.length}/${ds.length} ảnh</div>`:""}</div>
    ${sai.length?`<h3>📝 Max đã học lại</h3>`+sai.map(([r,t])=>`<div class="kq s">Max đoán <b>${esc(gon(maxDoan(r)))}</b> → đúng là <b>${esc(t[7]||r[4])}</b></div>`).join(""):""}
-   <div class="tkbt"><button class="bt" id="them">➕ Dạy thêm 5 ảnh</button>${con?"":`<div class="het" id="hetanh">Hết ảnh để dạy hôm nay</div>`}<a class="bt ghost" href="./">‹ Về Bảng tổng</a></div>`;
+   <div class="tkbt"><button class="bt" id="them">➕ Dạy thêm 5 ảnh</button>${con?"":`<div class="het" id="hetanh">${({cho:"⏳ Max đang soạn thêm ảnh, đợi 1–2 phút…",het:"Max hết ảnh mới để dạy – mai có ảnh mới nha",xong:"⏳ Ảnh mới đang tải về…",lau:"⚠️ Laptop chưa soạn được (có thể đang tắt) – bấm Dạy thêm lại"})[xinTT()]||"Bấm ➕ Dạy thêm để Max soạn ảnh mới"}</div>`}<a class="bt ghost" href="./">‹ Về Bảng tổng</a></div>`;
   $("#them").onclick=batDauThem;
 }
 async function ghiDong(row){await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:[row]});A.push(row)}
@@ -179,7 +186,7 @@ function tuan(){
 (async()=>{
   mcp=await window.claude.use("mcp");
   const w=(rg,cb)=>mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:rg},ev=>{if(ev.type!=="data"){$("#sub").textContent="Không đọc được sheet: "+ev.error;return}cb((ev.result.payload.values||[]).slice(1))},{refetchInterval:60000});
-  w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);daLoad.q=1;if(lo&&!lo.length&&choDay().length&&!xong)layLo();render()});
+  w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);daLoad.q=1;if(xin&&xong&&choDay().length){xin=null;xong=false;layLo();scrollTo(0,0)}else if(lo&&!lo.length&&choDay().length&&!xong)layLo();render()});
   w(TT+"!A1:I5000",v=>{A=v.filter(r=>r&&r[2]);daLoad.a=1;render();tuan()});
   w(TW+"!A1:D200",v=>{W=v;tuan()});
   mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:C9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",k:kd(x[0]+" "+(x[1]||""))}))}},{refetchInterval:3600000});
