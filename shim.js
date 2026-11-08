@@ -9,7 +9,11 @@
   var KEY = 'yupi_pw';
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
   var q = location.search.match(/[?&]nhanh=([01])/); if (q) ls('yupi_nhanh', q[1]);
-  var NHANH = ls('yupi_nhanh') !== '0';   // 08/11 chi Phuong duyet: ban nhanh la mac dinh, bam nut de ve ban cu
+  // 08/11 12h (chi Phuong): ban nhanh loi -> tam ve ban cu (Apps Script) 10 phut, tu thu lai ban nhanh moi 30 giay
+  var TAM = +(ls('yupi_tam_cu') || 0); if (TAM && Date.now() - TAM > 10 * 60e3) { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); TAM = 0; }
+  var MUON_NHANH = ls('yupi_nhanh') !== '0';
+  var NHANH = MUON_NHANH && !TAM;
+  var HOP = '1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M';   // 08/11 chi Phuong duyet: ban nhanh la mac dinh, bam nut de ve ban cu
   // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
   function getPw() {
     var v = ls(KEY) || '';
@@ -127,21 +131,52 @@
     var o = null; try { o = JSON.parse(ls('yt:' + k) || 'null'); } catch (e) {}
     return (tabs[k] = o || { id: id, ten: ten, v: 0, rows: null });
   }
+  // ---- 08/11 12h: phân biệt "Máy chủ app đang lỗi" với "Laptop tắt"; bản nhanh lỗi -> tự về bản cũ ----
+  var loiTu = 0, mcLoi = '', lanKtCu = 0;
+  function vn(s) { return s ? new Date(String(s).replace(' ', 'T') + 'Z').getTime() - 7 * 3600e3 : 0; }   // giờ VN dạng chữ -> ms
+  function choTaiLai() { var a = document.activeElement; if (a && /TEXTAREA|INPUT/.test(a.tagName) && a.value) return setTimeout(choTaiLai, 2000); location.reload(); }
+  function veCu(ly) {
+    if (mcLoi) return; mcLoi = ly; try { window.dispatchEvent(new Event('yupi-mc')); } catch (e) {}
+    ls('yupi_tam_cu', String(Date.now())); ls('yupi_tam_ly', ly);
+    toast('⚠️ ' + ly + ' – app tự chuyển về bản cũ', true); setTimeout(choTaiLai, 1500);
+  }
+  function loiSync(m) { if (m === 'SAI_MAT_KHAU') return; if (!loiTu) loiTu = Date.now(); if (Date.now() - loiTu > 12000) veCu('Máy chủ app đang lỗi'); }
+  function suKhoe(j) {
+    loiTu = 0;
+    var bay = vn(j.bay), cho = vn(j.cho), may = vn(j.may);
+    var cu = bay && ((cho && bay - cho > 90000) || (may && bay - may > 90000));
+    if (!cu || mcLoi || Date.now() - lanKtCu < 30000) return;
+    lanKtCu = Date.now();
+    // máy chủ nhanh không thấy laptop -> hỏi bản cũ (Google) xem laptop còn bật không
+    post(API, { op: 'get', id: HOP, range: 'Trạng thái!A1:B3', pw: getPw() }).then(function (r) {
+      var cap = ''; (r.values || []).forEach(function (x) { if (x[0] === 'Cập nhật lúc') cap = x[1]; });
+      if (cap && Date.now() - vn(cap) < 180000) veCu('Máy chủ app đang lỗi – laptop vẫn bật');
+    }).catch(function () {});
+  }
+  window.yupiMayChuLoi = function () { return mcLoi; };
   var dangSync = false, lanSync = 0;
   function sync() {
     if (!NHANH || dangSync || !watchers.length) return Promise.resolve();
     dangSync = true; lanSync = Date.now();
     var ds = {}; watchers.forEach(function (w) { var g = tach(w.args.range); var t = napTab(w.args.spreadsheetId, g.ten); ds[tabKey(t.id, t.ten)] = { id: t.id, ten: t.ten, v: t.v }; });
     return api({ op: 'sync', tabs: Object.keys(ds).map(function (k) { return ds[k]; }) }).then(function (j) {
-      dangSync = false; window.__yupiMay = j.may; window.__yupiCho = j.cho; window.__yupiBay = j.bay;
+      dangSync = false; window.__yupiMay = j.may; window.__yupiCho = j.cho; window.__yupiBay = j.bay; suKhoe(j);
       (j.tabs || []).forEach(function (t) {
         var k = tabKey(t.id, t.ten); tabs[k] = { id: t.id, ten: t.ten, v: t.v, rows: t.rows };
         try { ls('yt:' + k, JSON.stringify(tabs[k])); } catch (e) {}
         watchers.forEach(function (w) { var g = tach(w.args.range); if (w.args.spreadsheetId === t.id && g.ten === t.ten) giao(w, cat(t.rows, g)); });
       });
-    }, function (e) { dangSync = false; var m = String(e && e.message || e); watchers.forEach(function (w) { w.cb({ type: 'error', error: 'Máy chủ nhanh: ' + m }); }); });
+    }, function (e) { dangSync = false; var m = String(e && e.message || e); loiSync(m); watchers.forEach(function (w) { w.cb({ type: 'error', error: 'Máy chủ nhanh: ' + m }); }); });
   }
   if (NHANH) setInterval(function () { if (document.visibilityState === 'visible' && Date.now() - lanSync > 3500) sync(); }, 1000);
+  // đang tạm dùng bản cũ: 30 giây thử bản nhanh 1 lần, chạy lại (laptop chờ lệnh + đẩy dữ liệu đều) thì tự quay về
+  if (!NHANH && TAM && MUON_NHANH) setInterval(function () {
+    if (document.visibilityState !== 'visible') return;
+    post(CF + '/api', { op: 'sync', tabs: [], pw: getPw() }).then(function (j) {
+      var bay = vn(j.bay), cho = vn(j.cho), may = vn(j.may);
+      if (bay && cho && may && bay - cho < 60000 && bay - may < 60000) { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); toast('⚡ Bản nhanh chạy lại – app quay về bản nhanh'); setTimeout(choTaiLai, 1500); }
+    }).catch(function () {});
+  }, 30000);
 
   var mcp = {
     watchTool: function (server, tool, args, cb, opts) {
@@ -207,10 +242,13 @@
     }
     // Nút bật/tắt bản nhanh
     var n = document.createElement('button');
-    n.textContent = NHANH ? '⚡ Bản nhanh' : '🐢 Bản cũ · thử ⚡';
+    var tam = !NHANH && TAM && MUON_NHANH;
+    n.textContent = NHANH ? '⚡ Bản nhanh' : (tam ? '🐢 Bản cũ (tạm)' : '🐢 Bản cũ · thử ⚡');
+    if (tam) { var bn = document.createElement('div'); bn.textContent = '⚠️ ' + (ls('yupi_tam_ly') || 'Máy chủ app đang lỗi') + ' – đang tạm dùng bản cũ (chậm hơn chút), bấm nút vẫn chạy. Bản nhanh chạy lại app tự quay về.';
+      bn.setAttribute('style', 'position:sticky;top:0;z-index:9998;background:#fff4d6;color:#7a4b00;border-bottom:2px solid #c9a227;font:600 13px system-ui,sans-serif;padding:8px 12px;text-align:center'); document.body.insertBefore(bn, document.body.firstChild); }
     n.title = NHANH ? 'Đang dùng máy chủ nhanh (Cloudflare). Bấm để về bản cũ.' : 'Đang dùng bản cũ (Google). Bấm để thử bản nhanh.';
     n.setAttribute('style', 'position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;border:2px solid #c9a227;background:' + (NHANH ? '#c9a227;color:#14213d' : '#fff;color:#14213d') + ';font:700 13px system-ui,sans-serif;padding:9px 13px;border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.2)');
-    n.onclick = function () { ls('yupi_nhanh', NHANH ? '0' : '1'); location.reload(); };
+    n.onclick = function () { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); ls('yupi_nhanh', NHANH ? '0' : '1'); location.reload(); };
     document.body.appendChild(n);
   };
   if (document.body) them(); else document.addEventListener('DOMContentLoaded', them);

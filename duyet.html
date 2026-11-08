@@ -123,6 +123,8 @@ function status(){
   const tt=Object.fromEntries((data.tt||[]).slice(1).map(r=>[r[0],r[1]]));const cap=tt["Cập nhật lúc"];
   if(!cap){return}
   const m=minsSince(cap);const st=$("#st");
+  const mc=window.yupiMayChuLoi&&yupiMayChuLoi();
+  if(mc){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>'+esc(mc)+'</b> – app đang tự chuyển về bản cũ, chờ vài giây.</span>';return}
   if(m>2.5){st.className="st bad";st.innerHTML='<span class="dot bad"></span><span><b>Laptop tắt hoặc mất mạng</b> – cập nhật lần cuối lúc '+esc(cap.slice(11,16))+' ngày '+esc(cap.slice(8,10)+"/"+cap.slice(5,7))+'. Bấm nút lúc này sẽ chờ laptop bật lại.</span>'}
   else{st.className="st";st.innerHTML='<span class="dot ok"></span><span>Laptop đang bật · cập nhật '+esc(cap.slice(11,19))+'</span><span class="r">'+(tt["Chế độ"]==="thu"?"🧪 Bản thử – nhóm test":"Chạy thật")+'</span>'}
 }
@@ -150,7 +152,11 @@ if(qNhom)view="duyet";
 function ct(d){try{return JSON.parse(d["Chi tiết"]||"{}")}catch(e){return{}}}
 function anhUrl(k){return k&&window.yupiAnh?window.yupiAnh(k):""}
 window.addEventListener("yupi-anh",()=>render());
+window.addEventListener("yupi-mc",()=>{try{status();render()}catch(e){}});
+function mcL(){return window.yupiMayChuLoi&&window.yupiMayChuLoi()}
+const MC_LOI="⏳ Máy chủ app đang lỗi – app đang chuyển về bản cũ, bấm lại sau vài giây";
 function mayTat(){
+  if(mcL())return false;
   const bay=window.__yupiBay,cho=window.__yupiCho;
   if(bay&&cho)return (new Date(bay.replace(" ","T")+"Z")-new Date(cho.replace(" ","T")+"Z"))/1000>90;
   const tt=Object.fromEntries((data.tt||[]).slice(1).map(r=>[r[0],r[1]]));return !tt["Cập nhật lúc"]||minsSince(tt["Cập nhật lúc"])>2.5}
@@ -193,8 +199,8 @@ document.addEventListener("input",e=>{const x=e.target;if(x&&x.tagName==="TEXTAR
 function setO(i,v){open[i]=v;render()}
 function dI(i){return dsDuyet()[i]}
 const MAY_TAT="⛔ Máy đang tắt, chưa gửi được – bật laptop rồi bấm lại";
-function hoiDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}xn[mid]=1;render()}
-function doDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];xn[mid]=0;if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}
+function hoiDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];if(mcL()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MC_LOI,"bad");return}if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}xn[mid]=1;render()}
+function doDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];xn[mid]=0;if(mcL()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MC_LOI,"bad");return}if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}
   const tsn=(d["Tin sẽ nhắn"]||"").trim(),v=sua[mid]!=null?sua[mid].trim():"",nd=(v&&v!==tsn)?v:"";
   send("duyet",d["Nhóm khách"],mid,nd,mid+"|duyet|"+d["Nhóm khách"])}
 function doBo(i){const d=dI(i);if(!confirm("Không gửi khách đề xuất này?"))return;if(mayTat()){toastIn(d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"],MAY_TAT,"bad");return}send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
