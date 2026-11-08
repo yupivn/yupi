@@ -1,0 +1,102 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Chỉ số mỗi ngày</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+/* 3 số mỗi ngày: khách chờ bao lâu, Max soạn đúng tới đâu, tốn bao nhiêu Claude. Laptop tính lúc 23h40 + 10h15 (chi_so_ngay.ps1) */
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--panel:#e9edf6;--gold:#c9a227;--accent:#1f3a6e;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--blue:#2b5cb8;--blue-soft:#e4ecfb;
+  --display:"Nunito","Be Vietnam Pro",system-ui,sans-serif;--body:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--accent:#e3c15a;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--panel:#15203a;--gold:#e3c15a;--accent:#e3c15a;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--blue:#8fb1f2;--blue-soft:#1d2c50;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 90px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:900;font-size:26px;margin:0}
+h2{font-family:var(--display);font-weight:800;font-size:17px;margin:6px 0 0}
+.sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+.days{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.day{flex:none;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:99px;padding:7px 12px;font:600 13.5px var(--body);cursor:pointer}
+.day.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.tiles{grid-template-columns:1fr}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.tile .lb{font-size:13px;color:var(--muted);font-weight:600}
+.tile .so{font-family:var(--display);font-weight:900;font-size:34px;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile .so small{font-size:15px;font-weight:800;color:var(--muted);margin-left:3px}
+.tile .ct{font-size:13px;color:var(--muted)}
+.tile.ok{border-left:5px solid var(--ok)}.tile.warn{border-left:5px solid var(--warn)}.tile.bad{border-left:5px solid var(--late)}.tile.na{border-left:5px solid var(--line)}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.chart .t{font-size:13px;font-weight:700;margin-bottom:8px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:90px}
+.bar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px}
+.bar i{display:block;width:100%;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--accent);min-height:2px}
+.bar.sel i{background:var(--gold)}
+.bar span{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar b{font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:18px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+th{font-size:12px;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+.empty{text-align:center;color:var(--muted);padding:40px 10px;background:var(--card);border-radius:16px;border:1px dashed var(--line)}
+.note{font-size:12.5px;color:var(--muted)}
+</style></head><body>
+<div class="wrap">
+  <div><h1>📈 Chỉ số mỗi ngày</h1><p class="sub" id="sub">Đang đọc…</p></div>
+  <div class="days" id="days"></div>
+  <div class="tiles" id="tiles"></div>
+  <h2>14 ngày gần đây</h2>
+  <div id="charts" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="tbl" id="tbl"></div>
+  <p class="note">⏱ <b>Trả lời</b>: từ tin khách đầu tiên chưa ai trả lời tới tin trả lời đầu tiên của shop (nhân viên hoặc Max), chỉ tính tin khách nhắn 8h–22h30, nhóm thật (bỏ nhóm Test). Đọc từ hội thoại Zalo PC laptop đã chụp khi xử lý tin.<br>
+  ✅ <b>Duyệt không sửa</b>: đề xuất có tin gửi khách được duyệt gửi y nguyên (không đổi giá, không sửa chữ, không soạn lại). «Không dùng» = không ai bấm duyệt (thường do nhân viên đã tự trả lời trên điện thoại).<br>
+  🤖 <b>Claude</b>: số lượt laptop gọi Claude (soạn đề xuất Zalo + Hỏi Max). Token/$ hiện chỉ đo được ở Hỏi Max.<br>
+  Laptop tính lúc 23h40 và 10h15 mỗi ngày; tổng kết tuần gửi chat riêng với bot tối Chủ nhật.</p>
+</div>
+<script>
+const SID="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",SV="Google Sheets",TAB="Chỉ số";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:null};
+const TH=["CN","T2","T3","T4","T5","T6","T7"];
+const dd=s=>{const d=new Date(s+"T00:00:00");return TH[d.getDay()]+" "+s.slice(8,10)+"/"+s.slice(5,7)};
+let rows=[],capNhat="",chon="";
+function cls(v,tot,xau,thapTot){if(v==null)return"na";return thapTot?(v<=tot?"ok":v<=xau?"warn":"bad"):(v>=tot?"ok":v>=xau?"warn":"bad")}
+function render(){
+  if(!rows.length){$("#tiles").innerHTML=`<div class="empty" style="grid-column:1/-1">Chưa có số liệu – laptop tính lần đầu lúc 23h40.</div>`;return}
+  if(!chon||!rows.find(r=>r[0]===chon))chon=rows[0][0];
+  $("#days").innerHTML=rows.slice(0,14).map(r=>`<button class="day${r[0]===chon?" on":""}" data-d="${r[0]}">${dd(r[0])}</button>`).join("");
+  $("#days").querySelectorAll(".day").forEach(b=>b.onclick=()=>{chon=b.dataset.d;render()});
+  const r=rows.find(x=>x[0]===chon);const tv=num(r[1]),p5=num(r[3]),pt=num(r[5]),cl=num(r[7]);
+  const [ng,su,bo,kd]=String(r[6]||"0/0/0/0").split("/");const tong=[ng,su,bo,kd].reduce((s,x)=>s+(+x||0),0);
+  $("#tiles").innerHTML=`
+   <div class="tile ${cls(tv,5,15,true)}"><span class="lb">⏱ Khách chờ shop trả lời (trung vị)</span><span class="so">${tv==null?"–":tv}<small>phút</small></span>
+     <span class="ct">TB ${esc(r[2])} phút · ${p5==null?"–":p5+"%"} trong 5 phút · lâu nhất ${esc(r[12]||"–")} phút · ${esc(r[4])} lượt đo</span></div>
+   <div class="tile ${cls(pt,70,40,false)}"><span class="lb">✅ Đề xuất duyệt không sửa</span><span class="so">${pt==null?"–":pt}<small>%</small></span>
+     <span class="ct">${tong} đề xuất: ${+ng||0} nguyên · ${+su||0} có sửa · ${+bo||0} bỏ · ${+kd||0} không dùng</span></div>
+   <div class="tile ${cl==null?"na":"ok"}"><span class="lb">🤖 Claude đã dùng</span><span class="so">${cl==null?"–":cl}<small>lượt</small></span>
+     <span class="ct">${esc(r[8])} phút chạy · Max soạn TB ${esc(r[11])} giây · Hỏi Max ${Number(r[9]||0).toLocaleString("vi-VN")} token ≈ $${esc(r[10])}</span></div>`;
+  const ds=rows.slice(0,14).reverse();
+  const ve=(t,idx,donVi)=>{const vs=ds.map(x=>num(x[idx]));const mx=Math.max(1,...vs.filter(v=>v!=null));
+    return `<div class="chart"><div class="t">${t}</div><div class="bars">${ds.map((x,i)=>{const v=vs[i];return `<div class="bar${x[0]===chon?" sel":""}"><b>${v==null?"":v}</b><i style="height:${v==null?0:Math.max(2,Math.round(70*v/mx))}px"></i><span>${x[0].slice(8,10)}</span></div>`}).join("")}</div></div>`};
+  $("#charts").innerHTML=ve("⏱ Trả lời trung vị (phút) – thấp là tốt",1)+ve("✅ % duyệt không sửa – cao là tốt",5)+ve("🤖 Lượt Claude",7);
+  $("#tbl").innerHTML=`<table><thead><tr><th>Ngày</th><th>Trả lời TV</th><th>TB</th><th>≤5 phút</th><th>Lượt</th><th>% nguyên</th><th>Nguyên/sửa/bỏ/không dùng</th><th>Claude</th><th>Phút</th><th>Token HM</th><th>$ HM</th></tr></thead><tbody>${
+    rows.slice(0,14).map(x=>`<tr><td>${dd(x[0])}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${x[3]==="–"?"–":esc(x[3])+"%"}</td><td>${esc(x[4])}</td><td>${x[5]==="–"?"–":esc(x[5])+"%"}</td><td>${esc(x[6])}</td><td>${esc(x[7])}</td><td>${esc(x[8])}</td><td>${Number(x[9]||0).toLocaleString("vi-VN")}</td><td>${esc(x[10])}</td></tr>`).join("")}</tbody></table>`;
+  $("#sub").textContent=capNhat?`Laptop tính lúc ${capNhat} · bấm ngày để xem`:"Bấm ngày để xem";
+}
+(async()=>{
+  const mcp=await window.claude.use("mcp");
+  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:TAB+"!A1:M40"},ev=>{
+    if(ev.type!=="data"){$("#sub").textContent="Chưa đọc được số liệu: "+(ev.error||"");return}
+    const v=ev.result.payload.values||[];const cn=v.find(x=>x[0]==="Cập nhật lúc");capNhat=cn?cn[1]:"";
+    rows=v.slice(1).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x[0]||""));render();
+  },{refetchInterval:60000});
+})();
+</script>
+</body></html>
