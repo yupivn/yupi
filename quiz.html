@@ -29,6 +29,7 @@ select{padding:9px 12px;border-radius:12px;border:1px solid var(--line);backgrou
 .pv{font-size:13px;color:var(--muted)}.pv b{color:var(--fg);font-weight:600}
 .tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn)}
 .hai{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.doi{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}.doi .bt{padding:8px 12px;font-size:13.5px}
 .op{border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:14px;padding:14px 10px;font-weight:800;font-size:15.5px;cursor:pointer}
 .op.dg{border-color:var(--ok);color:var(--ok)}.op.sa{border-color:var(--late);color:var(--late)}
 .op:disabled{opacity:.45;cursor:default}
@@ -83,7 +84,18 @@ function day(k){if(moi[k])return moi[k];return A.filter(r=>r[2]===k&&DAY.include
 function giaiCuoi(k){const x=A.filter(r=>r[2]===k&&String(r[6]||"").trim()).pop();return x?String(x[6]):""}
 const ketQua=t=>t?(t[4]==="max đúng"||t[4]==="đúng"?"d":"s"):"";
 function theHom(){const h=homNay();return Q.filter(r=>r[0]===h)}
-function choDay(){return theHom().filter(r=>!day(r[7]))}
+// 09/11 (chi Phuong): nut doi cau - cau xam thi bo qua (ghi "bỏ qua", laptop khong hoi lai), lay cau khac
+const BO="bỏ qua",boMoi=new Set();
+const boQua=k=>boMoi.has(k)||A.some(r=>r[2]===k&&r[4]===BO);
+function choDay(){return theHom().filter(r=>!day(r[7])&&!boQua(r[7]))}
+async function doiCau(ks){const ai=$("#ai").value;if(!NGUOI.includes(ai))return;ks=ks.filter(k=>!day(k)&&!boQua(k));if(!ks.length)return;
+  const rows=ks.map(k=>{const r=Q.find(x=>x[7]===k);return[vnNow(),ai,k,(r&&maxDoan(r))||"",BO]});ks.forEach(k=>boMoi.add(k));
+  const pool=choDay().filter(r=>!lo.includes(r[7])).map(r=>r[7]);
+  lo=lo.map(k=>ks.includes(k)?(pool.shift()||null):k).filter(Boolean);mo=null;
+  if(!lo.some(k=>!day(k))){if(choDay().length)layLo();else{xong=true;xinThem()}}
+  cur=Math.min(cur,Math.max(0,lo.length-1));render();scrollTo(0,0);
+  try{await mcp.callTool(SV,"append_values",{spreadsheetId:SID,range:TT+"!A1",values:rows});rows.forEach(x=>A.push(x))}catch(e){ks.forEach(k=>boMoi.delete(k));alertNho("Chưa đổi được, thử lại nha")}
+  render()}
 function soDaDayHom(){const h=homNay();const s=new Set(A.filter(r=>String(r[0]).startsWith(h)&&DAY.includes(r[4])).map(r=>r[2]));Object.keys(moi).forEach(k=>s.add(k));return s.size}
 function layLo(){const c=choDay();lo=c.slice(0,5).map(r=>r[7]);cur=0;mo=null;xong=!lo.length}
 function themNut(){const c=choDay().length;const b=$("#themTren");b.disabled=false;b.textContent=c?"➕ Dạy thêm 5 ảnh":"➕ Dạy thêm 5 ảnh";return c}
@@ -123,9 +135,10 @@ function render(){
    <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
      ${chac!=null?`<div class="chac"><span>Mức chắc chắn</span><b>${chac}%</b></div><div class="bar"><i style="width:${Math.max(4,Math.min(100,chac))}%;background:${mau}"></i></div>`:""}
      ${pv.length?`<div class="pv">Max phân vân với: ${pv.map(p=>`<b>${esc(gon(p))}</b>`).join(" · ")}</div>`:""}</div>
-   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>${pan}${kq}
+   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>${pan}${kq}${t?"":`<div class="doi"><button class="bt ghost" id="doi1">🔄 Câu này xàm – đổi câu khác</button><button class="bt ghost" id="doiBo">🔄 Đổi cả bộ</button></div>`}
    <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Ảnh trước</button>${cur<lo.length-1?`<button class="bt" id="sau">Ảnh sau ›</button>`:`<button class="bt" id="ket">Xong ${lo.length} ảnh ›</button>`}</div>`;
   $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
+  const d1=$("#doi1");if(d1)d1.onclick=()=>doiCau([k]);const db=$("#doiBo");if(db)db.onclick=()=>doiCau(lo.slice());
   const bd=$("#dung");if(bd)bd.onclick=()=>dayMax(r,"max đúng","","",false);
   const bs=$("#sai");if(bs)bs.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const mx=$("#mx");let chonMa=null;
