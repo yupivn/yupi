@@ -133,7 +133,7 @@
     dangSync = true; lanSync = Date.now();
     var ds = {}; watchers.forEach(function (w) { var g = tach(w.args.range); var t = napTab(w.args.spreadsheetId, g.ten); ds[tabKey(t.id, t.ten)] = { id: t.id, ten: t.ten, v: t.v }; });
     return api({ op: 'sync', tabs: Object.keys(ds).map(function (k) { return ds[k]; }) }).then(function (j) {
-      dangSync = false; window.__yupiMay = j.may;
+      dangSync = false; window.__yupiMay = j.may; window.__yupiCho = j.cho; window.__yupiBay = j.bay;
       (j.tabs || []).forEach(function (t) {
         var k = tabKey(t.id, t.ten); tabs[k] = { id: t.id, ten: t.ten, v: t.v, rows: t.rows };
         try { ls('yt:' + k, JSON.stringify(tabs[k])); } catch (e) {}

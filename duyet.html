@@ -62,6 +62,13 @@ button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px sol
 .empty{color:var(--muted);font-size:14px;padding:18px 4px;text-align:center}
 .note{font-size:12.5px;color:var(--muted)}
 .sec{display:flex;flex-direction:column;gap:8px}
+.chat{display:flex;flex-direction:column;gap:6px;max-height:65vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px}
+.bub{max-width:90%;align-self:flex-start;background:var(--panel);border-radius:12px;padding:6px 10px;font-size:14.5px;overflow-wrap:anywhere;white-space:pre-wrap}
+.bub.nv{align-self:flex-end;background:var(--accent-soft)}
+.bub .ai2{font-size:11.5px;color:var(--muted);font-weight:600;white-space:normal}
+.bub .tl{font-size:12px;color:var(--muted);border-left:3px solid var(--line);padding-left:6px;margin:2px 0;white-space:normal}
+img.anh{display:block;width:100%;max-width:560px;height:auto;border-radius:10px;margin-top:4px;background:var(--panel)}
+.card.mo{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -78,7 +85,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px sol
     <button data-v="max" aria-pressed="false">🤖 Max đang làm<i id="n_max"></i></button>
   </nav>
   <main id="view"><div class="empty">Đang tải…</div></main>
-  <p class="note">Bảng này đọc Google Sheet do laptop ghi (30 giây–1 phút làm mới). Bấm nút → ghi 1 dòng vào tab «Lệnh», laptop làm như bấm trên trang duyệt, khoảng 10–20 giây. Không dán link bảng này hay link sheet vào nhóm Yupi Kho.</p>
+  <p class="note">Bản nhanh: tin khách, đề xuất của Max và bảng NCC hiện lên ngay khi có (laptop đẩy lên 2 giây/lần). Bấm Duyệt gửi → laptop nhận lệnh trong khoảng 1–2 giây rồi nhắn khách qua Zalo PC. Mỗi đề xuất chỉ gửi khách 1 lần, dù duyệt ở Telegram hay ở đây. Không dán link bảng này vào nhóm Yupi Kho.</p>
 </div>
 
 <script>
@@ -100,7 +107,7 @@ function objs(v){if(!v.length)return[];const h=v[0];return v.slice(1).map(r=>{co
 function vnNow(){const f=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});return f.format(new Date()).replace("T"," ")}
 function minsSince(s){if(!s)return 1e9;const now=vnNow();const a=new Date(now.replace(" ","T")+"Z"),b=new Date(s.replace(" ","T")+"Z");return (a-b)/60000}
 
-const TABS={tt:"Trạng thái!A1:B20",duyet:"Duyệt!A1:H300",don:"Đơn!A1:N300",max:"Max!A1:H400",lenh:"Lệnh!A1:H300"};
+const TABS={tt:"Trạng thái!A1:B20",duyet:"Duyệt!A1:I300",don:"Đơn!A1:N300",max:"Max!A1:H400",lenh:"Lệnh!A1:H300"};
 function watchAll(){
   for(const [k,range] of Object.entries(TABS)){
     mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range},ev=>{
@@ -129,36 +136,71 @@ async function send(loai,nhom,mid,nd,key){
     await mcp.invalidate(SV,"get_values",{spreadsheetId:SID,range:TABS.lenh});
   }catch(e){pending[key]={txt:"⚠️ Không ghi được lệnh: "+(e.message||e.code),bad:true};render()}
 }
-function toastIn(key,t,c){pending[key]={txt:t,bad:c==="bad"};render()}
+function toastIn(key,t,c){pending[key]={luc:vnNow(),txt:t,bad:c==="bad"};render()}
 function resLine(key){
   const p=pending[key];const l=lenhKq(key);
   if(l&&l["Trạng thái"]&&(!p||!p.luc||l["Lúc"]>=p.luc)){const ok=l["Trạng thái"]==="xong";return '<div class="res '+(ok?"ok":"bad")+'">'+esc(l["Kết quả"])+'</div>'}
   if(p)return '<div class="res'+(p.bad?" bad":"")+'">'+esc(p.txt)+'</div>';return ""}
 
-// ---------- Duyệt ----------
+// ---------- Duyệt (08/11 chị Phương: cả cuộc trò chuyện chữ + ảnh to, bảng NCC, ô sửa tin, Duyệt gửi / Không gửi, khóa gửi 1 lần) ----------
 const TTN={can_duyet:["🔴 Cần duyệt","hot"],chua_co:["🟠 Chưa có đề xuất","warn"],dang_soan:["⏳ Max đang soạn",""],da_duyet:["✅ Đã duyệt","ok"],bo_qua:["⏭ Bỏ qua",""],xong:["· Xong",""]};
+const qNhom=new URLSearchParams(location.search).get("nhom")||"";
+let nhomMo=qNhom,daCuon=false,sua={},xn={};
+if(qNhom)view="duyet";
+function ct(d){try{return JSON.parse(d["Chi tiết"]||"{}")}catch(e){return{}}}
+function anhUrl(k){return k&&window.yupiAnh?window.yupiAnh(k):""}
+window.addEventListener("yupi-anh",()=>render());
+function mayTat(){
+  const bay=window.__yupiBay,cho=window.__yupiCho;
+  if(bay&&cho)return (new Date(bay.replace(" ","T")+"Z")-new Date(cho.replace(" ","T")+"Z"))/1000>90;
+  const tt=Object.fromEntries((data.tt||[]).slice(1).map(r=>[r[0],r[1]]));return !tt["Cập nhật lúc"]||minsSince(tt["Cập nhật lúc"])>2.5}
+function dsDuyet(){
+  const all=data.duyet||[];
+  let ds=all.filter(d=>["can_duyet","chua_co","dang_soan"].includes(d["Trạng thái"]));
+  if(nhomMo){const x=all.filter(d=>d["Nhóm khách"]===nhomMo).pop();if(x&&!ds.includes(x))ds=[x].concat(ds);ds=ds.filter(d=>d["Nhóm khách"]===nhomMo).concat(ds.filter(d=>d["Nhóm khách"]!==nhomMo))}
+  return ds}
+function veTin(c){const ds=c.tin||[];if(!ds.length)return "";
+  return '<div class="chat">'+ds.map(m=>{const laAnh=/^\[?Hình ảnh\]?$/.test(m.c||""),u=m.a?anhUrl(m.a):"";
+    const body=u?'<a href="'+u+'" target="_blank" rel="noopener"><img class="anh" src="'+u+'" alt="Ảnh khách gửi" loading="lazy"></a>':(laAnh?'<span class="note">🖼 Ảnh '+(m.a?"đang tải lên…":(m.nv?"shop gửi":"khách gửi – chưa lấy được ảnh"))+'</span>':esc(m.c));
+    return '<div class="bub'+(m.nv?" nv":"")+'"><div class="ai2">'+esc(m.n||"")+(m.g?' · '+esc(m.g):'')+'</div>'+(m.tl?'<div class="tl">↪ '+esc(m.tl)+'</div>':'')+'<div class="nd">'+body+'</div></div>'}).join("")+'</div>'}
+function lichSu(mid,nhom){const ls=(data.lenh||[]).filter(x=>x["Nhóm"]===nhom&&mid&&x["Mã đề xuất"]===mid).slice(-6);
+  if(!ls.length)return "";const T={duyet:"Duyệt gửi",bo:"Không gửi",sua:"Nhờ Max soạn lại",thu:"Gửi thử"};
+  return '<details><summary>🕘 Ai đã bấm</summary>'+ls.map(x=>'<div class="note">'+esc((x["Lúc"]||"").slice(11,16))+' · <b>'+esc(x["Người"])+'</b> · '+esc(T[x["Loại"]]||x["Loại"])+(x["Loại"]==="duyet"&&x["Nội dung"]?' – đã sửa tin: «'+esc(x["Nội dung"].slice(0,160))+'»':'')+(x["Trạng thái"]?' → '+esc(x["Trạng thái"]):'')+'</div>').join("")+'</details>'}
 function vDuyet(){
-  const ds=(data.duyet||[]).filter(d=>["can_duyet","chua_co","dang_soan"].includes(d["Trạng thái"]));
+  const ds=dsDuyet();
   if(!ds.length)return '<div class="empty">🎉 Không có tin nào cần duyệt</div>';
-  return '<div class="list">'+ds.map((d,i)=>{const mid=d["Mã đề xuất"],nhom=d["Nhóm khách"],key=mid+"|"+"duyet"+"|"+nhom,t=TTN[d["Trạng thái"]]||[d["Trạng thái"],""];const isMay=mid.startsWith("may:");
-    const o=open[i]||"";let a="";
-    if(d["Trạng thái"]==="can_duyet"&&mid){
-      if(o==="xn")a='<div class="confirm">Gửi tin này cho khách «'+esc(nhom.split("|")[0])+'»?<button class="b-ok" onclick="doDuyet('+i+')">Gửi khách</button><button class="b-soft" onclick="setO('+i+',\'\')">Thôi</button></div>';
-      else if(o==="sua")a='<label class="lbl" for="sua'+i+'">Ý cần sửa (Max soạn lại)</label><textarea id="sua'+i+'"></textarea><div class="acts"><button class="b-acc" onclick="doSua('+i+')">Gửi ý sửa</button><button class="b-soft" onclick="setO('+i+',\'\')">Thôi</button></div>';
-      else a='<div class="acts"><button class="b-ok" onclick="setO('+i+',\'xn\')">✅ Duyệt</button><button class="b-soft" onclick="setO('+i+',\'sua\')">✏️ Sửa</button><button class="b-soft" onclick="doBo('+i+')">⏭ Bỏ qua</button></div>';
-    } else if(d["Trạng thái"]==="chua_co"&&!isMay) a='<div class="acts"><button class="b-acc" onclick="doXuLy('+i+')">🔎 Nhờ Max soạn đề xuất</button></div>';
-    return '<article class="card'+(d["Trạng thái"]==="can_duyet"?" hot":"")+'"><div class="top"><b>👥 '+esc(nhom)+'</b><span class="pill '+t[1]+'">'+t[0]+'</span></div><div class="time">'+esc((d["Lúc"]||"").slice(5,16))+'</div>'+
-      (d["Tin khách (gần nhất)"]?'<div class="lbl">💬 Tin nhắn</div><pre class="msg">'+esc(d["Tin khách (gần nhất)"])+'</pre>':'')+
-      (d["Tin sẽ nhắn"]?'<div class="lbl">✉️ Tin sẽ nhắn khách</div><pre class="msg">'+esc(d["Tin sẽ nhắn"])+'</pre>':'')+
-      (d["Đề xuất của Max"]?'<details><summary>📝 Xem đủ đề xuất của Max</summary><pre>'+esc(d["Đề xuất của Max"])+'</pre></details>':'')+
-      a+resLine(key)+resLine(mid+"|bo|"+nhom)+resLine(mid+"|sua|"+nhom)+resLine("|xu_ly|"+nhom)+'</article>'}).join("")+'</div>'
+  const tat=mayTat();
+  return (tat?'<div class="st bad"><span class="dot bad"></span><span><b>Máy đang tắt</b> – bấm Duyệt lúc này sẽ chưa gửi được khách.</span></div>':'')+'<div class="list">'+ds.map((d,i)=>{
+    const mid=d["Mã đề xuất"]||"",nhom=d["Nhóm khách"],st=d["Trạng thái"],t=TTN[st]||[st,""],isMay=mid.startsWith("may:"),c=ct(d);
+    const key=mid+"|duyet|"+nhom,tsn=d["Tin sẽ nhắn"]||"",em=esc(mid).replace(/'/g,"");
+    let a="";
+    if(st==="can_duyet"&&mid){
+      const v=sua[mid]!=null?sua[mid]:tsn,daSua=sua[mid]!=null&&sua[mid].trim()!==tsn.trim();
+      a=(tsn&&!isMay?'<label class="lbl" for="tx'+i+'">✉️ Tin sẽ nhắn khách – sửa được trước khi gửi</label><textarea id="tx'+i+'" data-mid="'+esc(mid)+'" rows="'+Math.min(12,Math.max(3,v.split("\n").length+1))+'">'+esc(v)+'</textarea>'+(daSua?'<div class="note">✏️ Đã sửa – bấm Duyệt gửi là gửi bản đã sửa · <a href="#" onclick="delete sua[\''+em+'\'];render();return false">trả về bản của Max</a></div>':''):(isMay?'<pre class="msg">'+esc(d["Đề xuất của Max"]||"")+'</pre>':''))+
+       (xn[mid]?'<div class="confirm">Gửi '+(daSua?'bản đã sửa ':'')+'cho khách «'+esc(String(nhom).split("|")[0].trim())+'»?<button class="b-ok" onclick="doDuyet('+i+')">Gửi khách</button><button class="b-soft" onclick="xn[\''+em+'\']=0;render()">Thôi</button></div>'
+         :'<div class="acts"><button class="b-ok" onclick="hoiDuyet('+i+')">✅ Duyệt gửi</button><button class="b-soft" onclick="doBo('+i+')">🚫 Không gửi</button></div>');
+    } else if(st==="chua_co"&&!isMay) a='<div class="acts"><button class="b-acc" onclick="doXuLy('+i+')">🔎 Nhờ Max soạn đề xuất</button></div>';
+    else if(st==="da_duyet") a='<div class="res ok">✅ Đề xuất này đã được duyệt – không gửi lần 2</div>';
+    const tinCu=!(c.tin&&c.tin.length)&&d["Tin khách (gần nhất)"]?'<pre class="msg">'+esc(d["Tin khách (gần nhất)"])+'</pre>':"";
+    return '<article class="card'+(st==="can_duyet"?" hot":"")+(nhom===nhomMo?" mo":"")+'"><div class="top"><b>👥 '+esc(nhom)+'</b><span class="pill '+t[1]+'">'+t[0]+'</span></div><div class="time">'+esc((d["Lúc"]||"").slice(5,16))+'</div>'+
+      (isMay?'':'<div class="lbl">💬 Cuộc trò chuyện</div>'+veTin(c)+tinCu)+
+      (c.phieu?'<div class="lbl">🧾 Ảnh phiếu sẽ gửi khách</div>'+(anhUrl(c.phieu)?'<a href="'+anhUrl(c.phieu)+'" target="_blank" rel="noopener"><img class="anh" src="'+anhUrl(c.phieu)+'" alt="Ảnh phiếu đặt hàng" loading="lazy"></a>':'<span class="note">đang tải ảnh phiếu…</span>'):'')+
+      (c.ncc?'<details><summary>📊 Bảng NCC (tra nhanh)</summary><pre>'+esc(c.ncc)+'</pre></details>':'')+
+      (d["Đề xuất của Max"]&&!isMay?'<details'+(st==="can_duyet"&&!tsn?' open':'')+'><summary>📝 Đề xuất đầy đủ của Max</summary><pre>'+esc(d["Đề xuất của Max"])+'</pre>'+(st==="can_duyet"&&mid?'<div class="acts"><button class="b-soft" onclick="hoiSua('+i+')">✏️ Nhờ Max soạn lại</button></div>':'')+'</details>':'')+
+      a+resLine(key)+resLine(mid+"|bo|"+nhom)+resLine(mid+"|sua|"+nhom)+resLine("|xu_ly|"+nhom)+lichSu(mid,nhom)+'</article>'}).join("")+'</div>'
 }
+document.addEventListener("input",e=>{const x=e.target;if(x&&x.tagName==="TEXTAREA"&&x.dataset&&x.dataset.mid)sua[x.dataset.mid]=x.value});
 function setO(i,v){open[i]=v;render()}
-function dI(i){return (data.duyet||[]).filter(d=>["can_duyet","chua_co","dang_soan"].includes(d["Trạng thái"]))[i]}
-function doDuyet(i){const d=dI(i);open[i]="";send("duyet",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|duyet|"+d["Nhóm khách"])}
-function doBo(i){const d=dI(i);send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
-function doSua(i){const d=dI(i);const t=($("#sua"+i).value||"").trim();if(!t)return;open[i]="";send("sua",d["Nhóm khách"],d["Mã đề xuất"],t,d["Mã đề xuất"]+"|sua|"+d["Nhóm khách"])}
+function dI(i){return dsDuyet()[i]}
+const MAY_TAT="⛔ Máy đang tắt, chưa gửi được – bật laptop rồi bấm lại";
+function hoiDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}xn[mid]=1;render()}
+function doDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];xn[mid]=0;if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}
+  const tsn=(d["Tin sẽ nhắn"]||"").trim(),v=sua[mid]!=null?sua[mid].trim():"",nd=(v&&v!==tsn)?v:"";
+  send("duyet",d["Nhóm khách"],mid,nd,mid+"|duyet|"+d["Nhóm khách"])}
+function doBo(i){const d=dI(i);if(!confirm("Không gửi khách đề xuất này?"))return;if(mayTat()){toastIn(d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"],MAY_TAT,"bad");return}send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
+function hoiSua(i){const d=dI(i);const y=prompt("Ghi ý cần sửa để Max soạn lại:");if(!y||!y.trim())return;send("sua",d["Nhóm khách"],d["Mã đề xuất"],y.trim(),d["Mã đề xuất"]+"|sua|"+d["Nhóm khách"])}
 function doXuLy(i){const d=dI(i);send("xu_ly",d["Nhóm khách"],"","","|xu_ly|"+d["Nhóm khách"])}
+function cuonToi(){if(daCuon||!nhomMo)return;const el=document.querySelector(".card.mo");if(el){daCuon=true;el.scrollIntoView({block:"start"})}}
 
 // ---------- Đơn ----------
 const BUOC=[["khach_hoi","💬 Khách hỏi"],["bao_gia","💰 Đã báo giá"],["chot","🧾 Chốt · lên phiếu"],["cho_ck","💳 Chờ CK"],["ghtk","🚚 Đã tạo GHTK"],["hoan_thanh","✅ Hoàn thành"]];
@@ -206,7 +248,7 @@ function render(){
   $("#n_duyet").textContent=nd?"· "+nd:"";$("#n_don").textContent=ng?"· "+ng+" gấp":"";$("#n_max").textContent=nc?"· "+nc:"";
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===view));
   const a=document.activeElement;if(a&&a.tagName==="TEXTAREA"&&a.value)return;
-  $("#view").innerHTML=view==="duyet"?vDuyet():view==="don"?vDon():vMax();
+  $("#view").innerHTML=view==="duyet"?vDuyet():view==="don"?vDon():vMax();if(view==="duyet"){document.querySelectorAll(".chat").forEach(c=>c.scrollTop=c.scrollHeight);cuonToi()}
 }
 render();
 (async()=>{
