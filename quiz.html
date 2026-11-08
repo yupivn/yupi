@@ -133,7 +133,7 @@ function render(){
   const ghi=t?"":`<div class="gt"><label class="meta" for="gc">📝 Ghi chú cho Max (câu nào cần giải thích thì ghi vào đây)</label><textarea id="gc" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM · kho Kiot hết mã này · khách hay gọi tên khác">${esc(ghiChu[k]||"")}</textarea></div>`;
   const pan=!t&&(mo===k||tuMo)?`<div class="pan"><label class="meta" for="mx">${r[5]==="Max thắc mắc"?"✍️ Chị điền câu trả lời cho Max (mã đúng / cách xử lý)":tuMo?"✍️ Max chưa chắc – chị điền mã đúng (gợi ý tên đầy đủ theo KiotViet Yupi)":"Mã đúng là gì? (gợi ý tên đầy đủ theo KiotViet Yupi)"}</label>
      ${pv.length?`<div class="goi">${pv.map((p,i)=>`<button class="g nhanh" data-p="${i}">${esc(p)}</button>`).join("")}</div>`:""}
-     <input id="mx" autocomplete="off" placeholder="gõ tên, vd: sauvage edp 100"><div class="goi" id="goi"></div>
+     <input id="mx" autocomplete="off" placeholder="gõ tên hoặc mã SP, vd: la rosa / 57252"><div class="goi" id="goi"></div>
      
      <div class="nav">${tuMo?"<span></span>":`<button class="bt ghost" id="huy">Hủy</button>`}<button class="bt" id="guim">Lưu dạy Max</button></div><button class="bt ghost" id="chuaKiot">🚫 Chưa có trên Kiot</button></div>`:"";
   $("#quiz").innerHTML=`<div class="dots">${dots}</div>
@@ -211,7 +211,7 @@ function tuan(){
   w(TQ+"!A1:I3000",v=>{Q=v.filter(r=>r&&r[0]&&r[7]);daLoad.q=1;if(xin&&xong&&choDay().length){xin=null;xong=false;layLo();scrollTo(0,0)}else if(lo&&!lo.length&&choDay().length&&!xong)layLo();render()});
   w(TT+"!A1:I5000",v=>{A=v.filter(r=>r&&r[2]);daLoad.a=1;render();tuan()});
   w(TW+"!A1:D200",v=>{W=v;tuan()});
-  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:D9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",a:x[3]||"",k:kd(x[0]+" "+(x[1]||""))}))}},{refetchInterval:3600000});
+  mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Mã Kiot!A1:D9000"},ev=>{if(ev.type==="data"){KIOT=(ev.result.payload.values||[]).slice(1).filter(x=>x[0]).map(x=>({h:x[0],m:x[2]||"",a:x[3]||"",k:kd(x[0]+" "+(x[1]||"")+" "+(x[2]||""))}))}},{refetchInterval:3600000});
   window.addEventListener("yupi-anh",render);
   if(!window.yupiAnh)mcp.watchTool(SV,"get_values",{spreadsheetId:SID,range:"Quiz ảnh!A1:B3000"},ev=>{if(ev.type==="data"){(ev.result.payload.values||[]).slice(1).forEach(r=>{if(r[0]&&r[1])IM[r[0]]=r[1]});render()}},{refetchInterval:600000});
 })();
