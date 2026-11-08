@@ -8,8 +8,8 @@
   var CF = 'https://yupi-bang-tong.haphuongphuong96.workers.dev';
   var KEY = 'yupi_pw';
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
-  var q = location.search.match(/[?&]nhanh=([01])/); if (q) ls('yupi_nhanh', q[1] === '1' ? '1' : null);
-  var NHANH = ls('yupi_nhanh') === '1';
+  var q = location.search.match(/[?&]nhanh=([01])/); if (q) ls('yupi_nhanh', q[1]);
+  var NHANH = ls('yupi_nhanh') !== '0';   // 08/11 chi Phuong duyet: ban nhanh la mac dinh, bam nut de ve ban cu
   // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
   function getPw() {
     var v = ls(KEY) || '';
@@ -210,7 +210,7 @@
     n.textContent = NHANH ? '⚡ Bản nhanh' : '🐢 Bản cũ · thử ⚡';
     n.title = NHANH ? 'Đang dùng máy chủ nhanh (Cloudflare). Bấm để về bản cũ.' : 'Đang dùng bản cũ (Google). Bấm để thử bản nhanh.';
     n.setAttribute('style', 'position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;border:2px solid #c9a227;background:' + (NHANH ? '#c9a227;color:#14213d' : '#fff;color:#14213d') + ';font:700 13px system-ui,sans-serif;padding:9px 13px;border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.2)');
-    n.onclick = function () { ls('yupi_nhanh', NHANH ? null : '1'); location.reload(); };
+    n.onclick = function () { ls('yupi_nhanh', NHANH ? '0' : '1'); location.reload(); };
     document.body.appendChild(n);
   };
   if (document.body) them(); else document.addEventListener('DOMContentLoaded', them);
