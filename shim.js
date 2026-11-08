@@ -2,18 +2,18 @@
    08/11/2026: thêm BẢN NHANH (Cloudflare Worker + D1). Bản cũ (Apps Script + Google Sheet) vẫn chạy song song đến khi chị duyệt.
    - Mở app: hiện ngay dữ liệu đã lưu trên máy, tải bản mới phía sau
    - Bản nhanh: 1 lần hỏi/4 giây cho mọi bảng, chỉ tải bảng có thay đổi; bấm nút báo ✅ ngay khi máy chủ nhận, lỗi thì báo lại
-   - Bật/tắt: nút ⚡ góc dưới phải, hoặc thêm ?nhanh=1 / ?nhanh=0 vào link */
+   - 08/11 15h (chi Phuong): BỎ nút chuyển bản – app luôn chạy bản nhanh; chỉ tự về bản cũ tạm thời khi bản nhanh lỗi */
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyayRLS2PuNXLdV2TrxU2jwsCb5Z21Q90osSCXppZSq5sgqx3dVyjO_K2iYjGK5BnlX/exec';
   var CF = 'https://yupi-bang-tong.haphuongphuong96.workers.dev';
   var KEY = 'yupi_pw';
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
-  var q = location.search.match(/[?&]nhanh=([01])/); if (q) ls('yupi_nhanh', q[1]);
+  ls('yupi_nhanh', null);   // 08/11 15h: bỏ chọn bản cũ bằng tay (máy nào từng bấm về bản cũ cũng quay về bản nhanh)
   // 08/11 12h (chi Phuong): ban nhanh loi -> tam ve ban cu (Apps Script) 10 phut, tu thu lai ban nhanh moi 30 giay
   var TAM = +(ls('yupi_tam_cu') || 0); if (TAM && Date.now() - TAM > 10 * 60e3) { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); TAM = 0; }
-  var MUON_NHANH = ls('yupi_nhanh') !== '0';
+  var MUON_NHANH = true;
   var NHANH = MUON_NHANH && !TAM;
-  var HOP = '1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M';   // 08/11 chi Phuong duyet: ban nhanh la mac dinh, bam nut de ve ban cu
+  var HOP = '1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M';
   // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
   function getPw() {
     var v = ls(KEY) || '';
@@ -240,16 +240,10 @@
       b.setAttribute('style', 'position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;background:#14213d;color:#fff;font:700 14px system-ui,sans-serif;padding:11px 16px;border-radius:99px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);border:2px solid #c9a227');
       document.body.appendChild(b);
     }
-    // Nút bật/tắt bản nhanh
-    var n = document.createElement('button');
-    var tam = !NHANH && TAM && MUON_NHANH;
-    n.textContent = NHANH ? '⚡ Bản nhanh' : (tam ? '🐢 Bản cũ (tạm)' : '🐢 Bản cũ · thử ⚡');
+    // 08/11 15h: không còn nút chuyển bản; chỉ hiện dải báo khi bản nhanh lỗi và app đang tạm dùng bản cũ
+    var tam = !NHANH && TAM;
     if (tam) { var bn = document.createElement('div'); bn.textContent = '⚠️ ' + (ls('yupi_tam_ly') || 'Máy chủ app đang lỗi') + ' – đang tạm dùng bản cũ (chậm hơn chút), bấm nút vẫn chạy. Bản nhanh chạy lại app tự quay về.';
       bn.setAttribute('style', 'position:sticky;top:0;z-index:9998;background:#fff4d6;color:#7a4b00;border-bottom:2px solid #c9a227;font:600 13px system-ui,sans-serif;padding:8px 12px;text-align:center'); document.body.insertBefore(bn, document.body.firstChild); }
-    n.title = NHANH ? 'Đang dùng máy chủ nhanh (Cloudflare). Bấm để về bản cũ.' : 'Đang dùng bản cũ (Google). Bấm để thử bản nhanh.';
-    n.setAttribute('style', 'position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;border:2px solid #c9a227;background:' + (NHANH ? '#c9a227;color:#14213d' : '#fff;color:#14213d') + ';font:700 13px system-ui,sans-serif;padding:9px 13px;border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.2)');
-    n.onclick = function () { ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); ls('yupi_nhanh', NHANH ? '0' : '1'); location.reload(); };
-    document.body.appendChild(n);
   };
   if (document.body) them(); else document.addEventListener('DOMContentLoaded', them);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
