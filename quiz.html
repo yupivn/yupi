@@ -86,7 +86,7 @@ function giaiCuoi(k){const x=A.filter(r=>r[2]===k&&String(r[6]||"").trim()).pop(
 const ketQua=t=>t?(t[4]==="max đúng"||t[4]==="đúng"?"d":"s"):"";
 function theHom(){const h=homNay();return Q.filter(r=>r[0]===h)}
 // 09/11 (chi Phuong): nut doi cau - cau xam thi bo qua (ghi "bỏ qua", laptop khong hoi lai), lay cau khac
-const BO="bỏ qua",boMoi=new Set();
+const BO="bỏ qua",boMoi=new Set(),ghiChu={};
 const boQua=k=>boMoi.has(k)||A.some(r=>r[2]===k&&r[4]===BO);
 function choDay(){return theHom().filter(r=>!day(r[7])&&!boQua(r[7]))}
 async function doiCau(ks){const ai=$("#ai").value;if(!NGUOI.includes(ai))return;ks=ks.filter(k=>!day(k)&&!boQua(k));if(!ks.length)return;
@@ -127,30 +127,33 @@ function render(){
   if(t){kq=t[4]==="không có"&&gm?`<div class="kq s">🚫 Đã dạy: <b>không có mã nào trên Kiot</b>${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`:ketQua(t)==="d"?`<div class="kq d">✅ Đã dạy: <b>Max đúng</b> – ${esc(md)}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`
       :`<div class="kq s">📝 Đã dạy: Max sai – mã đúng là <b>${esc(t[7]||r[4])}</b>${t[8]?" · <i>mã mới</i>":""}${t[1]&&t[1]!==ai?` <span class="meta">(${esc(t[1])} dạy)</span>`:""}</div>`;
     const cu=giaiCuoi(k);kq+=`<div class="gt"><label class="meta" for="gtx">💡 Giải thích cho Max ${cu?"(đã lưu – sửa được)":"(không bắt buộc) – dấu hiệu nhận biết"}</label><textarea id="gtx" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM · nước xanh đậm · nắp đen hình mũ">${esc(cu)}</textarea><button class="bt" id="gtl">${cu?"Lưu sửa giải thích":"Lưu giải thích"}</button>${moi["gt|"+k]?'<span class="meta">✔ Đã lưu – Max học ngay</span>':""}</div>`}
-  const pan=!t&&mo===k?`<div class="pan"><label class="meta" for="mx">Mã đúng là gì? (gợi ý tên đầy đủ theo KiotViet Yupi)</label>
+  // 09/11 (chi Phuong): cau Max chua chac (thac mac / chac < 60%) -> mo san o dien, khong can bam Max sai
+  const tuMo=!t&&!gm&&(r[5]==="Max thắc mắc"||(chac!=null&&chac<60));
+  const ghi=t?"":`<div class="gt"><label class="meta" for="gc">📝 Ghi chú cho Max (câu nào cần giải thích thì ghi vào đây)</label><textarea id="gc" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM · kho Kiot hết mã này · khách hay gọi tên khác">${esc(ghiChu[k]||"")}</textarea></div>`;
+  const pan=!t&&(mo===k||tuMo)?`<div class="pan"><label class="meta" for="mx">${r[5]==="Max thắc mắc"?"✍️ Chị điền câu trả lời cho Max (mã đúng / cách xử lý)":tuMo?"✍️ Max chưa chắc – chị điền mã đúng (gợi ý tên đầy đủ theo KiotViet Yupi)":"Mã đúng là gì? (gợi ý tên đầy đủ theo KiotViet Yupi)"}</label>
      ${pv.length?`<div class="goi">${pv.map((p,i)=>`<button class="g nhanh" data-p="${i}">${esc(p)}</button>`).join("")}</div>`:""}
      <input id="mx" autocomplete="off" placeholder="gõ tên, vd: sauvage edp 100"><div class="goi" id="goi"></div>
-     <label class="meta" for="gtx2">💡 Giải thích cho Max – dấu hiệu nhận biết</label><textarea id="gtx2" rows="2" placeholder="vd: hộp ghi EAU DE PARFUM, nước xanh đậm hơn EDT"></textarea>
-     <div class="nav"><button class="bt ghost" id="huy">Hủy</button><button class="bt" id="guim">Lưu dạy Max</button></div></div>`:"";
+     
+     <div class="nav">${tuMo?"<span></span>":`<button class="bt ghost" id="huy">Hủy</button>`}<button class="bt" id="guim">Lưu dạy Max</button></div></div>`:"";
   $("#quiz").innerHTML=`<div class="dots">${dots}</div>
    <img class="img" src="${anh(r[2])}" alt="Ảnh khách gửi" decoding="async">
    ${gm&&!t?`<div class="doan"><span class="lb">🔗 Ghép mã kho NCC – dòng kho này là mã Kiot nào? (số 1-2-3 trên ảnh)</span></div><div class="gm">${opts.map((p,i)=>`<button class="op dg gmb" data-i="${i}"><b>${i+1}</b>${esc(p)}</button>`).join("")}<button class="op sa" id="gmKo">🚫 Không có mã nào</button><button class="bt ghost" id="gmTim">🔎 Mã khác – gõ tìm</button></div>`:`   <div class="doan"><span class="lb">🤖 Max đoán ${r[5]&&laMoi(r)?`· <span class="tag">${esc(r[5])}</span>`:""}</span><span class="ma">${esc(md||"(Max chưa đoán được)")}</span>
      ${chac!=null?`<div class="chac"><span>Mức chắc chắn</span><b>${chac}%</b></div><div class="bar"><i style="width:${Math.max(4,Math.min(100,chac))}%;background:${mau}"></i></div>`:""}
      ${pv.length?`<div class="pv">Max phân vân với: ${pv.map(p=>`<b>${esc(gon(p))}</b>`).join(" · ")}</div>`:""}</div>
-   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>`}${pan}${kq}${t?"":`<div class="doi"><button class="bt ghost" id="doi1">🔄 Câu này xàm – đổi câu khác</button><button class="bt ghost" id="doiBo">🔄 Đổi cả bộ</button></div>`}
+   <div class="hai"><button class="op dg" id="dung" ${t||!md?"disabled":""}>✅ Max đúng</button><button class="op sa" id="sai" ${t?"disabled":""}>❌ Max sai</button></div>`}${ghi}${pan}${kq}${t?"":`<div class="doi"><button class="bt ghost" id="doi1">🔄 Đổi câu</button><button class="bt ghost" id="doiBo">🔄 Đổi cả bộ</button></div>`}
    <div class="nav"><button class="bt ghost" id="truoc" ${cur?"":"disabled"}>‹ Ảnh trước</button>${cur<lo.length-1?`<button class="bt" id="sau">Ảnh sau ›</button>`:`<button class="bt" id="ket">Xong ${lo.length} ảnh ›</button>`}</div>`;
   $("#quiz").querySelectorAll(".dot").forEach(d=>d.onclick=()=>{cur=+d.dataset.i;mo=null;render()});
-  const d1=$("#doi1");if(d1)d1.onclick=()=>doiCau([k]);const db=$("#doiBo");if(db)db.onclick=()=>doiCau(lo.slice());
-  const bd=$("#dung");if(bd)bd.onclick=()=>dayMax(r,"max đúng","","",false);
-  $("#quiz").querySelectorAll(".gmb").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;dayMax(r,i===0?"max đúng":"max sai",i===0?"":opts[i],"",false)});
-  const gk=$("#gmKo");if(gk)gk.onclick=()=>dayMax(r,"không có","","",false);const gtm=$("#gmTim");if(gtm)gtm.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
+  const gc=$("#gc");if(gc)gc.oninput=()=>{ghiChu[k]=gc.value};const d1=$("#doi1");if(d1)d1.onclick=()=>doiCau([k]);const db=$("#doiBo");if(db)db.onclick=()=>doiCau(lo.slice());
+  const bd=$("#dung");if(bd)bd.onclick=()=>dayMax(r,"max đúng","",(ghiChu[k]||"").trim(),false);
+  $("#quiz").querySelectorAll(".gmb").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;dayMax(r,i===0?"max đúng":"max sai",i===0?"":opts[i],(ghiChu[k]||"").trim(),false)});
+  const gk=$("#gmKo");if(gk)gk.onclick=()=>dayMax(r,"không có","",(ghiChu[k]||"").trim(),false);const gtm=$("#gmTim");if(gtm)gtm.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const bs=$("#sai");if(bs)bs.onclick=()=>{mo=k;render();const i=$("#mx");if(i)i.focus()};
   const mx=$("#mx");let chonMa=null;
   if(mx){const ve=()=>{goi=timMa(mx.value);chonMa=null;$("#goi").innerHTML=goi.map((x,i)=>`<button class="g" data-i="${i}">${esc(x.h)}<span class="meta"> · ${esc(x.m)}</span></button>`).join("")+(mx.value.trim().length>=3&&!goi.some(x=>x.h===mx.value.trim())?`<div class="meta">Không có trên Kiot? Bấm «Lưu dạy Max» để ghi tên này là <b>mã mới</b>.</div>`:"");
       $("#goi").querySelectorAll(".g").forEach(g=>g.onclick=()=>{const x=goi[+g.dataset.i];mx.value=x.h;chonMa=x;$("#goi").innerHTML=`<div class="meta">✔ Đã chọn mã Kiot ${esc(x.m)}</div>`})};
     mx.oninput=ve;$("#quiz").querySelectorAll(".g.nhanh").forEach(g=>g.onclick=()=>{mx.value=pv[+g.dataset.p];ve()});
-    $("#huy").onclick=()=>{mo=null;render()};
-    $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=(chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v);dayMax(r,"max sai",v,($("#gtx2").value||"").trim(),!laKiot)}}
+    const hy=$("#huy");if(hy)hy.onclick=()=>{mo=null;render()};
+    $("#guim").onclick=()=>{const v=mx.value.trim();if(!v){mx.focus();return}const laKiot=(chonMa&&chonMa.h===v)||KIOT.some(x=>x.h===v);dayMax(r,"max sai",v,(ghiChu[k]||"").trim(),!laKiot)}}
   const gl=$("#gtl");if(gl)gl.onclick=()=>luuGiai(r,($("#gtx").value||"").trim());
   const tr=$("#truoc"),sa=$("#sau"),ke=$("#ket");if(tr)tr.onclick=()=>{cur--;mo=null;render()};if(sa)sa.onclick=()=>{cur++;mo=null;render();scrollTo(0,0)};if(ke)ke.onclick=()=>{xong=true;render();scrollTo(0,0)};
 }
