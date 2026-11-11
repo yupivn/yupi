@@ -91,9 +91,11 @@ table.bt tr.da select{border-color:var(--ok)}
 .ch .h b{font-family:Nunito,system-ui;font-weight:900;font-size:17px}
 .ch .ds{font-size:12.5px;color:var(--muted);margin-top:4px}
 @media (max-width:560px){table.bt .an-dt{display:none}}
-/* 12/11 tin 554: nhap NCC bang tay + o chon NCC rong, doc du gia */
-table.bt td.nccTd{min-width:165px}
-table.bt td.nccTd select{width:100%;min-width:0;white-space:normal}
+/* 12/11 tin 554 (v2): nhap NCC bang tay + o chon NCC rong, doc du gia */
+table.bt td.nccTd{min-width:200px}
+@media (max-width:560px){#bt th.sv,#bt td.sv{display:none}table.bt td.nccTd{min-width:205px}}
+.giaChon .vs{color:var(--accent)}
+table.bt td.nccTd select{width:100%;min-width:0;white-space:normal;font-size:13px;padding:5px 4px}
 .giaChon{font-size:13px;font-weight:700;margin-top:3px}
 .tayDs{display:flex;flex-direction:column;gap:4px;margin-top:5px}
 .tayIt{font-size:12.5px;background:var(--accent-soft);border-radius:10px;padding:5px 8px;line-height:1.35}
@@ -195,8 +197,8 @@ function ve(nhay){if(!D)return;
   $("#bt").innerHTML=`<tr><th>Mã</th><th class="an-dt">Khách · đơn</th><th>NCC</th><th class="sv">Vốn+ship/chai</th></tr>`+(rows.map(m=>{const n=nccCua(m),c=chot(m);
     return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td><div class="mten">${MAU(m)}<span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="mph">${esc(m.ma)}<span class="ph-kh"> · ${esc(String(m.khach).split("|")[0])} · ${esc(m.don)}</span></div></td>
     <td class="an-dt">${esc(String(m.khach).split("|")[0])}<div class="mph">${esc(m.don)} · ${esc(m.luc)}</div></td>
-    <td class="nccTd">${(()=>{const ds=nccDs(m),gy=goiYCua(m),o=ds.find(x=>x.ncc===n);return `<select data-chon="${esc(m.key)}">${ds.map(o=>`<option value="${esc(o.ncc)}" ${o.ncc===n?"selected":""}>${o.ncc===gy?"⭐ ":""}${o.tay?"✍️ ":""}${esc(o.ncc)} · ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+o.ton:o.zalo?" · Zalo":""}</option>`).join("")}${!ds.some(o=>o.ncc===n)&&n?`<option selected>${esc(n)}</option>`:""}</select>
-      ${o?`<div class="giaChon">${o.tay?"✍️ ":""}${esc(o.ncc)}: ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+esc(o.ton):""} · ship ${k(shipCua(o.ncc))}</div>`:""}${veTay(m,ds)}`;})()}
+    <td class="nccTd">${(()=>{const ds=nccDs(m),gy=goiYCua(m),o=ds.find(x=>x.ncc===n);return `<select data-chon="${esc(m.key)}">${ds.map(o=>`<option value="${esc(o.ncc)}" ${o.ncc===n?"selected":""}>${o.ncc===gy?"⭐":""}${o.tay?"✍️":""}${esc(o.ncc)} ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+o.ton:o.zalo?" · Zalo":""}</option>`).join("")}${!ds.some(o=>o.ncc===n)&&n?`<option selected>${esc(n)}</option>`:""}</select>
+      ${o?`<div class="giaChon">${o.tay?"✍️ ":""}${esc(o.ncc)}: ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+esc(o.ton):""} · ship ${k(shipCua(o.ncc))}<div class="vs">→ vốn+ship/chai ${k(voncai(m))}</div></div>`:""}${veTay(m,ds)}`;})()}
       <div class="mph">${c?`✅ ${esc(c.ai||"")} ${esc(c.luc||"")} · <a href="#" data-bo="${esc(m.key)}" style="color:inherit">bỏ chốt</a>`:`⭐ gợi ý · <a href="#" data-chot1="${esc(m.key)}" style="color:var(--ok);font-weight:700">chốt</a>`}</div></td>
     <td class="sv"><b>${k(voncai(m))}</b></td></tr>`;}).join("")||`<tr><td colspan="4" class="mph">✅ Không còn mã nào chờ – ${D.coSan||0} mã có sẵn ở shop.</td></tr>`);
   const nShip=can.length-chuaShip.length;$("#btHint").textContent=nShip?`🚚 ${nShip} mã đã bốc ship – không hiện ở bảng tổng (xem ở bảng từng đơn).`:"";
