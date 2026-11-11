@@ -60,6 +60,32 @@ img.anh{display:block;max-width:100%;max-height:420px;border-radius:10px;margin:
 .kb button.duyet{background:#1f8a5e;color:#fff}
 .kb button.khong{background:var(--late-soft);color:var(--late)}
 .kb button.cho{opacity:.55;pointer-events:none}
+/* 12/11 01:10 chị Phương: bấm là gửi luôn (không hỏi lại), hiệu ứng mỗi loại nút khác nhau */
+.msg{position:relative}
+.kb button{position:relative;overflow:hidden;transition:transform .08s,filter .15s,opacity .2s;-webkit-tap-highlight-color:transparent}
+.kb button:active{transform:scale(.93);filter:brightness(1.15)}
+.kb.dang button:not(.bam){opacity:.35;pointer-events:none}
+.kb button.bam{animation:nay .45s ease-out}
+.kb button.duyet.bam{animation:nay .45s ease-out,songXanh .9s ease-out}
+.kb button.khong.bam{animation:lac .45s ease-out}
+.kb button.chon.bam{background:#c9a227!important;color:#14213d!important;animation:nay .45s ease-out,songVang .9s ease-out}
+.kb button.o.bam{animation:pop .3s ease-out}
+@keyframes nay{0%{transform:scale(1)}30%{transform:scale(.88)}65%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes lac{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes songXanh{0%{box-shadow:0 0 0 0 rgba(31,138,94,.8)}100%{box-shadow:0 0 0 22px rgba(31,138,94,0)}}
+@keyframes songVang{0%{box-shadow:0 0 0 0 rgba(201,162,39,.8)}100%{box-shadow:0 0 0 22px rgba(201,162,39,0)}}
+.gon{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);animation:gon .6s ease-out forwards;pointer-events:none}
+@keyframes gon{to{transform:scale(4);opacity:0}}
+.tem{position:absolute;left:50%;top:45%;z-index:5;transform:translate(-50%,-50%) rotate(-8deg) scale(.3);font:900 30px var(--body);padding:10px 22px;border:5px solid;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;animation:tem 1.4s ease-out forwards;background:rgba(255,255,255,.88)}
+.tem.xanh{color:#1f8a5e;border-color:#1f8a5e}.tem.do{color:#c8372d;border-color:#c8372d}.tem.vang{color:#8a6a10;border-color:#c9a227}
+@keyframes tem{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(2.2)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(.95)}28%{transform:translate(-50%,-50%) rotate(-8deg) scale(1.03)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
+.msg.sang-xanh{animation:sangX 1.2s ease-out}.msg.sang-do{animation:sangD 1.2s ease-out}.msg.sang-vang{animation:sangV 1.2s ease-out}
+@keyframes sangX{0%{box-shadow:0 0 0 4px #1f8a5e}100%{box-shadow:0 1px 2px rgba(20,33,61,.12)}}
+@keyframes sangD{0%{box-shadow:0 0 0 4px #c8372d}100%{box-shadow:0 1px 2px rgba(20,33,61,.12)}}
+@keyframes sangV{0%{box-shadow:0 0 0 4px #c9a227}100%{box-shadow:0 1px 2px rgba(20,33,61,.12)}}
+.tl.gui button{animation:nay .45s ease-out}
+@media (prefers-reduced-motion:reduce){.kb button.bam,.tem,.gon,.msg.sang-xanh,.msg.sang-do,.msg.sang-vang{animation:none}.tem{opacity:1}}
 .kb button:focus-visible,.chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .xn{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--ok-soft);color:var(--ok);font-weight:700;font-size:14px}
 .xn.bo{background:var(--warn-soft);color:var(--warn)}
@@ -152,7 +178,7 @@ function veTin(t){
   s+='<div class="txt">'+sach(t.html)+'</div>';
   if(xn)s+='<div class="xn '+xn.cls+'">'+esc(xn.t)+'</div>';
   const kb=mk(t);
-  if(kb.length&&!t.xoa){s+='<div class="kb">'+kb.map((r,i)=>'<div class="r">'+r.map((b,j)=>{const x=String(b.text||""),cls=/Duyệt gửi|✅ Duyệt|^✅ Xong/.test(x)?"duyet":(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(x)?"khong":"");
+  if(kb.length&&!t.xoa){s+='<div class="kb">'+kb.map((r,i)=>'<div class="r">'+r.map((b,j)=>{const x=String(b.text||""),cls=/Duyệt gửi|✅ Duyệt|^✅ Xong/.test(x)?"duyet":(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(x)?"khong":(/^[☐☑]/.test(x)?"o":"chon"));
       if(b.url)return '<button type="button" data-url="'+esc(b.url)+'">'+esc(x)+' ↗</button>';
       const cho=lenh[id+"|"+b.callback_data]&&!lenh[id+"|"+b.callback_data].xong;
       return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-i="'+i+'" data-j="'+j+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>').join("")+'</div>'}
@@ -164,6 +190,7 @@ function veTin(t){
   return s+'</article>'}
 
 function ve(){
+  if(Date.now()<khoaVe){clearTimeout(ve.t);ve.t=setTimeout(ve,khoaVe-Date.now()+30);return}
   const all=Object.values(tin).sort((a,b)=>(a.luc||"").localeCompare(b.luc||"")||a.mid-b.mid);
   const can=all.filter(laCan);$("#n_can").textContent=can.length?"· "+can.length:"";
   document.querySelectorAll(".bar .chip").forEach(b=>{const on=b.dataset.v===xem;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
@@ -190,6 +217,22 @@ function ting(gap){if(!loa)return;moLoa();try{const t=ac.currentTime;(gap?[880,1
   try{if(navigator.vibrate)navigator.vibrate(gap?[180,90,180,90,180]:[160,80,160])}catch(e){}}
 $("#loa").onclick=()=>{loa=!loa;try{localStorage.setItem("kenh_loa",loa?"1":"0")}catch(e){};veLoa();if(loa){moLoa();ting(false)}};veLoa();
 function canBao(t){return /ĐỀ XUẤT|TIN KHÁCH|CHỜ DUYỆT/.test(t.html||"")||laCan(t)}
+// ---- hiệu ứng bấm ----
+let khoaVe=0;
+function rung(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+function tem(m,chu,mau){const d=document.createElement("div");d.className="tem "+mau;d.textContent=chu;m.appendChild(d);khoaVe=Date.now()+1300;setTimeout(()=>d.remove(),1450)}
+function tiengBam(loai){if(!loa)return;moLoa();try{const t=ac.currentTime,ds=loai==="duyet"?[[784,0],[1046,.09],[1318,.18]]:loai==="khong"?[[392,0],[262,.12]]:[[1046,0]];
+  ds.forEach(([f,d])=>{const o=ac.createOscillator(),g=ac.createGain();o.type=loai==="khong"?"triangle":"sine";o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.3,t+d+.015);g.gain.exponentialRampToValueAtTime(0.0001,t+d+.22);o.connect(g).connect(ac.destination);o.start(t+d);o.stop(t+d+.24)})}catch(e){}}
+function hieuUng(b,m,e,nhan){
+  const r=b.getBoundingClientRect(),g=document.createElement("span"),z=Math.max(r.width,r.height);g.className="gon";g.style.width=g.style.height=z+"px";
+  g.style.left=((e.clientX||r.left+r.width/2)-r.left-z/2)+"px";g.style.top=((e.clientY||r.top+r.height/2)-r.top-z/2)+"px";b.appendChild(g);setTimeout(()=>g.remove(),650);
+  b.classList.remove("bam");void b.offsetWidth;b.classList.add("bam");
+  if(b.classList.contains("o")){rung(15);tiengBam("o");khoaVe=Date.now()+350;return}
+  b.closest(".kb").classList.add("dang");
+  if(b.classList.contains("duyet")){m.classList.add("sang-xanh");tem(m,"✅ ĐÃ DUYỆT","xanh");rung([40,40,90]);tiengBam("duyet")}
+  else if(b.classList.contains("khong")){m.classList.add("sang-do");tem(m,"🚫 KHÔNG GỬI","do");rung([90,50,90]);tiengBam("khong")}
+  else{m.classList.add("sang-vang");tem(m,"👉 "+(nhan.length>16?nhan.slice(0,16)+"…":nhan),"vang");rung(40);tiengBam("chon")}
+}
 function veMau(n){$("#mau").hidden=!n}
 $("#xoaMau").onclick=async()=>{if(!confirm("Xoá hết tin MẪU?"))return;try{await window.yupiApi({op:"tg_mau_xoa"});toast("🗑 Đã xoá dữ liệu mẫu");tai()}catch(e){toast("⚠️ "+(e.message||e),1)}};
 function trangThai(){const st=$("#st");if(!cho||!bay){return}
@@ -232,16 +275,14 @@ document.addEventListener("click",e=>{
   const u=e.target.closest("[data-url]");if(u){window.open(u.dataset.url,"_blank","noopener");return}
   const b=e.target.closest("button[data-cb]");if(b){const m=b.closest(".msg"),t=tin[m.dataset.k];if(!t)return;
     const nhan=b.textContent.replace(/ ⏳$/,"");const kk=m.dataset.k+"|"+b.dataset.cb;
-    if(/Duyệt gửi|✅ Duyệt/.test(nhan)){const nh=nhomCua(t);if(!confirm("Duyệt GỬI KHÁCH"+(nh?" «"+nh.split("|")[0].trim()+"»":"")+"?\n(Bấm OK là Max nhắn khách trên Zalo)"))return}
-    else if(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(nhan)){if(!confirm("Không gửi khách tin này?"))return}
-    else if(!/^[☐☑]/.test(nhan)&&!/Xong/.test(nhan)&&b.closest(".kb").querySelectorAll("button").length>1){if(!confirm("Chọn: "+nhan+" ?"))return}
+    hieuUng(b,m,e,nhan);
     if(/^[☐☑]/.test(nhan)){b.textContent=(nhan[0]==="☐"?"☑":"☐")+nhan.slice(1)}   // đổi ô ngay cho nhanh, laptop sửa lại đúng sau 1–2 giây
     guiLenh({op:"tg_bam",chat:t.chat,mid:t.mid,data:b.dataset.cb},/^[☐☑]/.test(nhan)?null:kk);return}
   if(e.target.closest("#moi")){$("#moi").style.display="none";window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});return}
   const tab=e.target.closest(".bar .chip");if(tab){xem=tab.dataset.v;try{localStorage.setItem("kenh_xem",xem)}catch(x){};lanDau=true;ve();if(xem!=="toc")window.scrollTo(0,xem==="tat"?document.body.scrollHeight:0)}
 });
 document.addEventListener("submit",e=>{const f=e.target.closest("form.tl");if(!f)return;e.preventDefault();const t=tin[f.dataset.k],v=f.c.value.trim();if(!t||!v)return;
-  if(!confirm("Trả lời tin này: «"+v+"» ?\n(giống trả lời trên Telegram – vd gõ số là đổi giá rồi gửi khách)"))return;f.c.value="";guiLenh({op:"tg_tl",chat:t.chat,mid:t.mid,chu:v},null)});
+  f.classList.add("gui");setTimeout(()=>f.classList.remove("gui"),500);const m=f.closest(".msg");if(m){m.classList.add("sang-vang");tem(m,"↩ "+(v.length>14?v.slice(0,14)+"…":v),"vang")}rung(40);f.c.value="";guiLenh({op:"tg_tl",chat:t.chat,mid:t.mid,chu:v},null)});
 window.addEventListener("scroll",()=>{if(window.innerHeight+window.scrollY>=document.body.scrollHeight-160)$("#moi").style.display="none"},{passive:true});
 
 // ---- so tốc độ (item 6): tin khách -> Telegram / -> thông báo app / -> app mở lần đầu ----
