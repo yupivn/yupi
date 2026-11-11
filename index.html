@@ -103,6 +103,11 @@ a.card:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
       <div class="counts" id="c-goiy"><span class="c">Đang tải…</span></div>
       <div class="go"><span>Mở bảng</span><span>→</span></div>
     </a>
+    <a class="card" href="khach_hoi.html">
+      <div class="top"><span class="ic">💬</span><div><h2>Khách đang hỏi</h2><p>Mã khách sỉ/CTV hỏi chưa chốt, chưa CK: NCC còn hàng + giá, gợi ý NCC rẻ nhất</p></div></div>
+      <div class="counts" id="c-khhoi"><span class="c">Đang tải…</span></div>
+      <div class="go"><span>Mở bảng</span><span>→</span></div>
+    </a>
     <a class="card" href="lenh.html">
       <div class="top"><span class="ic">📨</span><div><h2>Ra lệnh cho Max</h2><p>Gõ việc cần làm, Max trên laptop nhận và làm như «max ơi» trên Telegram</p></div></div>
       <div class="counts"><span class="c">Bấm để ra lệnh</span></div>
@@ -269,5 +274,11 @@ a.card.rong .counts{display:none}
 (function(){function ve(){if(!window.yupiApi)return;window.yupiApi({op:"tg_dem"}).then(function(j){var el=document.getElementById("c-kenh");if(!el)return;
   el.innerHTML='<span class="c '+(j.can?"bad":"ok")+'"><b>'+j.can+'</b>tin chờ bấm</span>'+(j.push?'<span class="c ok"><b>🔔</b>đã bật thông báo</span>':'<span class="c wait"><b>🔕</b>chưa bật thông báo</span>');}).catch(function(){});}
   ve();setInterval(function(){if(document.visibilityState==="visible")ve()},20000);})();
+</script>
+<script>
+// 12/11 chi Phuong (tin 529): the Khach dang hoi – so khach + so ma dang hoi chua chot
+(async()=>{try{const m=await window.claude.use("mcp");m.watchTool("Google Sheets","get_values",{spreadsheetId:"1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",range:"Khách đang hỏi!A1:A2"},ev=>{
+  if(ev.type!=="data")return;try{const j=JSON.parse(ev.result.payload.values[1][0]);const kh=new Set(j.muc.map(x=>x.nhom)).size,het=j.muc.filter(x=>!(x.ncc||[]).length).length;
+  document.getElementById("c-khhoi").innerHTML=`<span class="c ${j.muc.length?"wait":"ok"}"><b>${kh}</b>khách đang hỏi</span><span class="c ok"><b>${j.muc.length}</b>mã chưa chốt</span>`+(het?`<span class="c bad"><b>${het}</b>mã chưa NCC nào có</span>`:"");}catch(e){}},{refetchInterval:60000});}catch(e){}})();
 </script>
 </body></html>

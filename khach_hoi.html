@@ -1,0 +1,103 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Khách đang hỏi</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--gold:#c9a227;--accent:#1f3a6e;--accent-soft:#e4eaf6;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--shadow:0 6px 20px rgba(20,33,61,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--gold:#e3c15a;--accent:#e3c15a;--accent-soft:#3a3320;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--shadow:0 6px 20px rgba(0,0,0,.35);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Be Vietnam Pro",system-ui,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:"Nunito",system-ui,sans-serif;font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;margin:4px 0 0}
+.st{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px}
+.st.cho{background:var(--warn-soft);color:var(--warn)}
+.empty{color:var(--muted);font-size:14px}
+.tong{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tong div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
+.tong b{display:block;font-family:Nunito,system-ui;font-weight:900;font-size:20px}.tong span{font-size:12px;color:var(--muted)}
+.tong .tk b{color:var(--ok)}
+@media (max-width:560px){.tong{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kieu{font-size:11.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+.kieu.tester{background:var(--warn-soft);color:var(--warn)}.kieu.chiet{background:var(--ok-soft);color:var(--ok)}
+.het{color:var(--late);font-weight:700}
+table.ship{width:100%;border-collapse:collapse;font-size:13.5px}table.ship td{padding:4px 2px;border-bottom:1px solid var(--line)}table.ship td:last-child{text-align:right}
+.back{color:var(--muted);text-decoration:none;font-weight:700;font-size:14px}
+.mph{font-size:12px;color:var(--muted)}
+.loc{display:flex;flex-wrap:wrap;gap:6px}
+.loc button{border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-size:13.5px;font-weight:700;border-radius:99px;padding:7px 13px;cursor:pointer}
+.loc button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.kh{border:2px solid var(--line);border-radius:18px;padding:12px;background:var(--card);box-shadow:var(--shadow)}
+.kh .h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.kh .h b{font-family:Nunito,system-ui;font-weight:900;font-size:17px}
+.kh .tin{font-size:13.5px;background:var(--bg);border-radius:12px;padding:7px 10px;margin-top:8px;white-space:pre-wrap;word-break:break-word}
+.ma{border-top:1px dashed var(--line);padding:10px 0 4px;margin-top:10px}
+.ma .ten{font-weight:700}
+.nccs{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+.nc{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:13.5px}
+.nc.goi{border:2px solid var(--gold);background:var(--warn-soft)}
+.nc .g{font-weight:800;white-space:nowrap}
+.nc .p{font-size:12px;color:var(--muted)}
+.nc.an{display:none}.nccs.mo .nc.an{display:grid}
+.them{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:4px 0;text-align:left}
+.kieu.mini{background:#efe4f8;color:#7a3fb0}
+@media (prefers-color-scheme:dark){.kieu.mini{background:#33244a;color:#d2b2f2}}
+</style></head><body>
+<div class="wrap">
+  <a class="back" href="./">‹ Bảng tổng</a>
+  <div><h1>💬 Khách đang hỏi</h1><p class="sub" id="sub">Đang tải…</p></div>
+  <div class="card">
+    <div class="tong" id="tong"></div>
+    <div class="loc" id="loc" style="margin-top:12px"></div>
+    <div class="hint">Mã khách sỉ/CTV hỏi trên Zalo (từ hôm qua) mà chưa chốt, chưa chuyển khoản. Khách chốt / chuyển khoản, hoặc anh Trường nhận đơn → tự rời bảng. NCC xếp rẻ trước, <b>⭐ = NCC rẻ nhất</b> (không ưu tiên NCC đã có đơn chốt). Giá, tồn lấy từ file tra cứu kho NCC.</div>
+  </div>
+  <div id="ds" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div class="card"><h2>🚚 Phí ship mỗi chuyến (ước tính)</h2><table class="ship" id="ship"></table><div class="hint">Cùng bảng phí ship với trang Gom NCC. Sai thì nhắn «max ơi sửa phí ship NCC …».</div></div>
+</div>
+<script>
+const HOP="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
+const k=n=>(Math.round(n*10)/10).toLocaleString("vi-VN")+"k";
+const KIEU={full:"Full",tester:"Tester",chiet:"Chiết",mini:"Mini",set:"Set"};
+let D=null,loc=ls("kh_loc")||"",mo={};
+function ngayVN(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());}
+function luc(s){const nay=ngayVN();const d=String(s).slice(0,10),g=String(s).slice(11,16);return d===nay?g:g+" "+d.slice(8,10)+"/"+d.slice(5,7);}
+function veNcc(m,key){const ds=m.ncc||[];if(!ds.length)return '<div class="het" style="margin-top:6px">❌ Chưa NCC nào có – cần hỏi hàng</div>';
+  return '<div class="nccs'+(mo[key]?" mo":"")+'">'+ds.map((o,i)=>`<div class="nc${i===0?" goi":""}${i>=3?" an":""}"><div><b>${i===0?"⭐ ":""}${esc(o.ncc)}</b>${o.ten?`<div class="p">${esc(o.ten)}</div>`:""}</div><div style="text-align:right"><div class="g">${k(o.gia)}</div><div class="p">${o.ton!=null?"còn "+o.ton:o.bang?"bảng chiết":o.ghi?esc(o.ghi):o.zalo?"Zalo":""}${D.phiShip&&D.phiShip[o.ncc]!=null?" · ship "+D.phiShip[o.ncc]+"k":""}</div></div></div>`).join("")+'</div>'+
+    (ds.length>3?`<button class="them" data-mo="${esc(key)}">${mo[key]?"Thu gọn":"Xem thêm "+(ds.length-3)+" NCC"}</button>`:"")+
+    (m.theoDx?'<div class="mph">⚠️ Không khớp được file tra cứu – giá theo đề xuất lúc khách hỏi</div>':"");}
+function ve(){if(!D)return;
+  const ms=D.muc.filter(m=>!loc||m.loai===loc);
+  const kh={};ms.forEach(m=>{(kh[m.nhom]=kh[m.nhom]||{nhom:m.nhom,khach:m.khach,maKh:m.maKh,luc:m.luc,tin:m.tin,ms:[]}).ms.push(m);if(m.luc>kh[m.nhom].luc){kh[m.nhom].luc=m.luc;kh[m.nhom].tin=m.tin;}});
+  const het=D.muc.filter(m=>!(m.ncc||[]).length).length;
+  $("#sub").textContent=`Khách hỏi từ ${D.tu} · cập nhật ${String(D.luc).slice(11,16)} · tồn NCC lúc ${D.traCuu}`;
+  $("#tong").innerHTML=`<div><b>${new Set(D.muc.map(m=>m.nhom)).size}</b><span>khách đang hỏi</span></div><div><b>${D.muc.length}</b><span>mã chưa chốt</span></div><div class="${het?"":"tk"}"><b>${het}</b><span>mã chưa NCC nào có</span></div><div class="tk"><b>${D.boChot||0}</b><span>lần hỏi đã chốt / CK</span></div>`;
+  const dem=t=>D.muc.filter(m=>!t||m.loai===t).length;
+  $("#loc").innerHTML=[["","Tất cả"],["full","Full"],["tester","Tester"],["chiet","Chiết"],["mini","Mini"]].map(([v,t])=>`<button class="${loc===v?"on":""}" data-loc="${v}">${t} · ${dem(v)}</button>`).join("");
+  $("#ds").innerHTML=Object.values(kh).sort((a,b)=>a.luc<b.luc?1:-1).map(c=>`<div class="kh"><div class="h"><div><b>👤 ${esc(c.khach)}</b><div class="mph">${esc(c.nhom.split("|").slice(1).join("·").trim())}</div></div><span class="st cho">hỏi lúc ${esc(luc(c.luc))}</span></div>
+    ${c.tin?`<div class="tin">💬 ${esc(c.tin)}</div>`:""}
+    ${c.ms.map(m=>`<div class="ma"><div class="ten"><span class="kieu ${esc(m.loai)}">${KIEU[m.loai]||esc(m.loai)}</span>${esc(m.ten)}</div><div class="mph">${m.ml?esc(m.ml)+"ml · ":""}hỏi lúc ${esc(luc(m.luc))}</div>${veNcc(m,m.key)}</div>`).join("")}</div>`).join("")||'<div class="card empty">✅ Không còn khách nào đang hỏi mà chưa chốt.</div>';
+  $("#ship").innerHTML=Object.entries(D.phiShip||{}).sort((x,y)=>(x[0]==="Khác")-(y[0]==="Khác")||x[1]-y[1]||x[0].localeCompare(y[0],"vi")).map(([n,v])=>`<tr><td>${esc(n)}</td><td>${v}k</td></tr>`).join("");
+}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-loc],button[data-mo]");if(!b)return;
+  if(b.dataset.mo!==undefined){mo[b.dataset.mo]=!mo[b.dataset.mo];ve();return;}
+  loc=b.dataset.loc;ls("kh_loc",loc);ve();});
+(async()=>{let mcp=null;try{mcp=await window.claude.use("mcp")}catch(e){}
+  if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
+  mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Khách đang hỏi!A1:A2"},ev=>{
+    if(ev.type!=="data")return;const v=ev.result.payload&&ev.result.payload.values;
+    try{const j=JSON.parse(v[1][0]);if(!D||j.luc!==D.luc){D=j;ve();}}catch(e){$("#sub").textContent="Máy chưa gom xong, đợi chút…";}
+  },{refetchInterval:30000});
+})();
+</script>
+</body></html>
