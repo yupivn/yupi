@@ -98,6 +98,11 @@ a.card:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
       <div class="counts" id="c-chiso"><span class="c">Đang tải…</span></div>
       <div class="go"><span>Xem 14 ngày</span><span>→</span></div>
     </a>
+    <a class="card" href="goi_y.html">
+      <div class="top"><span class="ic">🧮</span><div><h2>Gợi ý NCC đơn đã chốt</h2><p>Mã khách chốt hôm nay chưa chọn NCC, gom chuyến cho giá vốn mỗi chai rẻ nhất</p></div></div>
+      <div class="counts" id="c-goiy"><span class="c">Đang tải…</span></div>
+      <div class="go"><span>Mở bảng</span><span>→</span></div>
+    </a>
     <a class="card" href="duyet.html">
       <div class="top"><span class="ic">✅</span><div><h2>Hộp duyệt</h2><p>Duyệt tin Max soạn trước khi gửi khách, nhận đơn</p></div></div>
       <div class="counts"><span class="c">Bấm để mở</span></div>
@@ -249,5 +254,11 @@ a.card.rong .counts{display:none}
   },120)};
   new MutationObserver(xep).observe(g,{subtree:true,childList:true,characterData:true});xep();
 })();
+</script>
+<script>
+// 11/11 chi Phuong: the Goi y NCC – so ma cho chot NCC + so chuyen
+(async()=>{try{const m=await window.claude.use("mcp");m.watchTool("Google Sheets","get_values",{spreadsheetId:"1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",range:"Gợi ý NCC!A1:A2"},ev=>{
+  if(ev.type!=="data")return;try{const j=JSON.parse(ev.result.payload.values[1][0]);const cho=j.muc.filter(x=>(x.ncc||[]).length&&!x.chot).length,het=j.muc.filter(x=>!(x.ncc||[]).length&&!x.chot).length;
+  document.getElementById("c-goiy").innerHTML=`<span class="c ${cho?"wait":"ok"}"><b>${cho}</b>mã chờ chốt NCC</span><span class="c ok"><b>${j.chuyen.length}</b>chuyến</span>`+(het?`<span class="c bad"><b>${het}</b>mã chưa NCC nào có</span>`:"");}catch(e){}},{refetchInterval:60000});}catch(e){}})();
 </script>
 </body></html>

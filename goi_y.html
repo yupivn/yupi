@@ -1,0 +1,148 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Gợi ý NCC đơn đã chốt</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--gold:#c9a227;--accent:#1f3a6e;--accent-soft:#e4eaf6;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--shadow:0 6px 20px rgba(20,33,61,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--gold:#e3c15a;--accent:#e3c15a;--accent-soft:#3a3320;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--shadow:0 6px 20px rgba(0,0,0,.35);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Be Vietnam Pro",system-ui,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:"Nunito",system-ui,sans-serif;font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+label{font-weight:700;font-size:13.5px;display:block;margin-bottom:6px}
+select,textarea{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+button.send{flex:1;min-width:180px;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:800;font-size:16px;background:var(--gold);color:#14213d;cursor:pointer}
+button.send:disabled{opacity:.55;cursor:default}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--accent-soft);color:var(--fg);font:inherit;font-size:13px;border-radius:99px;padding:6px 11px;cursor:pointer}
+.msg{font-size:14px;min-height:20px;margin-top:8px}
+h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;margin:4px 0 0}
+.it{border-top:1px dashed var(--line);padding:12px 0}
+.it:first-child{border-top:0;padding-top:4px}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.cmd{font-weight:600;margin:4px 0;white-space:pre-wrap;word-break:break-word}
+.st{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px}
+.st.cho{background:var(--warn-soft);color:var(--warn)} .st.lam{background:var(--accent-soft);color:var(--accent)}
+.st.xong{background:var(--ok-soft);color:var(--ok)} .st.loi{background:var(--late-soft);color:var(--late)}
+.kq{font-size:13.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;margin-top:6px;max-height:9.5em;overflow:auto}
+.empty{color:var(--muted);font-size:14px}
+
+.top2{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.btn.gold{background:var(--gold);color:#14213d}.btn.soft{background:var(--accent-soft);color:var(--fg)}.btn.ok{background:var(--ok);color:#fff}.btn:disabled{opacity:.5}
+.tong{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tong div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
+.tong b{display:block;font-family:Nunito,system-ui;font-weight:900;font-size:20px}.tong span{font-size:12px;color:var(--muted)}
+.tong .tk b{color:var(--ok)}
+@media (max-width:560px){.tong{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chuyen{border-width:2px}
+.chuyen.goi{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),var(--shadow);background:linear-gradient(180deg,var(--warn-soft),var(--card) 90px)}
+.chuyen.da{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok),var(--shadow)}
+.ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ch-h h3{margin:0;font-family:Nunito,system-ui;font-weight:900;font-size:20px}
+.tag{display:inline-block;font-size:12px;font-weight:800;border-radius:99px;padding:3px 10px;margin-left:6px;vertical-align:middle}
+.tag.g{background:var(--gold);color:#14213d}.tag.o{background:var(--ok-soft);color:var(--ok)}.tag.z{background:var(--warn-soft);color:var(--warn)}
+.so{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0 4px}
+.so div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 6px;text-align:center}
+.so b{display:block;font-weight:800;font-size:16px}.so span{font-size:11.5px;color:var(--muted)}
+.so .vm b{color:var(--accent)}
+.it{border-top:1px dashed var(--line);padding:10px 0}
+.it .l1{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.it .ten{font-weight:700;margin:3px 0}
+.it .l3{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.gia{font-size:13.5px}.gia b{font-size:15px}
+.kieu{font-size:11.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+.kieu.tester{background:var(--warn-soft);color:var(--warn)}.kieu.chiet{background:var(--ok-soft);color:var(--ok)}
+.tick{border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:7px 12px;font:inherit;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap}
+.tick.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.khac{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.khac button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:99px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.khac button.chon{border-color:var(--gold);background:var(--warn-soft);font-weight:800}
+.het{color:var(--late);font-weight:700}
+table.ship{width:100%;border-collapse:collapse;font-size:13.5px}table.ship td{padding:4px 2px;border-bottom:1px solid var(--line)}table.ship td:last-child{text-align:right}
+.back{color:var(--muted);text-decoration:none;font-weight:700;font-size:14px}
+</style></head><body>
+<div class="wrap">
+  <a class="back" href="./">‹ Bảng tổng</a>
+  <div class="top2"><div><h1>🧮 Gợi ý NCC đơn đã chốt</h1><p class="sub" id="sub">Đang tải…</p></div>
+    <button class="btn soft" id="tinh">🔄 Tính lại</button></div>
+  <div class="card"><label for="ai">Ai chốt NCC</label>
+    <select id="ai"><option value="">— Chọn tên —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
+    <div class="tong" id="tong" style="margin-top:12px"></div>
+    <div class="hint">Gợi ý theo <b>giá vốn mỗi chai thấp nhất</b> = giá chai + phí ship chuyến ÷ số chai trong chuyến. Gom nhiều mã vào cùng 1 NCC (cùng chuyến), chuyến đã chốt hôm nay coi như đã trả ship. Không xét công nợ. Khung vàng = chuyến gợi ý.</div>
+  </div>
+  <div id="ds"></div>
+  <div class="card" id="hetCard" hidden><h2>❌ Chưa NCC nào có</h2><div id="het"></div></div>
+  <div class="card"><h2>🚚 Phí ship mỗi chuyến (ước tính)</h2><table class="ship" id="ship"></table><div class="hint">Phí ship Ahamove ước tính từ shop Tô Hiến Thành. Sai thì nhắn «max ơi sửa phí ship NCC …» để em sửa file goi_y_ncc_ship.txt.</div></div>
+</div>
+<script>
+const HOP="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
+const k=n=>(Math.round(n*10)/10).toLocaleString("vi-VN")+"k";
+const KIEU={full:"Full",tester:"Tester",chiet:"Chiết",mini:"Mini",set:"Set"};
+$("#ai").value=ls("ai")||"";$("#ai").onchange=()=>ls("ai",$("#ai").value);
+function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
+  const g=x=>p.find(y=>y.type===x).value;return `${g("year")}-${g("month")}-${g("day")} ${g("hour")==="24"?"00":g("hour")}:${g("minute")}:${g("second")}`;}
+let D=null,mcp=null;const tam={};   // tam: key -> {ncc,gia} vua bam (cho may tinh lai)
+function chotCua(m){return tam[m.key]!==undefined?tam[m.key]:(m.chot||null);}
+function ve(){if(!D){return;}
+  const M={};D.muc.forEach(m=>M[m.key]=m);
+  const can=D.muc.filter(m=>(m.ncc||[]).length||m.chot), het=D.muc.filter(m=>!(m.ncc||[]).length&&!m.chot);
+  const daChot=D.muc.filter(m=>chotCua(m)).length, cho=can.length-daChot;
+  $("#sub").textContent=`Đơn khách chốt ngày ${D.ngay} · tính lúc ${String(D.luc).slice(11,16)} · tồn NCC lúc ${D.traCuu}`;
+  const tk=Math.max(0,Math.round((D.tongLe-D.tongGoiY)*10)/10);
+  $("#tong").innerHTML=`<div><b>${cho}</b><span>mã chờ chốt NCC</span></div><div><b>${daChot}</b><span>mã đã chốt</span></div><div><b>${D.chuyen.length}</b><span>chuyến lấy hàng</span></div><div class="tk"><b>${tk?"−"+k(tk):"0k"}</b><span>rẻ hơn lấy lẻ từng mã</span></div>`;
+  if(!D.chuyen.length){$("#ds").innerHTML=`<div class="card"><div class="hint" style="font-size:15px">✅ Không còn mã nào cần lấy NCC hôm nay${D.coSan?` (${D.coSan} mã có sẵn ở shop)`:""}.</div></div>`;}
+  else $("#ds").innerHTML=D.chuyen.map((c,ci)=>{
+    const its=c.items.map(x=>M[x.key]).filter(Boolean);
+    const tatCa=its.every(m=>chotCua(m));
+    const vm=c.soChai?c.ship/c.soChai:0;
+    return `<div class="card chuyen ${c.daChot||tatCa?"da":"goi"}"><div class="ch-h"><h3>🚚 ${esc(c.ncc)}${c.daChot?'<span class="tag o">✅ Chuyến đã chốt hôm nay</span>':tatCa?'<span class="tag o">✅ Đã chốt</span>':'<span class="tag g">⭐ Gợi ý</span>'}</h3>
+      ${tatCa?"":`<button class="btn ok" data-chuyen="${ci}">✅ Chốt cả chuyến (${its.filter(m=>!chotCua(m)).length} mã)</button>`}</div>
+      <div class="so"><div><b>${c.soChai}</b><span>chai</span></div><div><b>${c.daChot?"0k":k(c.ship)}</b><span>phí ship${c.daChot?" (đã trả)":""}</span></div><div><b>${k(c.daChot?c.tongHang:c.tong)}</b><span>tổng tiền</span></div><div class="vm"><b>+${k(c.daChot?0:vm)}</b><span>ship / chai</span></div></div>
+      ${its.map(m=>{const x=c.items.find(y=>y.key===m.key);const ch=chotCua(m);const nccChon=ch?ch.ncc:c.ncc;
+        const o=(m.ncc||[]).find(y=>y.ncc===nccChon);const gia=ch&&ch.gia?+ch.gia:(o?o.gia:x.gia);
+        return `<div class="it"><div class="l1"><span>👤 ${esc(m.khach)} · ${esc(m.don)} · ${esc(m.luc)}</span><span>${esc(m.ma)}</span></div>
+        <div class="ten"><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} <span style="color:var(--muted)">× ${m.sl}</span></div>
+        <div class="l3"><span class="gia">Giá chai <b>${k(gia||0)}</b> · vốn/chai <b>${k((gia||0)+(c.daChot?0:vm))}</b>${o&&o.zalo?' <span class="tag z">giá Zalo</span>':""}${o&&o.ton!=null?` · NCC còn ${o.ton}`:""}</span>
+          ${ch?`<button class="tick on" data-bo="${esc(m.key)}">✅ ${esc(ch.ncc)}${ch.ai?" · "+esc(ch.ai):""}${ch.luc?" "+esc(ch.luc):""}</button>`:`<button class="tick" data-chot="${esc(m.key)}" data-ncc="${esc(c.ncc)}">☐ Chốt ${esc(c.ncc)}</button>`}</div>
+        ${(m.ncc||[]).length>1&&!ch?`<div class="khac">${m.ncc.map(y=>`<button class="${y.ncc===c.ncc?"chon":""}" data-chot="${esc(m.key)}" data-ncc="${esc(y.ncc)}">${esc(y.ncc)} · ${k(y.gia)}${y.ton!=null?" · còn "+y.ton:y.zalo?" · Zalo":""}${y.ncc===c.ncc?" ⭐":""}</button>`).join("")}</div>`:""}</div>`;}).join("")}</div>`;}).join("");
+  $("#hetCard").hidden=!het.length;
+  $("#het").innerHTML=het.map(m=>`<div class="it"><div class="l1"><span>👤 ${esc(m.khach)} · ${esc(m.don)}</span><span>${esc(m.ma)}</span></div><div class="ten"><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="het">Không thấy NCC nào còn trong file tra cứu – cần hỏi hàng</div></div>`).join("");
+  $("#ship").innerHTML=Object.entries(D.phiShip||{}).map(([n,v])=>`<tr><td>${esc(n)}</td><td>${v}k</td></tr>`).join("");
+}
+async function ghi(rows,thongBao){if(!mcp){alert("Chưa kết nối được dữ liệu.");return false;}
+  try{await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Chốt NCC app!A1",values:rows});return true;}catch(e){return false;}}
+async function chot(keys,ncc){const ai=$("#ai").value;if(!ai){alert("Chọn tên người chốt ở trên giúp em.");$("#ai").focus();return;}
+  const M={};D.muc.forEach(m=>M[m.key]=m);const t=gioVN();
+  const rows=keys.map(key=>{const m=M[key],nn=ncc||key.ncc;const o=(m.ncc||[]).find(y=>y.ncc===nn);tam[key]={ncc:nn,gia:o?o.gia:"",ai,luc:t.slice(11,16)};return [t,ai,m.don,m.ma,nn,o?String(o.gia):"",m.ten,"chot"];});
+  ve();if(!await ghi(rows)){keys.forEach(x=>delete tam[x]);ve();}}
+document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.chot){await chot([b.dataset.chot],b.dataset.ncc);return;}
+  if(b.dataset.chuyen!==undefined){const c=D.chuyen[+b.dataset.chuyen];const M={};D.muc.forEach(m=>M[m.key]=m);
+    const ks=c.items.map(x=>x.key).filter(x=>M[x]&&!chotCua(M[x]));if(ks.length)await chot(ks,c.ncc);return;}
+  if(b.dataset.bo){const ai=$("#ai").value||"?";const M={};D.muc.forEach(m=>M[m.key]=m);const m=M[b.dataset.bo];if(!m||!confirm("Bỏ chốt NCC cho mã này?"))return;
+    tam[m.key]=null;ve();await ghi([[gioVN(),ai,m.don,m.ma,"","",m.ten,"bo"]]);return;}
+  if(b.id==="tinh"){b.disabled=true;b.textContent="⏳ Đang tính lại…";await ghi([[gioVN(),$("#ai").value||"?","","","","","","tinh"]]);setTimeout(()=>{b.disabled=false;b.textContent="🔄 Tính lại";},20000);}
+});
+(async()=>{try{mcp=await window.claude.use("mcp")}catch(e){}
+  if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
+  mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Gợi ý NCC!A1:A2"},ev=>{
+    if(ev.type!=="data")return;const v=ev.result.payload&&ev.result.payload.values;
+    try{const j=JSON.parse(v[1][0]);if(!D||j.luc!==D.luc){D=j;for(const x in tam)delete tam[x];ve();}}catch(e){$("#sub").textContent="Máy chưa tính xong, đợi chút…";}
+  },{refetchInterval:30000});
+})();
+</script>
+</body></html>
