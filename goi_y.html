@@ -91,6 +91,19 @@ table.bt tr.da select{border-color:var(--ok)}
 .ch .h b{font-family:Nunito,system-ui;font-weight:900;font-size:17px}
 .ch .ds{font-size:12.5px;color:var(--muted);margin-top:4px}
 @media (max-width:560px){table.bt .an-dt{display:none}}
+/* 12/11 tin 554: nhap NCC bang tay + o chon NCC rong, doc du gia */
+table.bt td.nccTd{min-width:165px}
+table.bt td.nccTd select{width:100%;min-width:0;white-space:normal}
+.giaChon{font-size:13px;font-weight:700;margin-top:3px}
+.tayDs{display:flex;flex-direction:column;gap:4px;margin-top:5px}
+.tayIt{font-size:12.5px;background:var(--accent-soft);border-radius:10px;padding:5px 8px;line-height:1.35}
+.tayIt b{font-weight:800}.tayIt a{color:var(--accent);font-weight:700;margin-left:6px;text-decoration:none;cursor:pointer}
+.themNcc{border:1px dashed var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:4px 10px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;margin-top:5px}
+.tayForm{border:2px solid var(--gold);border-radius:12px;padding:8px;margin-top:6px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tayForm input{width:100%;font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:7px 8px}
+.tayForm .full{grid-column:1/-1}.tayForm label{font-size:11.5px;font-weight:700;color:var(--muted);margin:0 0 2px}
+.tayForm .nut{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end}
+.tayForm .loi{grid-column:1/-1;color:var(--late);font-size:12.5px;min-height:0}
 .mau{display:inline-block;background:#8e959c;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800;letter-spacing:.3px;margin-right:5px;vertical-align:1px}
 .mauBar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(142,149,156,.14);border:1px dashed #8e959c;border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:13.5px}
 .mauBar button{border:1px solid #8e959c;background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;font:inherit;font-weight:800;cursor:pointer}
@@ -105,6 +118,7 @@ table.bt tr.da select{border-color:var(--ok)}
     <div class="tong" id="tong" style="margin-top:12px"></div>
     <div class="hint">Bấm <b>🧲 Gom NCC</b> lúc nào cũng được: máy gom các chai cùng NCC của nhiều đơn vào chung chuyến, chọn chuyến ship rẻ để <b>giá vốn + ship mỗi chai thấp nhất</b> (không xét công nợ), rồi gợi ý lên bảng tổng (⭐). Đổi NCC ở bảng tổng → chuyến và bảng từng đơn đổi ngay.</div>
   </div>
+  <datalist id="dsNcc"></datalist>
   <div class="card"><h2>📋 Bảng tổng – mã chưa bốc ship</h2><div style="overflow-x:auto"><table class="bt" id="bt"></table></div><div class="hint" id="btHint"></div></div>
   <div class="card"><h2>🚚 Chuyến lấy hàng</h2><div id="chuyen"></div></div>
   <div class="card"><h2>🧾 Theo từng đơn</h2><div id="don"></div></div>
@@ -124,20 +138,54 @@ function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_
 let D=null,mcp=null,gomLuc=null,daXoaMau=false;const MAU=m=>m.mau?'<span class="mau">MẪU</span>':'';const tam={},shipTam={};
 const chot=m=>tam[m.key]!==undefined?tam[m.key]:(m.chot||null);
 const daShip=m=>shipTam[m.key]!==undefined?shipTam[m.key]:(m.ship||null);
+// 12/11 tin 554: NCC nhap tay (chi cho ma do trong ngay, khong ghi KiotViet). Luu: tab "Chot NCC app" viec ncc_tay / ncc_tay_xoa, cot I = {id,ton,ship,ghi}
+const tayTam={};let moForm=null,suaId=null;   // tayTam[id] = {ma,ncc,gia,ton,ship,ghi,ai,lucTay,tay:true} | null (da xoa) – cho toi khi may gom xong
+function nccDs(m){let ds=(m.ncc||[]).filter(o=>!(o.tay&&o.id&&tayTam[o.id]===null)).map(o=>(o.tay&&o.id&&tayTam[o.id])?Object.assign({},o,tayTam[o.id]):o);
+  Object.entries(tayTam).forEach(([id,t])=>{if(!t||t.ma!==m.ma||ds.some(o=>o.id===id))return;ds=ds.filter(o=>o.ncc!==t.ncc);ds.push(Object.assign({id},t));});
+  return ds.slice().sort((a,b)=>a.gia-b.gia);}
+function shipCua(n){let v=null;D.muc.forEach(m=>nccDs(m).forEach(o=>{if(o.tay&&o.ncc===n&&o.ship!==""&&o.ship!=null&&!isNaN(+o.ship))v=+o.ship;}));
+  const s=D.phiShip||{};return v!=null?v:(s[n]!=null?s[n]:(s["Khác"]||45));}
+// goi y: may gom (m.goiY); NCC nhap tay vua them re hon NCC goi y -> goi y theo NCC do ngay (may gom lai sau vai giay)
+function goiYCua(m){const ds=nccDs(m);const g=ds.find(o=>o.ncc===m.goiY);const t=ds.filter(o=>o.tay&&o.id&&tayTam[o.id]).sort((a,b)=>a.gia-b.gia)[0];
+  if(t&&(!g||t.gia<g.gia))return t.ncc;return g?m.goiY:(ds[0]?ds[0].ncc:(m.goiY||""));}
 // NCC dang chon cho 1 ma: da chot > goi y
-function nccCua(m){const c=chot(m);return c?c.ncc:(m.goiY||"");}
-function giaCua(m,n){const c=chot(m);if(c&&c.ncc===n&&c.gia!==""&&c.gia!=null&&!isNaN(+c.gia))return +c.gia;const o=(m.ncc||[]).find(y=>y.ncc===n);return o?o.gia:0;}
+function nccCua(m){const c=chot(m);return c?c.ncc:goiYCua(m);}
+function giaCua(m,n){const c=chot(m);if(c&&c.ncc===n&&c.gia!==""&&c.gia!=null&&!isNaN(+c.gia))return +c.gia;const o=nccDs(m).find(y=>y.ncc===n);return o?o.gia:0;}
 // chuyen tinh ngay tren may theo NCC dang chon (chuyen da chot tu sheet Don chot NCC hom nay = ship da tra)
 function tinhChuyen(){const ship=D.phiShip||{},daTra={};(D.chuyen||[]).forEach(c=>{if(c.daChot)daTra[c.ncc]=1;});
   const g={};D.muc.forEach(m=>{const n=nccCua(m);if(!n)return;(g[n]=g[n]||{ncc:n,ms:[],soChai:0,tongHang:0,daTra:!!daTra[n],ship:0});g[n].ms.push(m);g[n].soChai+=m.sl;g[n].tongHang+=giaCua(m,n)*m.sl;});
-  Object.values(g).forEach(c=>{c.ship=c.daTra?0:(ship[c.ncc]!=null?ship[c.ncc]:(ship["Khác"]||45));c.tong=c.tongHang+c.ship;c.spc=c.soChai?c.ship/c.soChai:0;
+  Object.values(g).forEach(c=>{c.ship=c.daTra?0:shipCua(c.ncc);c.tong=c.tongHang+c.ship;c.spc=c.soChai?c.ship/c.soChai:0;
     c.tatChot=c.ms.every(m=>chot(m));c.tatShip=c.ms.every(m=>daShip(m));});
   return Object.values(g).sort((a,b)=>b.soChai-a.soChai);}
+function veTay(m,ds){const tay=ds.filter(o=>o.tay);
+  const it=tay.map(o=>`<div class="tayIt">✍️ <b>${esc(o.ncc)}</b> · ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+esc(o.ton):""} · ship ${o.ship!==""&&o.ship!=null?k(+o.ship):"mặc định"}${o.ghi?` · ${esc(o.ghi)}`:""}<div class="mph">nhập tay · ${esc(o.ai||"")} ${esc(String(o.lucTay||"").slice(0,5))}${o.id&&tayTam[o.id]?" · đang lưu…":""}<a data-tsua="${esc(o.id)}" data-k="${esc(m.key)}">sửa</a><a data-txoa="${esc(o.id)}" data-k="${esc(m.key)}">xóa</a></div></div>`).join("");
+  const f=moForm===m.key?(()=>{const s=suaId?tay.find(o=>o.id===suaId):null;return `<div class="tayForm" data-form="${esc(m.key)}">
+    <div class="full"><label>Tên NCC</label><input data-f="ncc" list="dsNcc" placeholder="Chọn hoặc gõ tên mới" value="${esc(s?s.ncc:"")}"></div>
+    <div><label>Giá (nghìn)</label><input data-f="gia" type="number" inputmode="decimal" min="0" placeholder="vd 2130" value="${s?esc(s.gia):""}"></div>
+    <div><label>Số lượng còn</label><input data-f="ton" type="number" inputmode="numeric" min="0" placeholder="bỏ trống nếu chưa rõ" value="${s&&s.ton!=null?esc(s.ton):""}"></div>
+    <div><label>Phí ship (nghìn)</label><input data-f="ship" type="number" inputmode="decimal" min="0" placeholder="trống = mặc định" value="${s&&s.ship!=null?esc(s.ship):""}"></div>
+    <div><label>Ghi chú</label><input data-f="ghi" placeholder="vd NCC báo Zalo 15h" value="${esc(s?s.ghi||"":"")}"></div>
+    <div class="loi" data-loi></div>
+    <div class="nut"><button class="btn soft" data-thuy="1">Hủy</button><button class="btn ok" data-tluu="${esc(m.key)}">💾 Lưu</button></div></div>`;})():"";
+  return `<div class="tayDs">${it}</div>${moForm===m.key?"":`<button class="themNcc" data-them="${esc(m.key)}">+ Thêm NCC</button>`}${f}`;}
+async function luuTay(m,f){const v=x=>(f.querySelector(`[data-f="${x}"]`).value||"").trim();const ncc=v("ncc"),gia=v("gia"),ton=v("ton"),ship=v("ship"),gchu=v("ghi");
+  const loi=f.querySelector("[data-loi]");if(!ncc){loi.textContent="Nhập tên NCC giúp em.";return;}if(!gia||isNaN(+gia)||+gia<=0){loi.textContent="Nhập giá (nghìn) giúp em, vd 2130.";return;}
+  const ai=$("#ai").value||(window.yupiNguoi&&window.yupiNguoi.ten)||"";const t=gioVN();const id=suaId||("t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
+  const cu=suaId?nccDs(m).find(o=>o.id===suaId):null;
+  tayTam[id]={ma:m.ma,ncc,gia:+gia,ton:ton===""?null:+ton,ship:ship===""?null:+ship,ghi:gchu,ai,lucTay:t.slice(11,16),tay:true,zalo:false};
+  moForm=null;suaId=null;ve(D.muc.filter(x=>x.ma===m.ma).map(x=>x.key));
+  const ok=await ghi([[t,ai,m.don,m.ma,ncc,String(+gia),m.ten,"ncc_tay",JSON.stringify({id,ton:ton===""?null:+ton,ship:ship===""?null:+ship,ghi:gchu})]]);
+  if(!ok){delete tayTam[id];ve();alert("Chưa lưu được NCC nhập tay – thử lại giúp em.");}}
+async function xoaTay(m,id){const o=nccDs(m).find(x=>x.id===id);if(!o||!confirm(`Xóa NCC nhập tay «${o.ncc} · ${k(o.gia)}» của mã này?`))return;
+  const cu=tayTam[id];tayTam[id]=null;ve();const ai=$("#ai").value||(window.yupiNguoi&&window.yupiNguoi.ten)||"";
+  const ok=await ghi([[gioVN(),ai,m.don,m.ma,o.ncc,"",m.ten,"ncc_tay_xoa",JSON.stringify({id})]]);if(!ok){if(cu===undefined)delete tayTam[id];else tayTam[id]=cu;ve();alert("Chưa xóa được – thử lại giúp em.");}}
 function ve(nhay){if(!D)return;
   const nM=D.muc.filter(m=>m.mau).length;$("#mauBar").hidden=!nM;$("#mauSo").textContent=nM;
   const CH=tinhChuyen(),byN={};CH.forEach(c=>byN[c.ncc]=c);
   const voncai=(m)=>{const n=nccCua(m);const c=byN[n];return n?giaCua(m,n)+(c?c.spc:0):0;};
-  const can=D.muc.filter(m=>(m.ncc||[]).length||m.chot), het=D.muc.filter(m=>!(m.ncc||[]).length&&!m.chot);
+  const can=D.muc.filter(m=>nccDs(m).length||m.chot), het=D.muc.filter(m=>!nccDs(m).length&&!m.chot);
+  const tenNcc=new Set(Object.keys(D.phiShip||{}).filter(x=>x!=="Khác"));D.muc.forEach(m=>nccDs(m).forEach(o=>tenNcc.add(o.ncc)));
+  $("#dsNcc").innerHTML=[...tenNcc].sort((a,b)=>a.localeCompare(b,"vi")).map(x=>`<option value="${esc(x)}">`).join("");
   const chuaShip=can.filter(m=>!daShip(m)), daC=chuaShip.filter(m=>chot(m)).length;
   $("#sub").textContent=`Đơn khách chốt ngày ${D.ngay} · gom lúc ${String(D.luc).slice(11,16)} · tồn NCC lúc ${D.traCuu}`;
   const tongNay=CH.filter(c=>!c.tatShip).reduce((a,c)=>a+c.tong,0);
@@ -147,7 +195,8 @@ function ve(nhay){if(!D)return;
   $("#bt").innerHTML=`<tr><th>Mã</th><th class="an-dt">Khách · đơn</th><th>NCC</th><th class="sv">Vốn+ship/chai</th></tr>`+(rows.map(m=>{const n=nccCua(m),c=chot(m);
     return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td><div class="mten">${MAU(m)}<span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="mph">${esc(m.ma)}<span class="ph-kh"> · ${esc(String(m.khach).split("|")[0])} · ${esc(m.don)}</span></div></td>
     <td class="an-dt">${esc(String(m.khach).split("|")[0])}<div class="mph">${esc(m.don)} · ${esc(m.luc)}</div></td>
-    <td><select data-chon="${esc(m.key)}">${(m.ncc||[]).map(o=>`<option value="${esc(o.ncc)}" ${o.ncc===n?"selected":""}>${esc(o.ncc)} · ${k(o.gia)}${o.ton!=null?" · còn "+o.ton:o.zalo?" · Zalo":""}${o.ncc===m.goiY?" ⭐":""}</option>`).join("")}${!(m.ncc||[]).some(o=>o.ncc===n)&&n?`<option selected>${esc(n)}</option>`:""}</select>
+    <td class="nccTd">${(()=>{const ds=nccDs(m),gy=goiYCua(m),o=ds.find(x=>x.ncc===n);return `<select data-chon="${esc(m.key)}">${ds.map(o=>`<option value="${esc(o.ncc)}" ${o.ncc===n?"selected":""}>${o.ncc===gy?"⭐ ":""}${o.tay?"✍️ ":""}${esc(o.ncc)} · ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+o.ton:o.zalo?" · Zalo":""}</option>`).join("")}${!ds.some(o=>o.ncc===n)&&n?`<option selected>${esc(n)}</option>`:""}</select>
+      ${o?`<div class="giaChon">${o.tay?"✍️ ":""}${esc(o.ncc)}: ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+esc(o.ton):""} · ship ${k(shipCua(o.ncc))}</div>`:""}${veTay(m,ds)}`;})()}
       <div class="mph">${c?`✅ ${esc(c.ai||"")} ${esc(c.luc||"")} · <a href="#" data-bo="${esc(m.key)}" style="color:inherit">bỏ chốt</a>`:`⭐ gợi ý · <a href="#" data-chot1="${esc(m.key)}" style="color:var(--ok);font-weight:700">chốt</a>`}</div></td>
     <td class="sv"><b>${k(voncai(m))}</b></td></tr>`;}).join("")||`<tr><td colspan="4" class="mph">✅ Không còn mã nào chờ – ${D.coSan||0} mã có sẵn ở shop.</td></tr>`);
   const nShip=can.length-chuaShip.length;$("#btHint").textContent=nShip?`🚚 ${nShip} mã đã bốc ship – không hiện ở bảng tổng (xem ở bảng từng đơn).`:"";
@@ -178,7 +227,12 @@ document.addEventListener("click",async e=>{const a=e.target.closest("a[data-bo]
   if(a){e.preventDefault();const m=M()[a.dataset.bo||a.dataset.chot1];if(!m)return;
     if(a.dataset.chot1){await chotNcc([m.key],nccCua(m),"chot");return;}
     if(!confirm("Bỏ chốt NCC cho mã này?"))return;tam[m.key]=null;shipTam[m.key]=null;ve([m.key]);await ghi([[gioVN(),$("#ai").value||"?",m.don,m.ma,"","",m.ten,"bo"]]);return;}
+  const ta=e.target.closest("a[data-tsua],a[data-txoa]");
+  if(ta){e.preventDefault();const m=M()[ta.dataset.k];if(!m)return;if(ta.dataset.tsua){moForm=m.key;suaId=ta.dataset.tsua;ve();return;}await xoaTay(m,ta.dataset.txoa);return;}
   const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.them){moForm=b.dataset.them;suaId=null;ve();const i=document.querySelector(`[data-form="${CSS.escape(moForm)}"] input`);if(i)i.focus();return;}
+  if(b.dataset.thuy){moForm=null;suaId=null;ve();return;}
+  if(b.dataset.tluu){const m=M()[b.dataset.tluu];const f=b.closest(".tayForm");if(m&&f)await luuTay(m,f);return;}
   if(b.dataset.chuyen){const ks=D.muc.filter(m=>nccCua(m)===b.dataset.chuyen&&!chot(m)&&!daShip(m)).map(m=>m.key);if(ks.length)await chotNcc(ks,b.dataset.chuyen,"chot");return;}
   if(b.dataset.ship){const ks=D.muc.filter(m=>nccCua(m)===b.dataset.ship&&!daShip(m)).map(m=>m.key);if(!ks.length||!confirm(`Đánh dấu đã bốc ship chuyến ${b.dataset.ship} (${ks.length} mã)? Các mã này sẽ rời bảng tổng.`))return;await chotNcc(ks,b.dataset.ship,"ship");return;}
   if(b.id==="xoaMau"){if(!confirm("Xóa hết dữ liệu MẪU khỏi bảng? (không ảnh hưởng đơn thật)"))return;daXoaMau=true;D.muc=D.muc.filter(m=>!m.mau);ve();
@@ -190,7 +244,9 @@ document.addEventListener("click",async e=>{const a=e.target.closest("a[data-bo]
   if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
   mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Gợi ý NCC!A1:A2"},ev=>{
     if(ev.type!=="data")return;const v=ev.result.payload&&ev.result.payload.values;
-    try{const j=JSON.parse(v[1][0]);if(daXoaMau){if(j.coMau)j.muc=j.muc.filter(m=>!m.mau);else daXoaMau=false;}if(!D||j.luc!==D.luc){const moi=D&&gomLuc!==null;D=j;for(const x in tam)delete tam[x];for(const x in shipTam)delete shipTam[x];ve();
+    try{const j=JSON.parse(v[1][0]);if(daXoaMau){if(j.coMau)j.muc=j.muc.filter(m=>!m.mau);else daXoaMau=false;}if(!D||j.luc!==D.luc){const moi=D&&gomLuc!==null;D=j;for(const x in tam)delete tam[x];for(const x in shipTam)delete shipTam[x];
+      const coId=new Set();j.muc.forEach(m=>(m.ncc||[]).forEach(o=>{if(o.id)coId.add(o.id);}));
+      for(const x in tayTam){if(tayTam[x]===null?!coId.has(x):coId.has(x))delete tayTam[x];}if(!moForm)ve();
       if(moi){gomLuc=null;const b=$("#tinh");b.disabled=false;b.textContent="🧲 Gom NCC";}}}catch(e){$("#sub").textContent="Máy chưa gom xong, đợi chút…";}
   },{refetchInterval:30000});
 })();
