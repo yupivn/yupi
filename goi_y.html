@@ -160,7 +160,7 @@ function ve(nhay){if(!D)return;
   if(nhay)nhay.forEach(key=>document.querySelectorAll(`tr[data-k="${CSS.escape(key)}"]`).forEach(x=>{x.classList.remove("nhay");void x.offsetWidth;x.classList.add("nhay");}));
   $("#hetCard").hidden=!het.length;
   $("#het").innerHTML=het.map(m=>`<div class="it"><div class="l1"><span>👤 ${esc(m.khach)} · ${esc(m.don)}</span><span>${esc(m.ma)}</span></div><div class="ten"><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="het">Không thấy NCC nào còn trong file tra cứu – cần hỏi hàng</div></div>`).join("");
-  $("#ship").innerHTML=Object.entries(D.phiShip||{}).map(([n,v])=>`<tr><td>${esc(n)}</td><td>${v}k</td></tr>`).join("");
+  $("#ship").innerHTML=Object.entries(D.phiShip||{}).sort((x,y)=>(x[0]==="Khác")-(y[0]==="Khác")||x[1]-y[1]||x[0].localeCompare(y[0],"vi")).map(([n,v])=>`<tr><td>${esc(n)}</td><td>${v}k</td></tr>`).join("");
 }
 async function ghi(rows){if(!mcp){alert("Chưa kết nối được dữ liệu.");return false;}
   try{await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Chốt NCC app!A1",values:rows});return true;}catch(e){return false;}}
