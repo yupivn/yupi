@@ -91,11 +91,15 @@ table.bt tr.da select{border-color:var(--ok)}
 .ch .h b{font-family:Nunito,system-ui;font-weight:900;font-size:17px}
 .ch .ds{font-size:12.5px;color:var(--muted);margin-top:4px}
 @media (max-width:560px){table.bt .an-dt{display:none}}
+.mau{display:inline-block;background:#8e959c;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800;letter-spacing:.3px;margin-right:5px;vertical-align:1px}
+.mauBar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(142,149,156,.14);border:1px dashed #8e959c;border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:13.5px}
+.mauBar button{border:1px solid #8e959c;background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;font:inherit;font-weight:800;cursor:pointer}
 </style></head><body>
 <div class="wrap">
   <a class="back" href="./">‹ Bảng tổng</a>
   <div class="top2"><div><h1>🧮 Gợi ý NCC đơn đã chốt</h1><p class="sub" id="sub">Đang tải…</p></div>
     <button class="btn gold" id="tinh">🧲 Gom NCC</button></div>
+  <div class="mauBar" id="mauBar" hidden><span><span class="mau">MẪU</span>Đang có <b id="mauSo">0</b> dòng dữ liệu mẫu để xem thử – không ghi gì vào KiotViet.</span><button id="xoaMau">🗑 Xóa dữ liệu mẫu</button></div>
   <div class="card"><label for="ai">Ai chốt NCC</label>
     <select id="ai"><option value="">— Chọn tên —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
     <div class="tong" id="tong" style="margin-top:12px"></div>
@@ -117,7 +121,7 @@ const KIEU={full:"Full",tester:"Tester",chiet:"Chiết",mini:"Mini",set:"Set"};
 $("#ai").value=ls("ai")||"";$("#ai").onchange=()=>ls("ai",$("#ai").value);
 function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
   const g=x=>p.find(y=>y.type===x).value;return `${g("year")}-${g("month")}-${g("day")} ${g("hour")==="24"?"00":g("hour")}:${g("minute")}:${g("second")}`;}
-let D=null,mcp=null,gomLuc=null;const tam={},shipTam={};
+let D=null,mcp=null,gomLuc=null,daXoaMau=false;const MAU=m=>m.mau?'<span class="mau">MẪU</span>':'';const tam={},shipTam={};
 const chot=m=>tam[m.key]!==undefined?tam[m.key]:(m.chot||null);
 const daShip=m=>shipTam[m.key]!==undefined?shipTam[m.key]:(m.ship||null);
 // NCC dang chon cho 1 ma: da chot > goi y
@@ -130,6 +134,7 @@ function tinhChuyen(){const ship=D.phiShip||{},daTra={};(D.chuyen||[]).forEach(c
     c.tatChot=c.ms.every(m=>chot(m));c.tatShip=c.ms.every(m=>daShip(m));});
   return Object.values(g).sort((a,b)=>b.soChai-a.soChai);}
 function ve(nhay){if(!D)return;
+  const nM=D.muc.filter(m=>m.mau).length;$("#mauBar").hidden=!nM;$("#mauSo").textContent=nM;
   const CH=tinhChuyen(),byN={};CH.forEach(c=>byN[c.ncc]=c);
   const voncai=(m)=>{const n=nccCua(m);const c=byN[n];return n?giaCua(m,n)+(c?c.spc:0):0;};
   const can=D.muc.filter(m=>(m.ncc||[]).length||m.chot), het=D.muc.filter(m=>!(m.ncc||[]).length&&!m.chot);
@@ -140,7 +145,7 @@ function ve(nhay){if(!D)return;
   // BANG TONG
   const rows=chuaShip.slice().sort((a,b)=>(nccCua(a)||"~").localeCompare(nccCua(b)||"~","vi")||a.don.localeCompare(b.don));
   $("#bt").innerHTML=`<tr><th>Mã</th><th class="an-dt">Khách · đơn</th><th>NCC</th><th class="sv">Vốn+ship/chai</th></tr>`+(rows.map(m=>{const n=nccCua(m),c=chot(m);
-    return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td><div class="mten"><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="mph">${esc(m.ma)}<span class="ph-kh"> · ${esc(String(m.khach).split("|")[0])} · ${esc(m.don)}</span></div></td>
+    return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td><div class="mten">${MAU(m)}<span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="mph">${esc(m.ma)}<span class="ph-kh"> · ${esc(String(m.khach).split("|")[0])} · ${esc(m.don)}</span></div></td>
     <td class="an-dt">${esc(String(m.khach).split("|")[0])}<div class="mph">${esc(m.don)} · ${esc(m.luc)}</div></td>
     <td><select data-chon="${esc(m.key)}">${(m.ncc||[]).map(o=>`<option value="${esc(o.ncc)}" ${o.ncc===n?"selected":""}>${esc(o.ncc)} · ${k(o.gia)}${o.ton!=null?" · còn "+o.ton:o.zalo?" · Zalo":""}${o.ncc===m.goiY?" ⭐":""}</option>`).join("")}${!(m.ncc||[]).some(o=>o.ncc===n)&&n?`<option selected>${esc(n)}</option>`:""}</select>
       <div class="mph">${c?`✅ ${esc(c.ai||"")} ${esc(c.luc||"")} · <a href="#" data-bo="${esc(m.key)}" style="color:inherit">bỏ chốt</a>`:`⭐ gợi ý · <a href="#" data-chot1="${esc(m.key)}" style="color:var(--ok);font-weight:700">chốt</a>`}</div></td>
@@ -150,13 +155,13 @@ function ve(nhay){if(!D)return;
   $("#chuyen").innerHTML=CH.map(c=>`<div class="ch ${c.tatShip||c.tatChot?"da":"goi"}"><div class="h"><b>🚚 ${esc(c.ncc)} ${c.tatShip?'<span class="tag o">🚚 Đã bốc ship</span>':c.tatChot?'<span class="tag o">✅ Đã chốt</span>':'<span class="tag g">⭐ Gợi ý</span>'}</b>
     <span>${c.tatChot?"":`<button class="btn ok" data-chuyen="${esc(c.ncc)}">✅ Chốt cả chuyến</button> `}${c.tatShip?"":`<button class="btn soft" data-ship="${esc(c.ncc)}">🚚 Đã bốc ship</button>`}</span></div>
     <div class="so"><div><b>${c.soChai}</b><span>chai</span></div><div><b>${k(c.ship)}</b><span>phí ship${c.daTra?" (đã trả)":""}</span></div><div><b>${k(c.tong)}</b><span>tổng tiền</span></div><div class="vm"><b>+${k(c.spc)}</b><span>ship / chai</span></div></div>
-    <div class="ds">${c.ms.map(m=>esc(m.ten.replace(/\s*-\s*(Chiết|Fullseal|Fullbox|Tester).*$/,""))+" × "+m.sl+" ("+esc(String(m.khach).split("|")[0].trim())+")").join(" · ")}</div></div>`).join("")||'<div class="mph">Chưa có chuyến.</div>';
+    <div class="ds">${c.ms.map(m=>(m.mau?"[MẪU] ":"")+esc(m.ten.replace(/\s*-\s*(Chiết|Fullseal|Fullbox|Tester).*$/,""))+" × "+m.sl+" ("+esc(String(m.khach).split("|")[0].trim())+")").join(" · ")}</div></div>`).join("")||'<div class="mph">Chưa có chuyến.</div>';
   // BANG CON THEO DON
-  const dons={};can.forEach(m=>{(dons[m.don]=dons[m.don]||{don:m.don,khach:m.khach,luc:m.luc,ms:[]}).ms.push(m);});
+  const dons={};can.forEach(m=>{(dons[m.don]=dons[m.don]||{don:m.don,khach:m.khach,luc:m.luc,mau:m.mau,ms:[]}).ms.push(m);});
   $("#don").innerHTML=Object.values(dons).sort((a,b)=>a.luc<b.luc?1:-1).map(d=>{let t=0;
     const r=d.ms.map(m=>{const n=nccCua(m),v=voncai(m);t+=v*m.sl;const c=chot(m),sp=daShip(m);
-      return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}<div class="mph">${esc(m.ma)}</div></td><td>${esc(n||"—")}<div class="mph">${sp?"🚚 đã bốc ship":c?"✅ đã chốt":"⭐ gợi ý"}</div></td><td class="sv">${k(giaCua(m,n))}<div class="mph">+ship → <b>${k(v)}</b></div></td></tr>`;}).join("");
-    return `<div class="don" data-don="${esc(d.don)}"><h3>👤 ${esc(d.khach)} · ${esc(d.don)} · ${esc(d.luc)}</h3><table class="bt">${r}</table><div class="tg">Tổng vốn + ship đơn này: <b>${k(t)}</b></div></div>`;}).join("")||'<div class="mph">Chưa có đơn.</div>';
+      return `<tr class="${c?"da":""}" data-k="${esc(m.key)}"><td>${MAU(m)}<span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}<div class="mph">${esc(m.ma)}</div></td><td>${esc(n||"—")}<div class="mph">${sp?"🚚 đã bốc ship":c?"✅ đã chốt":"⭐ gợi ý"}</div></td><td class="sv">${k(giaCua(m,n))}<div class="mph">+ship → <b>${k(v)}</b></div></td></tr>`;}).join("");
+    return `<div class="don" data-don="${esc(d.don)}"><h3>${MAU(d)}👤 ${esc(d.khach)} · ${esc(d.don)} · ${esc(d.luc)}</h3><table class="bt">${r}</table><div class="tg">Tổng vốn + ship đơn này: <b>${k(t)}</b></div></div>`;}).join("")||'<div class="mph">Chưa có đơn.</div>';
   if(nhay)nhay.forEach(key=>document.querySelectorAll(`tr[data-k="${CSS.escape(key)}"]`).forEach(x=>{x.classList.remove("nhay");void x.offsetWidth;x.classList.add("nhay");}));
   $("#hetCard").hidden=!het.length;
   $("#het").innerHTML=het.map(m=>`<div class="it"><div class="l1"><span>👤 ${esc(m.khach)} · ${esc(m.don)}</span><span>${esc(m.ma)}</span></div><div class="ten"><span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)} × ${m.sl}</div><div class="het">Không thấy NCC nào còn trong file tra cứu – cần hỏi hàng</div></div>`).join("");
@@ -176,6 +181,8 @@ document.addEventListener("click",async e=>{const a=e.target.closest("a[data-bo]
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.chuyen){const ks=D.muc.filter(m=>nccCua(m)===b.dataset.chuyen&&!chot(m)&&!daShip(m)).map(m=>m.key);if(ks.length)await chotNcc(ks,b.dataset.chuyen,"chot");return;}
   if(b.dataset.ship){const ks=D.muc.filter(m=>nccCua(m)===b.dataset.ship&&!daShip(m)).map(m=>m.key);if(!ks.length||!confirm(`Đánh dấu đã bốc ship chuyến ${b.dataset.ship} (${ks.length} mã)? Các mã này sẽ rời bảng tổng.`))return;await chotNcc(ks,b.dataset.ship,"ship");return;}
+  if(b.id==="xoaMau"){if(!confirm("Xóa hết dữ liệu MẪU khỏi bảng? (không ảnh hưởng đơn thật)"))return;daXoaMau=true;D.muc=D.muc.filter(m=>!m.mau);ve();
+    await ghi([[gioVN(),$("#ai").value||(window.yupiNguoi&&window.yupiNguoi.ten)||"?","","","","","","xoa_mau"]]);return;}
   if(b.id==="tinh"){b.disabled=true;b.textContent="⏳ Đang gom…";gomLuc=D?D.luc:"";await ghi([[gioVN(),$("#ai").value||"?","","","","","","tinh"]]);
     setTimeout(()=>{if(gomLuc!==null){gomLuc=null;b.disabled=false;b.textContent="🧲 Gom NCC";}},45000);}
 });
@@ -183,7 +190,7 @@ document.addEventListener("click",async e=>{const a=e.target.closest("a[data-bo]
   if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
   mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Gợi ý NCC!A1:A2"},ev=>{
     if(ev.type!=="data")return;const v=ev.result.payload&&ev.result.payload.values;
-    try{const j=JSON.parse(v[1][0]);if(!D||j.luc!==D.luc){const moi=D&&gomLuc!==null;D=j;for(const x in tam)delete tam[x];for(const x in shipTam)delete shipTam[x];ve();
+    try{const j=JSON.parse(v[1][0]);if(daXoaMau){if(j.coMau)j.muc=j.muc.filter(m=>!m.mau);else daXoaMau=false;}if(!D||j.luc!==D.luc){const moi=D&&gomLuc!==null;D=j;for(const x in tam)delete tam[x];for(const x in shipTam)delete shipTam[x];ve();
       if(moi){gomLuc=null;const b=$("#tinh");b.disabled=false;b.textContent="🧲 Gom NCC";}}}catch(e){$("#sub").textContent="Máy chưa gom xong, đợi chút…";}
   },{refetchInterval:30000});
 })();
