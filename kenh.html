@@ -101,6 +101,13 @@ img.anh{display:block;max-width:100%;max-height:420px;border-radius:10px;margin:
 .kenhs .chip .moi2{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#c8372d;border:2px solid var(--bg)}
 .msg.nguoi{border-radius:16px 16px 6px 16px;background:var(--qbg)}
 .msg.nguoi .meta b{color:var(--ok)}
+.log{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.log .dong{background:var(--qbg);border-radius:10px;padding:6px 10px;font-size:14px;overflow-wrap:anywhere}
+.log .dong.ng{border-left:3px solid var(--ok)}.log .dong.bot{border-left:3px solid var(--gold)}
+.log .ai3{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--muted)}
+.log .dong.ng .ai3 b{color:var(--ok)}.log .dong.bot .ai3 b{color:var(--accent)}
+.log .dong .txt{font-size:14px}.log img.anh{max-height:220px}
+.log .moi3{animation:sangV 1.2s ease-out}
 .tlb{border:0;background:none;color:var(--muted);font:600 12.5px var(--body);padding:6px 0 0;cursor:pointer}
 .kh{background:var(--card);border-radius:16px;border:1px solid var(--line);overflow:hidden}
 .kh>summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -181,6 +188,11 @@ function xacNhan(t){
   for(const r of mk(t))for(const b of r){const x=String(b.text||"");if(/trên trang ·|đã duyệt|Đã duyệt/.test(x)&&!/Duyệt gửi/.test(x))return {cls:/Bỏ/.test(x)?"bo":"",t:x}}
   return null}
 function traLoiCua(t){return Object.values(tin).filter(x=>x.rep==t.mid&&x.chat==t.chat&&!x.xoa).sort((a,b)=>a.mid-b.mid)}
+// 12/11 01:45 chị Phương: tin TRẢ LỜI (người viết, Max xác nhận, NCC báo giá…) nằm ngay trong thẻ tin gốc, không thành thẻ mới ở dưới
+function laLog(t){if(!t||!t.rep)return false;const g=tin[t.chat+"_"+t.rep];if(!g||g.xoa)return false;if(laCan(t))return false;return !/ĐỀ XUẤT|TIN KHÁCH ZALO|CHỜ DUYỆT/.test(t.html||"")}
+function gocCua(t){let x=t;for(let i=0;i<8&&laLog(x);i++)x=tin[x.chat+"_"+x.rep];return x}
+function logCua(t){const id=k(t);return Object.values(tin).filter(x=>!x.xoa&&x!==t&&laLog(x)&&k(gocCua(x))===id).sort((a,b)=>(a.luc||"").localeCompare(b.luc||"")||a.mid-b.mid)}
+let daVeLog={};
 function laCan(t){return !t.xoa&&mk(t).some(r=>r.some(b=>b.callback_data&&b.callback_data!=="td_xong"))}
 function nhomCua(t){const m=boThe(t.html).match(/👥\s*([^\n]+)/);return m?m[1].trim():""}
 
@@ -200,7 +212,9 @@ function veTin(t){
       const cho=lenh[id+"|"+b.callback_data]&&!lenh[id+"|"+b.callback_data].xong;
       return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-i="'+i+'" data-j="'+j+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>').join("")+'</div>'}
   // lịch sử bấm trên app + kết quả laptop + tin bot trả lời dưới tin này
-  const ls=bam(t),tl=traLoiCua(t);
+  const ls=bam(t),tl=traLoiCua(t).filter(x=>!laLog(x)),lg=logCua(t);
+  if(lg.length){s+='<div class="log">'+lg.map(x=>{const xi=k(x),moi=daVeLog[xi]===undefined&&!lanDau;daVeLog[xi]=1;const ax=x.anh&&window.yupiAnh?window.yupiAnh(x.anh):"";
+    return '<div class="dong '+(x.ai?"ng":"bot")+(moi?" moi3":"")+'" id="m'+esc(xi)+'"><div class="ai3"><b>'+(x.ai?'👤 '+esc(x.ai):'Max (bot)')+'</b><span>'+esc((x.luc||"").slice(11,16))+'</span></div>'+(ax?'<a href="'+esc(ax)+'" target="_blank" rel="noopener"><img class="anh" src="'+esc(ax)+'" alt="Ảnh" loading="lazy"></a>':'')+'<div class="txt">'+sach(x.html)+'</div></div>'}).join("")+'</div>'}
   if(ls.length||tl.length){s+='<div class="lich">'+ls.map(x=>{const l=lenh["id"+x.id];return '<span>👆 <b>'+esc(x.n)+'</b> (app) · '+esc(x.t.slice(0,5))+' · '+esc(x.x)+(l&&l.kq?' → <span class="'+(l.tt==="lỗi"?"loi":"kq")+'">'+esc(l.kq)+'</span>':(l?' → ⏳ laptop đang làm':''))+'</span>'}).join("")+
     tl.slice(-4).map(x=>'<span data-toi="'+esc(k(x))+'">↪ '+esc((x.luc||"").slice(11,16))+' '+esc((boThe(x.html).split("\n").find(y=>y.trim())||"(ảnh)").slice(0,140))+'</span>').join("")+'</div>'}
   const moTl=can||/ĐỀ XUẤT/.test(t.html||"")||moForm[id];
@@ -217,7 +231,7 @@ function ve(){
   if(xem==="toc"){veToc();return}
   if(xem==="khach"){veKhach(all);return}
   const f=$("#feed"),ae=document.activeElement,giu=ae&&ae.tagName==="INPUT"&&ae.closest("form.tl")?{k:ae.closest("form.tl").dataset.k,v:ae.value,p:ae.selectionStart}:null;
-  const ds=xem==="can"?can.slice().reverse():all.filter(t=>!t.xoa).slice(-150);
+  const ds=xem==="can"?can.slice().reverse():all.filter(t=>!t.xoa&&!laLog(t)).slice(-150);
   if(!ds.length){f.innerHTML='<div class="rong">'+(xem==="can"?"🎉 Không còn tin nào chờ bấm":"Chưa có tin nào trong 3 ngày qua")+'</div>';return}
   if(kenh!=="khach"&&xem==="can")ds.reverse();
   const cuoi=window.innerHeight+window.scrollY>=document.body.scrollHeight-160;
@@ -271,7 +285,7 @@ function veKhach(all){const f=$("#feed"),g={};
   const ds=Object.entries(g).sort((a,b)=>(b[1][b[1].length-1].luc||"").localeCompare(a[1][a[1].length-1].luc||""));
   if(!ds.length){f.innerHTML='<div class="rong">Chưa có khách nào trong 3 ngày qua</div>';return}
   f.innerHTML=ds.map(([n,ts],i)=>{const can=ts.some(laCan),cuoi=ts[ts.length-1];const daMo=moKh[n]!=null?moKh[n]:(i<3||can);
-    return '<details class="kh'+(can?" can":"")+'" data-n="'+esc(n)+'"'+(daMo?" open":"")+'><summary><span><b>👥 '+esc(n.split("|")[0].trim())+'</b><br><span class="note">'+esc(n.split("|").slice(1).join("|").trim())+' · '+ts.length+' tin'+(can?' · 🔴 chờ bấm':'')+'</span></span><span class="tt2">'+esc((cuoi.luc||"").slice(11,16))+'</span></summary><div class="ds">'+ts.slice(-12).map(veTin).join("")+'</div></details>'}).join("")}
+    return '<details class="kh'+(can?" can":"")+'" data-n="'+esc(n)+'"'+(daMo?" open":"")+'><summary><span><b>👥 '+esc(n.split("|")[0].trim())+'</b><br><span class="note">'+esc(n.split("|").slice(1).join("|").trim())+' · '+ts.length+' tin'+(can?' · 🔴 chờ bấm':'')+'</span></span><span class="tt2">'+esc((cuoi.luc||"").slice(11,16))+'</span></summary><div class="ds">'+ts.filter(x=>!laLog(x)).slice(-12).map(veTin).join("")+'</div></details>'}).join("")}
 let moKh={};document.addEventListener("toggle",e=>{const d=e.target;if(d.classList&&d.classList.contains("kh"))moKh[d.dataset.n]=d.open},true);
 function veMau(n){$("#mau").hidden=!n}
 $("#xoaMau").onclick=async()=>{if(!confirm("Xoá hết tin MẪU?"))return;try{await window.yupiApi({op:"tg_mau_xoa"});toast("🗑 Đã xoá dữ liệu mẫu");tai()}catch(e){toast("⚠️ "+(e.message||e),1)}};
