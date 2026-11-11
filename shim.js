@@ -291,3 +291,56 @@
   if (document.body) them(); else document.addEventListener('DOMContentLoaded', them);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
 })();
+
+/* 12/11/2026 01:40 chị Phương: VUỐT NGANG ĐỂ TRỞ VỀ – vuốt từ bất kỳ đâu trên màn hình (cả giữa màn hình) sang phải là quay về Bảng tổng.
+   Không bắt vuốt khi đang kéo vùng cuộn ngang (thanh kênh, bảng, khung chữ), ô nhập chữ, hoặc vuốt dọc để cuộn. */
+(function () {
+  var trang = location.pathname.split('/').pop();
+  if (!trang || trang === 'index.html') return;
+  var x0 = 0, y0 = 0, t0 = 0, dang = false, huy = false, dx = 0, mui = null;
+  function cuonNgang(el) {
+    for (; el && el !== document.body; el = el.parentElement) {
+      if (/INPUT|TEXTAREA|SELECT/.test(el.tagName)) return true;
+      if (el.scrollWidth > el.clientWidth + 4) { var o = getComputedStyle(el).overflowX; if (o === 'auto' || o === 'scroll') return true; }
+    }
+    return false;
+  }
+  function veMui() {
+    if (!mui) { mui = document.createElement('div'); mui.setAttribute('aria-hidden', 'true');
+      mui.setAttribute('style', 'position:fixed;left:0;top:50%;z-index:99997;width:46px;height:46px;margin-top:-23px;border-radius:50%;background:#14213d;color:#fff;border:2px solid #c9a227;display:grid;place-items:center;font:800 22px system-ui;box-shadow:0 6px 18px rgba(0,0,0,.3);pointer-events:none;transition:opacity .15s');
+      mui.textContent = '‹'; document.body.appendChild(mui); }
+    var p = Math.min(1, dx / 110);
+    mui.style.transform = 'translateX(' + (Math.min(dx, 140) * 0.6 - 30) + 'px) scale(' + (0.6 + p * 0.5) + ')';
+    mui.style.opacity = String(Math.min(1, p * 1.4));
+    mui.style.background = p >= 1 ? '#c9a227' : '#14213d'; mui.style.color = p >= 1 ? '#14213d' : '#fff';
+    document.body.style.transform = 'translateX(' + Math.min(dx * 0.35, 60) + 'px)';
+  }
+  function thoi() { dang = false; dx = 0; document.body.style.transition = 'transform .2s'; document.body.style.transform = '';
+    setTimeout(function () { document.body.style.transition = ''; }, 220); if (mui) mui.style.opacity = '0'; }
+  function ve() {
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+    var cung = document.referrer && document.referrer.indexOf(location.origin) === 0 && history.length > 1;
+    if (cung) history.back(); else location.href = './';
+  }
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1) { huy = true; return; }
+    var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); dx = 0; dang = false;
+    huy = cuonNgang(e.target) || (window.getSelection && String(window.getSelection()).length > 0);
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (huy || e.touches.length !== 1) return;
+    var t = e.touches[0], ddx = t.clientX - x0, ddy = t.clientY - y0;
+    if (!dang) {
+      if (Math.abs(ddy) > 12 && Math.abs(ddy) > Math.abs(ddx)) { huy = true; return; }   // đang cuộn dọc
+      if (ddx > 14 && ddx > Math.abs(ddy) * 1.6) dang = true; else return;
+    }
+    dx = Math.max(0, ddx); veMui();
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', function () {
+    if (!dang) return;
+    var nhanh = dx > 50 && Date.now() - t0 < 260;   // vuốt nhanh ngắn cũng được
+    if (dx >= 110 || nhanh) { if (mui) { mui.style.background = '#c9a227'; mui.style.color = '#14213d'; } ve(); setTimeout(thoi, 400); } else thoi();
+  }, { passive: true });
+  document.addEventListener('touchcancel', thoi, { passive: true });
+})();
