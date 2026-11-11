@@ -48,7 +48,7 @@ h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;marg
     <div class="chips" id="mau"></div>
     <div class="row"><button class="send" id="gui">📨 Gửi lệnh cho Max</button></div>
     <div class="msg" id="msg"></div>
-    <div class="hint">• Tin gửi khách vẫn phải được duyệt như cũ.<br>• Laptop tắt thì lệnh nằm chờ, máy bật lại mới chạy. Lệnh chờ quá 30 phút sẽ bị bỏ, cần gửi lại.<br>• Kết quả báo trong nhóm «Nội bộ Yupi Max» và hiện ở dưới đây.</div>
+    <div class="hint">• Tin gửi khách vẫn phải được duyệt như cũ.<br>• Laptop tắt thì lệnh nằm chờ, máy bật lại mới chạy. Lệnh chờ quá 30 phút sẽ bị bỏ, cần gửi lại.<br>• Kết quả báo trong nhóm «Nội bộ Yupi Max» và hiện ở dưới đây.<br>• Nhãn tự đổi: 🛠 Max đang làm → ✅ Max đã làm (kèm giờ xong) khi Max báo xong ở nhóm Nội bộ; báo lỗi hoặc quá 30 phút chưa xong → ❌ Lỗi – cần xem.</div>
   </div>
 
   <div class="card">
@@ -70,15 +70,18 @@ $("#nd").oninput=()=>ls("lenh_nhap",$("#nd").value);
 // Giờ Việt Nam dạng yyyy-MM-dd HH:mm:ss (máy laptop đọc theo định dạng này)
 function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
   const g=k=>p.find(x=>x.type===k).value;return `${g("year")}-${g("month")}-${g("day")} ${g("hour")==="24"?"00":g("hour")}:${g("minute")}:${g("second")}`;}
-function badge(tt,kq){const t=String(tt||"").toLowerCase();
+// 11/11 chi Phuong: nhan tu doi theo ket qua – moi giao = 🛠 Max đang làm; May lam giup bao xong o nhom Noi bo = ✅ Max đã làm + gio xong; loi hoac qua 30 phut = ❌ Lỗi – cần xem
+function phutTu(luc){const m=String(luc||"").match(/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/);if(!m)return 0;return (Date.now()-Date.parse(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+07:00`))/60000;}
+function badge(tt,kq,luc){const t=String(tt||"").toLowerCase();
   if(!t)return '<span class="st cho">⏳ Chờ máy nhận</span>';
-  if(t.includes("giao"))return '<span class="st lam">🛠 Max đang làm</span>';
-  if(t.includes("lỗi"))return '<span class="st loi">⚠️ Lỗi</span>';
-  return '<span class="st xong">✅ Xong</span>';}
+  if(t.includes("lỗi"))return '<span class="st loi">❌ Lỗi – cần xem</span>';
+  if(t.includes("đã làm")||t==="xong"){const g=(String(kq||"").match(/^(\d\d:\d\d)/)||[])[1];return '<span class="st xong">✅ Max đã làm'+(g?" · "+g:"")+'</span>';}
+  if(phutTu(luc)>=30)return '<span class="st loi">❌ Lỗi – cần xem</span>';
+  return '<span class="st lam">🛠 Max đang làm</span>';}
 let mcp=null;
 function ve(rows){const ds=(rows||[]).slice(1).map((r,i)=>({r,hang:i+2})).filter(x=>String(x.r[2]||"").trim()==="max").slice(-20).reverse();
   if(!ds.length){$("#ds").innerHTML='<div class="empty">Chưa có lệnh nào.</div>';return;}
-  $("#ds").innerHTML=ds.map(({r})=>`<div class="it"><div class="top"><span>${esc(r[1])} · ${esc(String(r[0]||"").slice(11,16))} ${esc(String(r[0]||"").slice(8,10))}/${esc(String(r[0]||"").slice(5,7))}</span>${badge(r[6],r[7])}</div>
+  $("#ds").innerHTML=ds.map(({r})=>`<div class="it"><div class="top"><span>${esc(r[1])} · ${esc(String(r[0]||"").slice(11,16))} ${esc(String(r[0]||"").slice(8,10))}/${esc(String(r[0]||"").slice(5,7))}</span>${badge(r[6],r[7],r[0])}</div>
     <div class="cmd">${esc(r[5])}</div>${r[7]?`<div class="kq">${esc(r[7])}</div>`:""}</div>`).join("");}
 (async()=>{
   try{mcp=await window.claude.use("mcp")}catch(e){}
