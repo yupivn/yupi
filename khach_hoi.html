@@ -50,10 +50,16 @@ table.ship{width:100%;border-collapse:collapse;font-size:13.5px}table.ship td{pa
 .them{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:4px 0;text-align:left}
 .kieu.mini{background:#efe4f8;color:#7a3fb0}
 @media (prefers-color-scheme:dark){.kieu.mini{background:#33244a;color:#d2b2f2}}
+/* 12/11: du lieu MAU */
+[hidden]{display:none!important}
+.mau{display:inline-block;background:#8e959c;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800;letter-spacing:.3px;margin-right:5px;vertical-align:2px}
+.mauBar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(142,149,156,.14);border:1px dashed #8e959c;border-radius:14px;padding:10px 12px;font-size:13.5px}
+.mauBar button{border:1px solid #8e959c;background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;font:inherit;font-weight:800;cursor:pointer}
 </style></head><body>
 <div class="wrap">
   <a class="back" href="./">‹ Bảng tổng</a>
   <div><h1>💬 Khách đang hỏi</h1><p class="sub" id="sub">Đang tải…</p></div>
+  <div class="mauBar" id="mauBar" hidden><span><span class="mau">MẪU</span>Đang có <b id="mauSo">0</b> mã dữ liệu mẫu để xem thử – không ghi gì vào KiotViet.</span><button id="xoaMau">🗑 Xóa dữ liệu mẫu</button></div>
   <div class="card">
     <div class="tong" id="tong"></div>
     <div class="loc" id="loc" style="margin-top:12px"></div>
@@ -69,7 +75,8 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
 const k=n=>(Math.round(n*10)/10).toLocaleString("vi-VN")+"k";
 const KIEU={full:"Full",tester:"Tester",chiet:"Chiết",mini:"Mini",set:"Set"};
-let D=null,loc=ls("kh_loc")||"",mo={};
+let D=null,loc=ls("kh_loc")||"",mo={},mcp=null,daXoaMau=false;
+function gioVN(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Ho_Chi_Minh",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());const g=x=>p.find(y=>y.type===x).value;return `${g("year")}-${g("month")}-${g("day")} ${g("hour")==="24"?"00":g("hour")}:${g("minute")}:${g("second")}`;}
 function ngayVN(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());}
 function luc(s){const nay=ngayVN();const d=String(s).slice(0,10),g=String(s).slice(11,16);return d===nay?g:g+" "+d.slice(8,10)+"/"+d.slice(5,7);}
 function veNcc(m,key){const ds=m.ncc||[];if(!ds.length)return '<div class="het" style="margin-top:6px">❌ Chưa NCC nào có – cần hỏi hàng</div>';
@@ -77,26 +84,29 @@ function veNcc(m,key){const ds=m.ncc||[];if(!ds.length)return '<div class="het" 
     (ds.length>3?`<button class="them" data-mo="${esc(key)}">${mo[key]?"Thu gọn":"Xem thêm "+(ds.length-3)+" NCC"}</button>`:"")+
     (m.theoDx?'<div class="mph">⚠️ Không khớp được file tra cứu – giá theo đề xuất lúc khách hỏi</div>':"");}
 function ve(){if(!D)return;
+  const nM=D.muc.filter(m=>m.mau).length;$("#mauBar").hidden=!nM;$("#mauSo").textContent=nM;
   const ms=D.muc.filter(m=>!loc||m.loai===loc);
-  const kh={};ms.forEach(m=>{(kh[m.nhom]=kh[m.nhom]||{nhom:m.nhom,khach:m.khach,maKh:m.maKh,luc:m.luc,tin:m.tin,ms:[]}).ms.push(m);if(m.luc>kh[m.nhom].luc){kh[m.nhom].luc=m.luc;kh[m.nhom].tin=m.tin;}});
+  const kh={};ms.forEach(m=>{(kh[m.nhom]=kh[m.nhom]||{nhom:m.nhom,khach:m.khach,maKh:m.maKh,luc:m.luc,tin:m.tin,mau:m.mau,ms:[]}).ms.push(m);if(m.luc>kh[m.nhom].luc){kh[m.nhom].luc=m.luc;kh[m.nhom].tin=m.tin;}});
   const het=D.muc.filter(m=>!(m.ncc||[]).length).length;
   $("#sub").textContent=`Khách hỏi từ ${D.tu} · cập nhật ${String(D.luc).slice(11,16)} · tồn NCC lúc ${D.traCuu}`;
   $("#tong").innerHTML=`<div><b>${new Set(D.muc.map(m=>m.nhom)).size}</b><span>khách đang hỏi</span></div><div><b>${D.muc.length}</b><span>mã chưa chốt</span></div><div class="${het?"":"tk"}"><b>${het}</b><span>mã chưa NCC nào có</span></div><div class="tk"><b>${D.boChot||0}</b><span>lần hỏi đã chốt / CK</span></div>`;
   const dem=t=>D.muc.filter(m=>!t||m.loai===t).length;
   $("#loc").innerHTML=[["","Tất cả"],["full","Full"],["tester","Tester"],["chiet","Chiết"],["mini","Mini"]].map(([v,t])=>`<button class="${loc===v?"on":""}" data-loc="${v}">${t} · ${dem(v)}</button>`).join("");
-  $("#ds").innerHTML=Object.values(kh).sort((a,b)=>a.luc<b.luc?1:-1).map(c=>`<div class="kh"><div class="h"><div><b>👤 ${esc(c.khach)}</b><div class="mph">${esc(c.nhom.split("|").slice(1).join("·").trim())}</div></div><span class="st cho">hỏi lúc ${esc(luc(c.luc))}</span></div>
+  $("#ds").innerHTML=Object.values(kh).sort((a,b)=>a.luc<b.luc?1:-1).map(c=>`<div class="kh"><div class="h"><div><b>${c.mau?'<span class="mau">MẪU</span>':""}👤 ${esc(c.khach)}</b><div class="mph">${esc(c.nhom.split("|").slice(1).join("·").trim())}</div></div><span class="st cho">hỏi lúc ${esc(luc(c.luc))}</span></div>
     ${c.tin?`<div class="tin">💬 ${esc(c.tin)}</div>`:""}
     ${c.ms.map(m=>`<div class="ma"><div class="ten"><span class="kieu ${esc(m.loai)}">${KIEU[m.loai]||esc(m.loai)}</span>${esc(m.ten)}</div><div class="mph">${m.ml?esc(m.ml)+"ml · ":""}hỏi lúc ${esc(luc(m.luc))}</div>${veNcc(m,m.key)}</div>`).join("")}</div>`).join("")||'<div class="card empty">✅ Không còn khách nào đang hỏi mà chưa chốt.</div>';
   $("#ship").innerHTML=Object.entries(D.phiShip||{}).sort((x,y)=>(x[0]==="Khác")-(y[0]==="Khác")||x[1]-y[1]||x[0].localeCompare(y[0],"vi")).map(([n,v])=>`<tr><td>${esc(n)}</td><td>${v}k</td></tr>`).join("");
 }
-document.addEventListener("click",e=>{const b=e.target.closest("button[data-loc],button[data-mo]");if(!b)return;
+document.addEventListener("click",async e=>{if(e.target.closest("#xoaMau")){if(!confirm("Xóa hết dữ liệu MẪU khỏi bảng? (không ảnh hưởng khách thật)"))return;daXoaMau=true;D.muc=D.muc.filter(m=>!m.mau);ve();
+    try{if(mcp)await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Chốt NCC app!A1",values:[[gioVN(),(window.yupiNguoi&&window.yupiNguoi.ten)||"","","","","","","xoa_mau_kh"]]});}catch(x){}return;}
+  const b=e.target.closest("button[data-loc],button[data-mo]");if(!b)return;
   if(b.dataset.mo!==undefined){mo[b.dataset.mo]=!mo[b.dataset.mo];ve();return;}
   loc=b.dataset.loc;ls("kh_loc",loc);ve();});
-(async()=>{let mcp=null;try{mcp=await window.claude.use("mcp")}catch(e){}
+(async()=>{try{mcp=await window.claude.use("mcp")}catch(e){}
   if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
   mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Khách đang hỏi!A1:A2"},ev=>{
     if(ev.type!=="data")return;const v=ev.result.payload&&ev.result.payload.values;
-    try{const j=JSON.parse(v[1][0]);if(!D||j.luc!==D.luc){D=j;ve();}}catch(e){$("#sub").textContent="Máy chưa gom xong, đợi chút…";}
+    try{const j=JSON.parse(v[1][0]);if(daXoaMau){if(j.coMau)j.muc=j.muc.filter(m=>!m.mau);else daXoaMau=false;}if(!D||j.luc!==D.luc){D=j;ve();}}catch(e){$("#sub").textContent="Máy chưa gom xong, đợi chút…";}
   },{refetchInterval:30000});
 })();
 </script>
