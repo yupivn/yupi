@@ -1,0 +1,90 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script src="shim.js"></script>
+<title>Bật thông báo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--accent:#1f3a6e;--gold:#c9a227;--late:#c8372d;--late-soft:#fbe5e2;--ok:#1f8a5e;--ok-soft:#dcf3e8;--warn:#a8740f;--warn-soft:#fbf1d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--accent:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--warn:#eec463;--warn-soft:#3b311a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--accent:#e3c15a;--late:#f2877b;--late-soft:#40221f;--ok:#6fd3a3;--ok-soft:#183829;--warn:#eec463;--warn-soft:#3b311a;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 "Be Vietnam Pro",system-ui,sans-serif;padding:calc(16px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:22px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.card h2{font-size:16px;margin:0 0 6px}
+ol{margin:4px 0 0;padding-left:22px}li{margin:4px 0}
+.big{width:100%;border:0;border-radius:14px;padding:15px;font-weight:700;font-size:17px;font-family:inherit;background:var(--gold);color:#14213d;cursor:pointer}
+.big.phu{background:transparent;border:2px solid var(--line);color:var(--fg);font-size:15px;padding:11px;margin-top:8px}
+.big:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tt{border-radius:12px;padding:10px 12px;font-weight:600}
+.tt.ok{background:var(--ok-soft);color:var(--ok)}.tt.bad{background:var(--late-soft);color:var(--late)}.tt.warn{background:var(--warn-soft);color:var(--warn)}
+.note{font-size:13px;color:var(--muted)}
+a{color:inherit}
+table{width:100%;border-collapse:collapse;font-size:13px}td{padding:5px 2px;border-bottom:1px solid var(--line)}
+</style></head><body>
+<div class="wrap">
+  <h1>🔔 Bật thông báo tin khách</h1>
+  <div id="tt" class="tt warn">Đang kiểm tra máy này…</div>
+  <div class="card">
+    <button class="big" id="bat" type="button">🔔 Bật thông báo trên máy này</button>
+    <button class="big phu" id="thu" type="button">📨 Gửi thử 1 thông báo</button>
+    <button class="big phu" id="tat" type="button" hidden>🔕 Tắt thông báo máy này</button>
+    <p class="note">Bật xong: có tin khách / đề xuất cần duyệt là điện thoại kêu ngay (kể cả khi đang khoá màn hình). Bấm vào thông báo là mở đúng tin để duyệt.</p>
+  </div>
+  <div class="card" id="ios">
+    <h2>📱 iPhone (iOS 16.4 trở lên)</h2>
+    <ol>
+      <li>Mở <b>Safari</b> → vào <a href="https://yupivn.github.io/yupi/">yupivn.github.io/yupi/</a></li>
+      <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên) → <b>Thêm vào MH chính</b> → <b>Thêm</b></li>
+      <li>Mở app <b>Yupi</b> từ biểu tượng trên màn hình chính (KHÔNG mở bằng Safari)</li>
+      <li>Vào trang này (Bảng tổng → thẻ 💬 Duyệt tin khách → 🔔) → bấm <b>Bật thông báo</b> → <b>Cho phép</b></li>
+      <li>Bấm <b>Gửi thử</b> – thấy thông báo hiện là xong</li>
+    </ol>
+    <p class="note">Không thấy thông báo: Cài đặt → Thông báo → <b>Yupi</b> → bật Cho phép thông báo. Đang bật «Tập trung / Không làm phiền» thì thông báo bị ẩn.</p>
+  </div>
+  <div class="card" id="adr">
+    <h2>🤖 Android</h2>
+    <ol>
+      <li>Mở <b>Chrome</b> → vào <a href="https://yupivn.github.io/yupi/">yupivn.github.io/yupi/</a> (nên bấm ⋮ → <b>Thêm vào màn hình chính</b>)</li>
+      <li>Vào trang này → bấm <b>Bật thông báo</b> → <b>Cho phép</b></li>
+      <li>Bấm <b>Gửi thử</b> – thấy thông báo hiện là xong</li>
+    </ol>
+    <p class="note">Không thấy thông báo: Cài đặt → Ứng dụng → Chrome (hoặc Yupi) → Thông báo → bật. Máy Xiaomi / Oppo / Vivo: tắt «Tiết kiệm pin» cho Chrome để thông báo không bị chặn.</p>
+  </div>
+  <div class="card" style="order:3"><h2>Máy đã bật thông báo</h2><div id="ds" class="note">Đang tải…</div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const dungApp=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+if(ios)$("#adr").style.order=1;else $("#ios").style.order=1;
+function tt(c,t){const d=$("#tt");d.className="tt "+c;d.textContent=t}
+function u8(s){s=s.replace(/-/g,"+").replace(/_/g,"/");s+="=".repeat((4-s.length%4)%4);return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+function giongKhoa(sub,k){try{const a=new Uint8Array(sub.options.applicationServerKey),b=u8(k);return a.length===b.length&&a.every((x,i)=>x===b[i])}catch(e){return true}}
+async function dangKy(){if(!("serviceWorker" in navigator))return null;const r=await navigator.serviceWorker.register("sw.js");await navigator.serviceWorker.ready;return r}
+async function kiem(){
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){
+    if(ios&&!dungApp){tt("bad","⚠️ Đang mở bằng Safari. iPhone chỉ bật được thông báo khi mở app Yupi từ màn hình chính – làm theo hướng dẫn iPhone bên dưới.");$("#bat").disabled=true;return}
+    tt("bad","⚠️ Trình duyệt này chưa hỗ trợ thông báo. iPhone: cập nhật iOS 16.4+ và mở app từ màn hình chính. Android: dùng Chrome.");$("#bat").disabled=true;return}
+  const r=await dangKy();const s=r&&await r.pushManager.getSubscription();
+  if(Notification.permission==="denied"){tt("bad","⛔ Máy này đã CHẶN thông báo của Yupi – mở Cài đặt của máy cho phép lại (xem hướng dẫn dưới), rồi bấm Bật.");return}
+  if(s&&Notification.permission==="granted"){tt("ok","✅ Máy này đã bật thông báo");$("#bat").textContent="🔄 Bật lại (nếu không nhận được)";$("#tat").hidden=false}
+  else tt("warn","🔕 Máy này chưa bật thông báo – bấm nút vàng bên dưới");
+}
+$("#bat").onclick=async()=>{
+  try{tt("warn","Đang bật…");
+    const p=await Notification.requestPermission();   // phải gọi ngay khi bấm (iPhone)
+    if(p!=="granted"){tt("bad","⛔ Chưa cho phép thông báo – bấm Bật lại rồi chọn «Cho phép».");return}
+    const r=await dangKy();const j=await window.yupiApi({op:"push_khoa"});
+    let s=await r.pushManager.getSubscription();
+    if(s&&!giongKhoa(s,j.k)){await s.unsubscribe();s=null}
+    if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(j.k)});
+    await window.yupiApi({op:"push_dk",sub:s.toJSON(),may:(ios?"iPhone":/Android/.test(navigator.userAgent)?"Android":"Máy tính")+(dungApp?" · app":" · trình duyệt")});
+    tt("ok","✅ Đã bật thông báo – bấm Gửi thử để kiểm tra");$("#tat").hidden=false;taiDs();
+  }catch(e){tt("bad","⚠️ Chưa bật được: "+(e&&e.message||e))}};
+$("#thu").onclick=async()=>{try{const j=await window.yupiApi({op:"push_thu"});tt("ok","📨 Đã gửi thử tới "+j.n+" máy của anh/chị – chờ vài giây xem thông báo")}catch(e){tt("bad","⚠️ "+(e&&e.message||e))}};
+$("#tat").onclick=async()=>{try{const r=await dangKy();const s=await r.pushManager.getSubscription();if(s){await window.yupiApi({op:"push_huy",ep:s.endpoint});await s.unsubscribe()}tt("warn","🔕 Đã tắt thông báo trên máy này");$("#tat").hidden=true;taiDs()}catch(e){tt("bad","⚠️ "+(e&&e.message||e))}};
+async function taiDs(){try{const j=await window.yupiApi({op:"push_ds"});$("#ds").innerHTML=(j.ds||[]).length?'<table>'+j.ds.map(x=>'<tr><td><b>'+esc(x.ten)+'</b></td><td>'+esc(x.may||"")+'</td><td>'+(x.loi>3?'⚠️ lỗi':'✅')+'</td></tr>').join("")+'</table>':"Chưa có máy nào bật."}catch(e){$("#ds").textContent="Chưa tải được."}}
+kiem().catch(e=>tt("bad","⚠️ "+(e.message||e)));taiDs();
+</script>
+</body></html>
