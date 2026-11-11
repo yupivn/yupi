@@ -6,21 +6,22 @@
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyayRLS2PuNXLdV2TrxU2jwsCb5Z21Q90osSCXppZSq5sgqx3dVyjO_K2iYjGK5BnlX/exec';
   var CF = 'https://yupi-bang-tong.haphuongphuong96.workers.dev';
-  var KEY = 'yupi_pw';
+  // 11/11/2026 chị Phương: BỎ mật khẩu chung – mỗi người 1 tài khoản riêng, đăng nhập 1 lần, máy tự nhớ (token lưu localStorage + cookie 1 năm)
+  var KEY = 'yupi_tok';
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
-  ls('yupi_nhanh', null); ls('yupi_tam_cu', null); ls('yupi_tam_ly', null);   // 08/11 15h20: không còn bản cũ
+  ls('yupi_nhanh', null); ls('yupi_tam_cu', null); ls('yupi_tam_ly', null); ls('yupi_pw', null);   // bỏ mật khẩu chung cũ
+  try { document.cookie = 'yupi_pw=; max-age=0; path=/'; } catch (e) {}
   var NHANH = true;
   var HOP = '1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M';
   var TG_DUYET = 'https://t.me/c/3986855047';   // nhóm Telegram "Zalo Gia Di – Tin khách"
-  // 07/11: nho mat khau lau dai – luu ca localStorage lan cookie 1 nam (dien thoai hay xoa 1 trong 2), xin trinh duyet giu du lieu
-  function getPw() {
+  function getTok() {
     var v = ls(KEY) || '';
-    if (!v) { var m = document.cookie.match(/(?:^|; )yupi_pw=([^;]*)/); if (m) { v = decodeURIComponent(m[1]); ls(KEY, v); } }
-    return v || window.__ypw || '';
+    if (!v) { var m = document.cookie.match(/(?:^|; )yupi_tok=([^;]*)/); if (m) { v = decodeURIComponent(m[1]); ls(KEY, v); } }
+    return v || window.__ytok || '';
   }
-  function setPw(v) {
-    window.__ypw = v; ls(KEY, v || null);
-    try { document.cookie = 'yupi_pw=' + encodeURIComponent(v) + '; max-age=' + (v ? 31536000 : 0) + '; path=/; SameSite=Lax; Secure'; } catch (e) {}
+  function setTok(v) {
+    window.__ytok = v; ls(KEY, v || null);
+    try { document.cookie = 'yupi_tok=' + encodeURIComponent(v) + '; max-age=' + (v ? 31536000 : 0) + '; path=/; SameSite=Lax; Secure'; } catch (e) {}
   }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 
@@ -34,59 +35,117 @@
     if (document.body) f(); else document.addEventListener('DOMContentLoaded', f);
   }
 
-  var waiting = [];
-  function needPw() {
-    return new Promise(function (res) {
-      if (getPw()) return res(getPw());
-      waiting.push(res);
-      if (document.getElementById('ypw')) return;
-      var show = function () {
-        var d = document.createElement('div');
-        d.id = 'ypw';
-        d.innerHTML = '<div style="position:fixed;inset:0;z-index:99999;background:#14213d;display:grid;place-items:center;padding:24px;font-family:system-ui,sans-serif">' +
-          '<div style="background:#fff;border-radius:22px;padding:24px 20px;width:100%;max-width:360px;text-align:center;color:#14213d">' +
-          '<img src="icon-192.png" alt="" style="width:80px;height:80px;border-radius:20px;border:3px solid #c9a227">' +
-          '<h2 style="margin:10px 0 4px;font-size:21px">Bảng tổng Yupi</h2><div style="color:#5b6785;font-size:14px">Nhập mật khẩu chung của shop</div>' +
-          '<input id="ypwi" type="password" autocomplete="current-password" style="width:100%;box-sizing:border-box;margin-top:14px;font-size:16px;padding:12px;border:1px solid #d9dfec;border-radius:12px">' +
-          '<div id="ypwe" style="color:#c8372d;font-size:13px;min-height:18px;margin-top:8px"></div>' +
-          '<button id="ypwb" style="width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;background:#c9a227;color:#14213d">Vào app</button></div></div>';
-        document.body.appendChild(d);
-        var go = function () {
-          var v = document.getElementById('ypwi').value.trim();
-          if (!v) return;
-          document.getElementById('ypwe').textContent = 'Đang kiểm tra…';
-          call({ op: 'ping' }, v).then(function () {
-            setPw(v); d.remove(); var w = waiting; waiting = []; w.forEach(function (f) { f(v); });
-          }, function () { document.getElementById('ypwe').textContent = 'Sai mật khẩu, nhập lại giúp em.'; });
-        };
-        document.getElementById('ypwb').onclick = go;
-        document.getElementById('ypwi').onkeydown = function (e) { if (e.key === 'Enter') go(); };
-      };
-      if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
-    });
-  }
-
   function post(url, body) {
     return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (j && j.err === 'SAI_MAT_KHAU') { setPw(''); throw new Error('SAI_MAT_KHAU'); }
+        if (j && j.err === 'CAN_DANG_NHAP') { setTok(''); throw new Error('CAN_DANG_NHAP'); }
+        if (j && j.err === 'DOI_MK') { throw new Error('DOI_MK'); }
         if (!j || j.err) throw new Error(j && j.err || 'loi');
         return j;
       });
   }
-  function call(body, pw) {
-    body.pw = pw;
-    return post(CF + '/api', body);   // 08/11 15h20: chỉ còn bản nhanh, lỗi thì báo lỗi (không lấy bản cũ)
+  // ---- khung đăng nhập / đổi mật khẩu (giữ màu cũ: nền xanh đậm, nút vàng) ----
+  var waiting = [], nguoi = null, maAnh = null;
+  function khung(html) {
+    var d = document.getElementById('ypw'); if (d) d.remove();
+    d = document.createElement('div'); d.id = 'ypw';
+    d.innerHTML = '<div style="position:fixed;inset:0;z-index:99999;background:#14213d;display:grid;place-items:center;padding:24px;font-family:system-ui,sans-serif">' +
+      '<div style="background:#fff;border-radius:22px;padding:24px 20px;width:100%;max-width:360px;text-align:center;color:#14213d">' +
+      '<img src="icon-192.png" alt="" style="width:80px;height:80px;border-radius:20px;border:3px solid #c9a227">' + html +
+      '<div id="ypwe" style="color:#c8372d;font-size:13px;min-height:18px;margin-top:8px"></div>' +
+      '<button id="ypwb" style="width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;background:#c9a227;color:#14213d">Vào app</button></div></div>';
+    document.body.appendChild(d); return d;
   }
+  var O = 'width:100%;box-sizing:border-box;margin-top:10px;font-size:16px;padding:12px;border:1px solid #d9dfec;border-radius:12px';
+  function hienDangNhap() {
+    if (document.getElementById('ypwdn')) return;
+    var show = function () {
+      var d = khung('<h2 style="margin:10px 0 4px;font-size:21px">Bảng tổng Yupi</h2><div id="ypwdn" style="color:#5b6785;font-size:14px">Đăng nhập tài khoản của anh/chị</div>' +
+        '<input id="ypwu" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Tên đăng nhập" style="' + O + ';margin-top:14px">' +
+        '<input id="ypwi" type="password" autocomplete="current-password" placeholder="Mật khẩu" style="' + O + '">');
+      try { document.getElementById('ypwu').value = ls('yupi_ma') || ''; } catch (e) {}
+      var go = function () {
+        var u = document.getElementById('ypwu').value.trim().toLowerCase(), v = document.getElementById('ypwi').value;
+        if (!u || !v) { document.getElementById('ypwe').textContent = 'Nhập tên đăng nhập và mật khẩu giúp em.'; return; }
+        document.getElementById('ypwe').textContent = 'Đang kiểm tra…';
+        post(CF + '/api', { op: 'dang_nhap', ma: u, mk: v, may: navigator.userAgent }).then(function (j) {
+          setTok(j.tok); ls('yupi_ma', u); datNguoi(j);
+          if (j.doiMk) { hienDoiMk(true, v); return; }
+          d.remove(); var w = waiting; waiting = []; w.forEach(function (f) { f(j.tok); });
+        }, function (e) { document.getElementById('ypwe').textContent = String(e.message || e) === 'loi' ? 'Chưa kết nối được máy chủ, thử lại.' : String(e.message || e); });
+      };
+      document.getElementById('ypwb').onclick = go;
+      document.getElementById('ypwi').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+    };
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  }
+  // batBuoc = lần đầu đăng nhập (mật khẩu tạm) -> phải đổi mới vào app
+  function hienDoiMk(batBuoc, cu) {
+    var show = function () {
+      var d = khung('<h2 style="margin:10px 0 4px;font-size:21px">Đổi mật khẩu</h2><div style="color:#5b6785;font-size:14px">' + (batBuoc ? 'Lần đầu đăng nhập – đặt mật khẩu riêng của anh/chị (ít nhất 6 ký tự)' : 'Đặt mật khẩu mới (ít nhất 6 ký tự)') + '</div>' +
+        (cu ? '' : '<input id="ypwc" type="password" autocomplete="current-password" placeholder="Mật khẩu đang dùng" style="' + O + ';margin-top:14px">') +
+        '<input id="ypwn" type="password" autocomplete="new-password" placeholder="Mật khẩu mới" style="' + O + (cu ? ';margin-top:14px' : '') + '">' +
+        '<input id="ypwn2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới" style="' + O + '">' +
+        (batBuoc ? '' : '<button id="ypwh" style="margin-top:10px;background:none;border:0;color:#5b6785;font-size:14px;text-decoration:underline">Để sau</button>'));
+      var b = document.getElementById('ypwb'); b.textContent = 'Lưu mật khẩu';
+      if (!batBuoc) document.getElementById('ypwh').onclick = function () { d.remove(); };
+      b.onclick = function () {
+        var c = cu || document.getElementById('ypwc').value, n = document.getElementById('ypwn').value, n2 = document.getElementById('ypwn2').value;
+        if (n.length < 6) { document.getElementById('ypwe').textContent = 'Mật khẩu mới ít nhất 6 ký tự.'; return; }
+        if (n !== n2) { document.getElementById('ypwe').textContent = '2 lần nhập chưa giống nhau.'; return; }
+        document.getElementById('ypwe').textContent = 'Đang lưu…';
+        post(CF + '/api', { op: 'doi_mk', tok: getTok(), cu: c, moi: n }).then(function () {
+          d.remove(); toast('✅ Đã đổi mật khẩu'); if (nguoi) nguoi.doiMk = false;
+          var w = waiting; waiting = []; w.forEach(function (f) { f(getTok()); });
+        }, function (e) { document.getElementById('ypwe').textContent = String(e.message || e); });
+      };
+    };
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  }
+  function needPw() {   // giữ tên cũ: chờ có phiên đăng nhập
+    return new Promise(function (res) {
+      if (getTok() && !(nguoi && nguoi.doiMk)) return res(getTok());
+      waiting.push(res);
+      if (!getTok()) hienDangNhap();
+    });
+  }
+  function call(body, tok) { body.tok = tok; delete body.pw; return post(CF + '/api', body); }
   function api(body) {
-    return needPw().then(function (pw) {
-      return call(body, pw).catch(function (e) {
-        if (String(e.message) === 'SAI_MAT_KHAU') return needPw().then(function (p2) { return call(body, p2); });
+    return needPw().then(function (tok) {
+      return call(body, tok).catch(function (e) {
+        var m = String(e.message);
+        if (m === 'CAN_DANG_NHAP') { hienDangNhap(); return needPw().then(function (t2) { return call(body, t2); }); }
+        if (m === 'DOI_MK') { if (nguoi) nguoi.doiMk = true; hienDoiMk(true, ''); return needPw().then(function (t2) { return call(body, t2); }); }
         throw e;
       });
     });
   }
+  // ---- người đang đăng nhập: điền sẵn + ẩn ô «Ai …» trên các bảng (máy chủ tự ghi tên người bấm) ----
+  function apTen() {
+    if (!nguoi || !document.body) return;
+    document.querySelectorAll('select#ai').forEach(function (sel) {
+      if (![].some.call(sel.options, function (o) { return o.text === nguoi.ten; })) { var o = document.createElement('option'); o.text = nguoi.ten; sel.add(o); }
+      sel.value = nguoi.ten; try { localStorage.setItem('ai', nguoi.ten); } catch (e) {}
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      if (!sel.dataset.yAn) { sel.dataset.yAn = 1; sel.style.display = 'none';
+        var lb = document.querySelector('label[for="ai"]'); if (lb) lb.style.display = 'none';
+        var t = document.createElement('div'); t.className = 'y-nguoi'; t.setAttribute('style', 'font-weight:700;font-size:14px;margin:2px 0 6px');
+        t.textContent = '👤 ' + nguoi.ten + ' (đang đăng nhập)'; sel.parentNode.insertBefore(t, sel); }
+    });
+    var f = document.getElementById('y-tk-dong');
+    if (!f) { f = document.createElement('div'); f.id = 'y-tk-dong'; f.setAttribute('style', 'text-align:center;font:500 13px system-ui,sans-serif;color:#5b6785;margin:18px 12px calc(80px + env(safe-area-inset-bottom))'); document.body.appendChild(f); }
+    f.innerHTML = '👤 <b></b> · <a href="#" data-y="mk" style="color:inherit">Đổi mật khẩu</a> · <a href="#" data-y="ra" style="color:inherit">Đăng xuất</a>' + (nguoi.quyen === 'chu' ? ' · <a href="tk.html" style="color:inherit;font-weight:700">⚙️ Quản lý tài khoản</a>' : '');
+    f.querySelector('b').textContent = nguoi.ten;
+    f.querySelector('[data-y="mk"]').onclick = function (e) { e.preventDefault(); hienDoiMk(false, ''); };
+    f.querySelector('[data-y="ra"]').onclick = function (e) { e.preventDefault(); if (!confirm('Đăng xuất tài khoản ' + nguoi.ten + ' trên máy này?')) return; post(CF + '/api', { op: 'dang_xuat', tok: getTok() }).catch(function () {}).then(function () { setTok(''); location.reload(); }); };
+  }
+  function datNguoi(j) { nguoi = { ma: j.ma, ten: j.ten, quyen: j.quyen, doiMk: !!j.doiMk }; window.yupiNguoi = nguoi; if (j.anh) { maAnh = j.anh; try { window.dispatchEvent(new Event('yupi-anh')); } catch (e) {} }
+    try { window.dispatchEvent(new Event('yupi-nguoi')); } catch (e) {} apTen(); }
+  window.yupiApi = function (body) { return api(body); };
+  (function () { var bat = function () { if (getTok()) post(CF + '/api', { op: 'toi', tok: getTok() }).then(function (j) { datNguoi(j); if (j.doiMk) hienDoiMk(true, ''); }, function (e) { if (String(e.message) === 'CAN_DANG_NHAP') hienDangNhap(); }); else hienDangNhap();
+      new MutationObserver(function () { if (nguoi && document.querySelector('select#ai:not([data-y-an])')) apTen(); }).observe(document.body, { childList: true, subtree: true }); };
+    if (document.body) bat(); else document.addEventListener('DOMContentLoaded', bat); })();
 
   // ---- cắt vùng A1 trên máy (dùng cho bản nhanh + bộ nhớ đệm) ----
   function colNum(s) { var n = 0; s = s.toUpperCase(); for (var i = 0; i < s.length; i++) n = n * 26 + (s.charCodeAt(i) - 64); return n; }
@@ -141,7 +200,7 @@
     if (ly) toast('⛔ ' + ly + ' – duyệt tin khách tạm trên Telegram', true);
     else if (coLoi) toast('✅ Máy chủ app chạy lại – bấm nút bình thường');
   }
-  function loiSync(m) { if (m === 'SAI_MAT_KHAU') return; if (!loiTu) loiTu = Date.now(); if (Date.now() - loiTu > 12000) datLoi('Máy chủ app đang lỗi'); }
+  function loiSync(m) { if (m === 'CAN_DANG_NHAP' || m === 'DOI_MK') return; if (!loiTu) loiTu = Date.now(); if (Date.now() - loiTu > 12000) datLoi('Máy chủ app đang lỗi'); }
   function suKhoe(j) {
     loiTu = 0;
     var bay = vn(j.bay), cho = vn(j.cho), may = vn(j.may);
@@ -150,10 +209,7 @@
     if (Date.now() - lanKtCu < 30000) return;
     lanKtCu = Date.now();
     // máy chủ không thấy laptop -> hỏi Google xem laptop còn bật không (chỉ để báo đúng: máy chủ lỗi hay laptop tắt)
-    post(API, { op: 'get', id: HOP, range: 'Trạng thái!A1:B3', pw: getPw() }).then(function (r) {
-      var cap = ''; (r.values || []).forEach(function (x) { if (x[0] === 'Cập nhật lúc') cap = x[1]; });
-      datLoi(cap && Date.now() - vn(cap) < 180000 ? 'Máy chủ app đang lỗi – laptop vẫn bật' : '');
-    }).catch(function () {});
+    datLoi('');   // 11/11: bỏ mật khẩu chung nên không hỏi bản cũ (Apps Script) nữa
   }
   window.yupiMayChuLoi = function () { return mcLoi; };
   (function () { var f = function () { var s = document.createElement('style'); s.textContent = 'body.yupi-mcloi .b-ok,body.yupi-mcloi .b-acc,body.yupi-mcloi .b-soft{opacity:.45;filter:grayscale(1)}'; document.head.appendChild(s); }; if (document.head) f(); else document.addEventListener('DOMContentLoaded', f); })();
@@ -208,18 +264,10 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { if (NHANH) sync(); else watchers.forEach(fetchOnce); } });
 
   // ảnh nhỏ quiz: bản nhanh tải từng ảnh từ máy chủ (trình duyệt tự lưu), không tải cả bảng ảnh
-  var maAnh = null;
   window.yupiAnh = !NHANH ? null : function (k) {
     if (!maAnh) return '';
     return CF + '/anh/' + encodeURIComponent(k) + '?t=' + maAnh;
   };
-  if (NHANH) needPw().then(function (pw) {
-    return crypto.subtle.digest('SHA-256', new TextEncoder().encode('yupi:' + pw)).then(function (h) {
-      maAnh = Array.prototype.map.call(new Uint8Array(h), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('').slice(0, 16);
-      window.dispatchEvent(new Event('yupi-anh'));
-    });
-  });
-
   window.claude = {
     use: function (name) {
       if (name === 'mcp') return Promise.resolve(mcp);

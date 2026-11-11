@@ -1,0 +1,89 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yupi">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Quản lý tài khoản</title>
+<script src="shim.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#14213d;--muted:#5b6785;--line:#d9dfec;--gold:#c9a227;--accent:#1f3a6e;--accent-soft:#e4eaf6;
+  --late:#c8372d;--late-soft:#fbe5e2;--warn:#a8740f;--warn-soft:#fbf1d6;--ok:#1f8a5e;--ok-soft:#dcf3e8;--shadow:0 6px 20px rgba(20,33,61,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1526;--card:#1b2847;--fg:#eef1f8;--muted:#9aa6c4;--line:#2b3a5e;--gold:#e3c15a;--accent:#e3c15a;--accent-soft:#3a3320;
+  --late:#f2877b;--late-soft:#40221f;--warn:#eec463;--warn-soft:#3b311a;--ok:#6fd3a3;--ok-soft:#183829;--shadow:0 6px 20px rgba(0,0,0,.35);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Be Vietnam Pro",system-ui,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:"Nunito",system-ui,sans-serif;font-weight:900;font-size:26px;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+label{font-weight:700;font-size:13.5px;display:block;margin-bottom:6px}
+select,textarea{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+button.send{flex:1;min-width:180px;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:800;font-size:16px;background:var(--gold);color:#14213d;cursor:pointer}
+button.send:disabled{opacity:.55;cursor:default}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--accent-soft);color:var(--fg);font:inherit;font-size:13px;border-radius:99px;padding:6px 11px;cursor:pointer}
+.msg{font-size:14px;min-height:20px;margin-top:8px}
+h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;margin:4px 0 0}
+.it{border-top:1px dashed var(--line);padding:12px 0}
+.it:first-child{border-top:0;padding-top:4px}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.cmd{font-weight:600;margin:4px 0;white-space:pre-wrap;word-break:break-word}
+.st{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px}
+.st.cho{background:var(--warn-soft);color:var(--warn)} .st.lam{background:var(--accent-soft);color:var(--accent)}
+.st.xong{background:var(--ok-soft);color:var(--ok)} .st.loi{background:var(--late-soft);color:var(--late)}
+.kq{font-size:13.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;margin-top:6px;max-height:9.5em;overflow:auto}
+.empty{color:var(--muted);font-size:14px}
+
+.it{border-top:1px dashed var(--line);padding:12px 0}.it:first-child{border-top:0}
+.l1{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.ten{font-weight:800;font-size:16px}.sub2{font-size:12.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:800;border-radius:99px;padding:2px 9px;margin-left:6px}
+.tag.chu{background:var(--gold);color:#14213d}.tag.quanly{background:var(--accent-soft);color:var(--accent)}.tag.nv{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.tag.khoa{background:var(--late-soft);color:var(--late)}.tag.moi{background:var(--warn-soft);color:var(--warn)}
+.nut{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.nut button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:7px 10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.nut button.do{color:var(--late)}
+input{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:10px}
+.mk{background:var(--ok-soft);color:var(--ok);border-radius:14px;padding:12px;font-weight:700;margin-top:10px;word-break:break-all}
+.mk code{font-size:18px;user-select:all}
+.back{color:var(--muted);text-decoration:none;font-weight:700;font-size:14px}
+</style></head><body>
+<div class="wrap">
+  <a class="back" href="./">‹ Bảng tổng</a>
+  <div><h1>⚙️ Quản lý tài khoản</h1><p class="sub">Chỉ chủ shop thấy trang này. Mật khẩu chỉ lưu dạng mã hóa trên máy chủ – em không xem lại được, quên thì bấm «Đặt lại mật khẩu».</p></div>
+  <div class="card" id="moiCard" hidden></div>
+  <div class="card"><h2>👥 Tài khoản</h2><div id="ds"><div class="sub2">Đang tải…</div></div></div>
+  <div class="card"><h2>➕ Thêm người</h2>
+    <label for="tMa">Tên đăng nhập (chữ thường không dấu, vd tina)</label><input id="tMa" autocapitalize="none" spellcheck="false">
+    <label for="tTen">Tên hiện trên app (vd Tina)</label><input id="tTen">
+    <label for="tQuyen">Quyền</label><select id="tQuyen"><option value="nv">Nhân viên</option><option value="quanly">Quản lý</option><option value="chu">Chủ shop</option></select>
+    <div class="row"><button class="send" id="them">➕ Tạo tài khoản</button></div><div class="msg" id="msg"></div>
+  </div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const QUYEN={chu:"Chủ shop",quanly:"Quản lý",nv:"Nhân viên"};
+let DS=[],TOI="";
+function hienMk(j,viec){const c=$("#moiCard");c.hidden=false;c.innerHTML=`<h2>🔑 ${esc(viec)}</h2><div class="mk">Tên đăng nhập: <code>${esc(j.ma)}</code><br>Mật khẩu tạm: <code>${esc(j.mk)}</code></div><div class="hint">Gửi riêng cho ${esc(j.ten||j.ma)}. Lần đầu đăng nhập app bắt đổi mật khẩu riêng. Mật khẩu tạm chỉ hiện 1 lần ở đây.</div>`;c.scrollIntoView({behavior:"smooth"});}
+function ve(){$("#ds").innerHTML=DS.map(t=>`<div class="it"><div class="l1"><div><span class="ten">${esc(t.ten)}</span><span class="tag ${t.quyen}">${QUYEN[t.quyen]||t.quyen}</span>${t.khoa?'<span class="tag khoa">🔒 Đang khóa</span>':""}${t.doi_mk?'<span class="tag moi">Chưa đổi mật khẩu tạm</span>':""}</div></div>
+  <div class="sub2">Đăng nhập: <b>${esc(t.ma)}</b>${t.cuoi?` · dùng app lần cuối ${esc(String(t.cuoi).slice(11,16))} ${esc(String(t.cuoi).slice(8,10))}/${esc(String(t.cuoi).slice(5,7))}`:" · chưa đăng nhập"}${t.ma===TOI?" · (chị đang dùng)":""}</div>
+  <div class="nut"><button data-mk="${esc(t.ma)}">🔑 Đặt lại mật khẩu</button>${t.ma===TOI?"":`<button data-khoa="${esc(t.ma)}" data-v="${t.khoa?0:1}">${t.khoa?"🔓 Mở khóa":"🔒 Khóa"}</button><button data-quyen="${esc(t.ma)}">🎚 Đổi quyền / tên</button><button class="do" data-xoa="${esc(t.ma)}">🗑 Xóa</button>`}</div></div>`).join("")||'<div class="sub2">Chưa có tài khoản.</div>';}
+async function tai(){try{const j=await window.yupiApi({op:"tk_ds"});DS=j.ds||[];TOI=j.toi;ve();}catch(e){$("#ds").innerHTML=`<div class="sub2">${esc(e.message)}</div>`;}}
+document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+  try{
+  if(d.mk){const t=DS.find(x=>x.ma===d.mk);if(!confirm(`Đặt lại mật khẩu cho ${t.ten}? Máy đang đăng nhập của người này sẽ bị thoát.`))return;const j=await window.yupiApi({op:"tk_mk",ma:d.mk});hienMk(j,"Mật khẩu tạm mới của "+t.ten);tai();}
+  else if(d.khoa){const t=DS.find(x=>x.ma===d.khoa);if(!confirm((d.v==="1"?"Khóa":"Mở khóa")+` tài khoản ${t.ten}?`))return;await window.yupiApi({op:"tk_khoa",ma:d.khoa,khoa:d.v==="1"?1:0});tai();}
+  else if(d.xoa){const t=DS.find(x=>x.ma===d.xoa);if(!confirm(`Xóa hẳn tài khoản ${t.ten}? Không hoàn tác được.`))return;await window.yupiApi({op:"tk_xoa",ma:d.xoa});tai();}
+  else if(d.quyen){const t=DS.find(x=>x.ma===d.quyen);const ten=prompt("Tên hiện trên app:",t.ten);if(ten===null)return;const q=prompt("Quyền: gõ chu / quanly / nv",t.quyen);if(q===null)return;await window.yupiApi({op:"tk_sua",ma:d.quyen,ten:ten.trim()||t.ten,quyen:q.trim()});tai();}
+  else if(b.id==="them"){const ma=$("#tMa").value.trim().toLowerCase(),ten=$("#tTen").value.trim();if(!ma||!ten){$("#msg").textContent="Nhập tên đăng nhập và tên hiện trên app.";return;}
+    b.disabled=true;const j=await window.yupiApi({op:"tk_them",ma,ten,quyen:$("#tQuyen").value});b.disabled=false;$("#tMa").value="";$("#tTen").value="";$("#msg").textContent="";hienMk(j,"Đã tạo tài khoản "+ten);tai();}
+  }catch(x){b.disabled=false;alert(x.message);}
+});
+function batDau(){const n=window.yupiNguoi;if(!n)return;if(n.quyen!=="chu"){document.querySelector(".wrap").innerHTML='<a class="back" href="./">‹ Bảng tổng</a><div class="card">Trang này chỉ chủ shop dùng.</div>';return;}tai();}
+window.addEventListener("yupi-nguoi",batDau);batDau();
+</script>
+</body></html>
