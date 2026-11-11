@@ -84,7 +84,8 @@ th:first-child,td:first-child{text-align:left}
 <div class="wrap">
   <header>
     <h1>💬 Duyệt tin khách</h1>
-    <a class="chip bell" id="bell" href="thong_bao.html">🔔 Thông báo</a>
+    <button class="chip" id="loa" type="button" aria-pressed="true" style="margin-left:auto">🔊 Âm thanh</button>
+    <a class="chip bell" id="bell" href="thong_bao.html" style="margin-left:0">🔔 Thông báo</a>
   </header>
   <div class="st" id="st"><span class="dot"></span><span>Đang tải tin…</span></div>
   <div class="bar" role="tablist" aria-label="Lọc tin">
@@ -92,6 +93,7 @@ th:first-child,td:first-child{text-align:left}
     <button class="chip" data-v="tat" role="tab" aria-selected="false">💬 Tất cả tin</button>
     <button class="chip" data-v="toc" role="tab" aria-selected="false">⏱ So tốc độ</button>
   </div>
+  <div class="st" id="mau" hidden style="background:var(--warn-soft);border-color:var(--warn);color:var(--warn);font-weight:600;justify-content:space-between;flex-wrap:wrap"><span>🧪 Đang bật DỮ LIỆU MẪU – bấm thử thoải mái, không gửi khách, không đụng Telegram</span><button class="chip" id="xoaMau" type="button">🗑 Xoá dữ liệu mẫu</button></div>
   <main id="feed" class="feed"><div class="rong">Đang tải…</div></main>
   <p class="note">Tin ở đây là bản sao y nguyên nhóm Telegram «Zalo Gia Di – Tin khách» (chạy song song). Bấm nút ở đây = bấm trên Telegram: duyệt ở chỗ nào trước thì chỗ kia tự hiện «✅ Đã xác nhận bởi …», không gửi khách 2 lần. Mọi tin gửi khách vẫn phải có người bấm duyệt.</p>
 </div>
@@ -178,6 +180,18 @@ function ve(){
   else if(xem==="tat"&&cuoi)window.scrollTo(0,document.body.scrollHeight);
   lanDau=false;
 }
+// ---- 12/11 01:05 chị Phương: ÂM THANH khi có tin khách / đề xuất mới (đang mở app). iPhone cần chạm màn hình 1 lần để mở loa ----
+let loa=true,ac=null;try{loa=localStorage.getItem("kenh_loa")!=="0"}catch(e){}
+function veLoa(){const b=$("#loa");b.textContent=loa?"🔊 Âm thanh":"🔇 Tắt tiếng";b.setAttribute("aria-pressed",loa);b.classList.toggle("on",loa)}
+function moLoa(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}}
+document.addEventListener("pointerdown",moLoa,{passive:true});
+function ting(gap){if(!loa)return;moLoa();try{const t=ac.currentTime;(gap?[880,1175,1568]:[988,1319]).forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*.16);g.gain.exponentialRampToValueAtTime(0.35,t+i*.16+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*.16+.32);o.connect(g).connect(ac.destination);o.start(t+i*.16);o.stop(t+i*.16+.34)})}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(gap?[180,90,180,90,180]:[160,80,160])}catch(e){}}
+$("#loa").onclick=()=>{loa=!loa;try{localStorage.setItem("kenh_loa",loa?"1":"0")}catch(e){};veLoa();if(loa){moLoa();ting(false)}};veLoa();
+function canBao(t){return /ĐỀ XUẤT|TIN KHÁCH|CHỜ DUYỆT/.test(t.html||"")||laCan(t)}
+function veMau(n){$("#mau").hidden=!n}
+$("#xoaMau").onclick=async()=>{if(!confirm("Xoá hết tin MẪU?"))return;try{await window.yupiApi({op:"tg_mau_xoa"});toast("🗑 Đã xoá dữ liệu mẫu");tai()}catch(e){toast("⚠️ "+(e.message||e),1)}};
 function trangThai(){const st=$("#st");if(!cho||!bay){return}
   const tre=(new Date(bay.replace(" ","T")+"Z")-new Date(cho.replace(" ","T")+"Z"))/1000;
   if(window.yupiMayChuLoi&&yupiMayChuLoi()){st.className="st bad";st.innerHTML='<span class="dot"></span><span>Máy chủ app đang lỗi – duyệt tạm trên Telegram</span>';return}
@@ -187,9 +201,13 @@ function trangThai(){const st=$("#st");if(!cho||!bay){return}
 async function tai(){
   if(dangTai)return;dangTai=true;
   try{const j=await window.yupiApi({op:"tg_ds",sau:ver});cho=j.cho;bay=j.bay;let moi=0,thay=[];
-    for(const t of j.ds||[]){const id=k(t);if(!tin[id]&&ver)moi++;tin[id]=t;
+    let keu=0;
+    for(const t of j.ds||[]){const id=k(t);if(!tin[id]&&ver){moi++;if(canBao(t))keu=Math.max(keu,/ĐỀ XUẤT|CHỜ DUYỆT/.test(t.html||"")?2:1)}tin[id]=t;
       if(!daThay[id]&&document.visibilityState==="visible"&&(Date.now()-new Date((t.luc||"").replace(" ","T")+"+07:00"))<600e3){daThay[id]=1;thay.push({chat:t.chat,mid:t.mid,t:Date.now()})}}
     if(j.v>ver)ver=j.v;
+    if(keu)ting(keu===2);
+    if(!j.mau&&Object.keys(tin).some(x=>x.startsWith("mau_"))){Object.keys(tin).forEach(x=>{if(x.startsWith("mau_"))delete tin[x]});ve()}
+    veMau(j.mau);
     if((j.ds||[]).length)ve();trangThai();
     if(moi&&xem==="tat"&&!(window.innerHeight+window.scrollY>=document.body.scrollHeight-160))$("#moi").style.display="block";
     if(thay.length)window.yupiApi({op:"tg_thay",ds:thay}).catch(()=>{});
@@ -203,7 +221,7 @@ async function tai(){
 async function guiLenh(body,nutKey){
   if(window.yupiMayChuLoi&&yupiMayChuLoi()){toast("⛔ Máy chủ app đang lỗi – duyệt tạm trên Telegram",1);return}
   if(nutKey){lenh[nutKey]={xong:0};ve()}
-  try{const r=await window.yupiApi(body);lenh["id"+r.id]={nut:nutKey};toast("✅ Đã gửi – laptop đang làm");setTimeout(tai,600);setTimeout(tai,1800)}
+  try{const r=await window.yupiApi(body);if(r.mau){if(nutKey)delete lenh[nutKey];toast("🧪 "+r.kq);setTimeout(tai,300);return}lenh["id"+r.id]={nut:nutKey};toast("✅ Đã gửi – laptop đang làm");setTimeout(tai,600);setTimeout(tai,1800)}
   catch(e){if(nutKey)delete lenh[nutKey];ve();toast("⚠️ "+(e&&e.message||e),1)}}
 
 document.addEventListener("click",e=>{
