@@ -389,7 +389,17 @@ async function veToc(){const f=$("#feed");if(!toc){f.innerHTML='<div class="rong
     (tgT!=null&&puT!=null?'<p><b>'+(puT<=tgT?"📱 App nhanh hơn Telegram ":"💬 Telegram nhanh hơn App ")+giay(Math.abs(puT-tgT))+'</b> (tính trên '+tong.length+' tin)</p>':'<p class="note">Chưa đủ số liệu – cần vài ngày chạy song song và ít nhất 1 máy đã bật thông báo.</p>')+
     '<table><thead><tr><th>Ngày</th><th>Số tin</th><th>Telegram</th><th>App (thông báo)</th><th>App mở</th></tr></thead><tbody>'+dong("7 ngày",tong)+Object.keys(nhom).map(n=>dong(n,nhom[n])).join("")+'</tbody></table>'+
     '<p class="note" style="margin-top:8px">Chia theo loại: </p><table><thead><tr><th>Loại</th><th>Số tin</th><th>Telegram</th><th>App (thông báo)</th><th>App mở</th></tr></thead><tbody>'+["📩 Tin khách mới","🔴 Đề xuất cần duyệt","🟡 Chờ duyệt gửi khách","🔴 Cần bấm duyệt"].map(l=>{const d=tong.filter(r=>r.loai===l);return d.length?dong(l,d):""}).join("")+'</tbody></table></div>';
-  f.innerHTML=s}
+  f.innerHTML=(await veBuoc())+s}
+// 13/11 chị Phương: từng bước tra giá tin khách (trước / sau sửa) – dữ liệu tab «So tốc độ» do laptop (td_bang.ps1) đẩy lên
+let tdB=null;
+async function veBuoc(){try{if(!tdB){const j=await window.yupiApi({op:"get",id:"1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M",range:"So tốc độ!A1:A2"});tdB=JSON.parse(((j.values||[])[1]||[])[0]||"{}");setTimeout(()=>tdB=null,60000)}}catch(e){return '<div class="rong">Chưa tải được bảng từng bước: '+esc(e.message||e)+'</div>'}
+  const g=v=>v==null?"—":(v<10?(+v).toFixed(1):Math.round(v))+"s";
+  const cot=[["bat","Bắt tin"],["ma","Đọc mã"],["kho","Tra kho"],["the_gia","Đăng thẻ giá"],["chuan_bi","Chuẩn bị"],["claude","Claude soạn"],["dang","Đăng đề xuất"],["khach_thay_gia","➜ Thấy giá"],["co_tin_duyet","➜ Có tin duyệt"]];
+  const hang=(ten,r)=>'<tr><td style="text-align:left">'+ten+'</td>'+cot.map(c=>'<td>'+g(r[c[0]])+'</td>').join("")+'</tr>';
+  let s='<div class="rong" style="text-align:left;margin-bottom:10px"><b>⏱ Từng bước tra giá tin khách Zalo</b><p class="note">'+esc(tdB.giai_thich||"")+' Cập nhật '+esc(tdB.luc||"")+'.</p><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">Tin</th>'+cot.map(c=>'<th>'+c[1]+'</th>').join("")+'</tr></thead><tbody>';
+  for(const r of (tdB.goc||[]))s+=hang('Trước · '+esc(r.ten||""),r);
+  for(const r of (tdB.dong||[]).slice(0,40))s+=hang(esc((r.ban==="mới"?"Sau":"Cũ")+" · "+(r.luc||"")+" · "+(r.nhom||"")+" · "+(r.loai||"")+(r.model?" · "+r.model:"")),r);
+  return s+'</tbody></table></div></div>'}
 
 // ---- chuông: đã bật thông báo trên máy này chưa ----
 async function chuong(){const b=$("#bell");try{const ok="Notification" in window&&Notification.permission==="granted"&&navigator.serviceWorker&&(await navigator.serviceWorker.ready.then(r=>r.pushManager&&r.pushManager.getSubscription()));
