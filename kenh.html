@@ -146,7 +146,7 @@ th:first-child,td:first-child{text-align:left}
   <p class="note">Tin ở đây là bản sao y nguyên nhóm Telegram «Zalo Gia Di – Tin khách» (chạy song song). Bấm nút ở đây = bấm trên Telegram: duyệt ở chỗ nào trước thì chỗ kia tự hiện «✅ Đã xác nhận bởi …», không gửi khách 2 lần. Mọi tin gửi khách vẫn phải có người bấm duyệt.</p>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
-<button class="moi" id="moi">⬇ Có tin mới</button>
+<button class="moi" id="moi">⬆ Có tin mới</button>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -231,16 +231,15 @@ function ve(){
   if(xem==="toc"){veToc();return}
   if(xem==="khach"){veKhach(all);return}
   const f=$("#feed"),ae=document.activeElement,giu=ae&&ae.tagName==="INPUT"&&ae.closest("form.tl")?{k:ae.closest("form.tl").dataset.k,v:ae.value,p:ae.selectionStart}:null;
-  const ds=xem==="can"?can.slice().reverse():all.filter(t=>!t.xoa&&!laLog(t)).slice(-150);
+  const ds=xem==="can"?can.slice().reverse():all.filter(t=>!t.xoa&&!laLog(t)).slice(-150).reverse();   // 12/11 chi Phuong: MOI kenh, moi muc – tin MOI NHAT len TREN (kenh_moi_len_tren)
   if(!ds.length){f.innerHTML='<div class="rong">'+(xem==="can"?"🎉 Không còn tin nào chờ bấm":"Chưa có tin nào trong 3 ngày qua")+'</div>';return}
-  if(kenh!=="khach"&&xem==="can")ds.reverse();
-  const cuoi=window.innerHeight+window.scrollY>=document.body.scrollHeight-160;
+  const dau=window.scrollY<160;let neo=null;if(!dau){for(const m of f.querySelectorAll(".msg[data-k]")){const r=m.getBoundingClientRect();if(r.bottom>0){neo={k:m.dataset.k,top:r.top};break}}}   // giu tin dang doc khi tin moi chen len tren
   f.innerHTML=ds.map(veTin).join("");
   f.querySelectorAll(".msg").forEach(m=>m.querySelectorAll("blockquote.exp").forEach((q,i)=>{if(moBq[m.dataset.k+"|"+i])q.classList.add("mo")}));
   if(giu){const i=f.querySelector('form.tl[data-k="'+CSS.escape(giu.k)+'"] input');if(i){i.value=giu.v;i.focus();try{i.setSelectionRange(giu.p,giu.p)}catch(e){}}}
   if(motTin){const el=document.getElementById("m"+motTin);if(el){el.scrollIntoView({block:"start"});motTin=""}}
-  else if(lanDau&&xem==="tat")window.scrollTo(0,document.body.scrollHeight);
-  else if(xem==="tat"&&cuoi)window.scrollTo(0,document.body.scrollHeight);
+  else if(lanDau)window.scrollTo(0,0);
+  else if(neo){const m=f.querySelector('.msg[data-k="'+CSS.escape(neo.k)+'"]');if(m){const d=m.getBoundingClientRect().top-neo.top;if(Math.abs(d)>1)window.scrollBy(0,d)}}
   lanDau=false;
 }
 // ---- 12/11 01:05 chị Phương: ÂM THANH khi có tin khách / đề xuất mới (đang mở app). iPhone cần chạm màn hình 1 lần để mở loa ----
@@ -285,7 +284,7 @@ function veKhach(all){const f=$("#feed"),g={};
   const ds=Object.entries(g).sort((a,b)=>(b[1][b[1].length-1].luc||"").localeCompare(a[1][a[1].length-1].luc||""));
   if(!ds.length){f.innerHTML='<div class="rong">Chưa có khách nào trong 3 ngày qua</div>';return}
   f.innerHTML=ds.map(([n,ts],i)=>{const can=ts.some(laCan),cuoi=ts[ts.length-1];const daMo=moKh[n]!=null?moKh[n]:(i<3||can);
-    return '<details class="kh'+(can?" can":"")+'" data-n="'+esc(n)+'"'+(daMo?" open":"")+'><summary><span><b>👥 '+esc(n.split("|")[0].trim())+'</b><br><span class="note">'+esc(n.split("|").slice(1).join("|").trim())+' · '+ts.length+' tin'+(can?' · 🔴 chờ bấm':'')+'</span></span><span class="tt2">'+esc((cuoi.luc||"").slice(11,16))+'</span></summary><div class="ds">'+ts.filter(x=>!laLog(x)).slice(-12).map(veTin).join("")+'</div></details>'}).join("")}
+    return '<details class="kh'+(can?" can":"")+'" data-n="'+esc(n)+'"'+(daMo?" open":"")+'><summary><span><b>👥 '+esc(n.split("|")[0].trim())+'</b><br><span class="note">'+esc(n.split("|").slice(1).join("|").trim())+' · '+ts.length+' tin'+(can?' · 🔴 chờ bấm':'')+'</span></span><span class="tt2">'+esc((cuoi.luc||"").slice(11,16))+'</span></summary><div class="ds">'+ts.filter(x=>!laLog(x)).slice(-12).reverse().map(veTin).join("")+'</div></details>'}).join("")}
 let moKh={};document.addEventListener("toggle",e=>{const d=e.target;if(d.classList&&d.classList.contains("kh"))moKh[d.dataset.n]=d.open},true);
 function veMau(n){$("#mau").hidden=!n}
 $("#xoaMau").onclick=async()=>{if(!confirm("Xoá hết tin MẪU?"))return;try{await window.yupiApi({op:"tg_mau_xoa"});toast("🗑 Đã xoá dữ liệu mẫu");tai()}catch(e){toast("⚠️ "+(e.message||e),1)}};
@@ -307,7 +306,7 @@ async function tai(){
     if(!j.mau&&Object.keys(tin).some(x=>x.startsWith("mau_"))){Object.keys(tin).forEach(x=>{if(x.startsWith("mau_"))delete tin[x]});ve()}
     veMau(kenh==="khach"?j.mau:0);try{localStorage.setItem("kenh_thay_"+kenh,String(ver))}catch(e){}
     if((j.ds||[]).length)ve();trangThai();
-    if(moi&&xem==="tat"&&!(window.innerHeight+window.scrollY>=document.body.scrollHeight-160))$("#moi").style.display="block";
+    if(moi&&xem==="tat"&&window.scrollY>=160)$("#moi").style.display="block";
     if(thay.length)window.yupiApi({op:"tg_thay",ds:thay}).catch(()=>{});
     if(lanDau)ve();
   }catch(e){const m=String(e&&e.message||e);if(m!=="CAN_DANG_NHAP"&&m!=="DOI_MK"){$("#st").className="st bad";$("#st").innerHTML='<span class="dot"></span><span>Chưa tải được tin: '+esc(m)+'</span>'}}
@@ -335,12 +334,12 @@ document.addEventListener("click",e=>{
     guiLenh({op:"tg_bam",chat:t.chat,mid:t.mid,data:b.dataset.cb},/^[☐☑]/.test(nhan)?null:kk);return}
   const ml=e.target.closest("[data-motl]");if(ml){moForm[ml.dataset.motl]=1;khoaVe=0;ve();const i=document.querySelector('form.tl[data-k="'+CSS.escape(ml.dataset.motl)+'"] input');if(i)i.focus();return}
   const kc=e.target.closest(".kenhs .chip");if(kc){doiKenh(kc.dataset.k);return}
-  if(e.target.closest("#moi")){$("#moi").style.display="none";window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});return}
-  const tab=e.target.closest(".bar .chip[data-v]");if(tab){xem=tab.dataset.v;try{localStorage.setItem("kenh_xem_"+kenh,xem)}catch(x){};lanDau=true;ve();if(xem!=="toc")window.scrollTo(0,xem==="tat"?document.body.scrollHeight:0)}
+  if(e.target.closest("#moi")){$("#moi").style.display="none";window.scrollTo({top:0,behavior:"smooth"});return}
+  const tab=e.target.closest(".bar .chip[data-v]");if(tab){xem=tab.dataset.v;try{localStorage.setItem("kenh_xem_"+kenh,xem)}catch(x){};lanDau=true;ve();if(xem!=="toc")window.scrollTo(0,0)}
 });
 document.addEventListener("submit",e=>{const f=e.target.closest("form.tl");if(!f)return;e.preventDefault();const t=tin[f.dataset.k],v=f.c.value.trim();if(!t||!v)return;
   f.classList.add("gui");setTimeout(()=>f.classList.remove("gui"),500);const m=f.closest(".msg");if(m){m.classList.add("sang-vang");tem(m,"↩ "+(v.length>14?v.slice(0,14)+"…":v),"vang")}rung(40);f.c.value="";guiLenh({op:"tg_tl",chat:t.chat,mid:t.mid,chu:v},null)});
-window.addEventListener("scroll",()=>{if(window.innerHeight+window.scrollY>=document.body.scrollHeight-160)$("#moi").style.display="none"},{passive:true});
+window.addEventListener("scroll",()=>{if(window.scrollY<160)$("#moi").style.display="none"},{passive:true});
 
 // ---- so tốc độ (item 6): tin khách -> Telegram / -> thông báo app / -> app mở lần đầu ----
 let toc=null;
