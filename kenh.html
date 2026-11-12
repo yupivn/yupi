@@ -57,7 +57,18 @@ img.anh{display:block;max-width:100%;max-height:420px;border-radius:10px;margin:
 .kb{display:flex;flex-direction:column;gap:5px;margin-top:8px}
 .kb .r{display:flex;gap:5px}
 .kb button{flex:1 1 0;min-height:40px;border:0;border-radius:10px;background:var(--btn);color:var(--quote);font:600 14px var(--body);padding:8px 6px;cursor:pointer;line-height:1.25}
-.kb button.duyet{background:#1f8a5e;color:#fff}
+.kb button.duyet{background:linear-gradient(180deg,#25a06e,#1b7c55);color:#fff;box-shadow:0 2px 6px rgba(31,138,94,.35)}
+/* 12/11 10:30 chị Phương: nút đẹp hơn – ô tích ☐/☑ thành viên bo tròn xếp gọn theo câu ❶ ❷, nút thường có viền + bóng nhẹ */
+.kb button{border:1px solid var(--line);box-shadow:0 1px 2px rgba(20,33,61,.08)}
+.kb button.chon{background:var(--card);border:1.5px solid #c9a227;color:var(--fg);font-weight:700}
+.kbo{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:8px 9px;border-radius:14px;background:var(--qbg)}
+.kbo .so{font:800 15px var(--body);color:var(--quote);min-width:20px;text-align:center}
+.kb .kbo button.o{flex:0 0 auto;min-height:38px;padding:6px 13px 6px 8px;border-radius:999px;background:var(--card);border:1.5px solid var(--line);color:var(--fg);display:inline-flex;gap:8px;align-items:center;font:600 14.5px var(--body);box-shadow:none}
+.kbo button.o .hop{width:21px;height:21px;border-radius:7px;border:2px solid var(--muted);display:grid;place-items:center;font:900 13px/1 var(--body);color:transparent;transition:all .15s;flex:none}
+.kbo button.o.on{background:#e3f5ec;border-color:#1f8a5e;color:#145c3e}
+.kbo button.o.on .hop{background:#1f8a5e;border-color:#1f8a5e;color:#fff}
+:root[data-theme="dark"] .kbo button.o.on{background:#163a2a;color:#9be3c0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kbo button.o.on{background:#163a2a;color:#9be3c0}}
 .kb button.khong{background:var(--late-soft);color:var(--late)}
 .kb button.cho{opacity:.55;pointer-events:none}
 /* 12/11 01:10 chị Phương: bấm là gửi luôn (không hỏi lại), hiệu ứng mỗi loại nút khác nhau */
@@ -207,10 +218,16 @@ function veTin(t){
   s+='<div class="txt">'+sach(t.html)+'</div>';
   if(xn)s+='<div class="xn '+xn.cls+'">'+esc(xn.t)+'</div>';
   const kb=mk(t);
-  if(kb.length&&!t.xoa){s+='<div class="kb">'+kb.map((r,i)=>'<div class="r">'+r.map((b,j)=>{const x=String(b.text||""),cls=/Duyệt gửi|✅ Duyệt|^✅ Xong/.test(x)?"duyet":(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(x)?"khong":(/^[☐☑]/.test(x)?"o":"chon"));
+  if(kb.length&&!t.xoa){let nhomO=null;const ra=[];
+    const nutO=(b,i,j)=>{const x=String(b.text||""),m=x.match(/^([☐☑])\s*([❶-❿➊-➓①-⑳]|\d+[.)])?\s*(.*)$/),on=m[1]==="☑";
+      return '<button type="button" class="o'+(on?" on":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-t="'+esc(x)+'" aria-pressed="'+on+'"><span class="hop">✓</span>'+esc(m[3]||x.slice(1))+'</button>'};
+    kb.forEach((r,i)=>{const toanO=r.every(b=>/^[☐☑]/.test(String(b.text||""))&&b.callback_data);
+      if(toanO){r.forEach((b,j)=>{const so=(String(b.text).match(/^[☐☑]\s*([❶-❿➊-➓①-⑳]|\d+[.)])/)||[])[1]||"";if(!nhomO||nhomO.so!==so){nhomO={so,ds:[]};ra.push({o:nhomO})}nhomO.ds.push(nutO(b,i,j))})}
+      else{nhomO=null;ra.push({r,i})}});
+    s+='<div class="kb">'+ra.map(x=>x.o?'<div class="kbo" role="group">'+(x.o.so?'<span class="so">'+esc(x.o.so)+'</span>':'')+x.o.ds.join("")+'</div>':(r=>'<div class="r">'+r.map((b,j)=>{const x=String(b.text||""),cls=/Duyệt gửi|✅ Duyệt|^✅ Xong/.test(x)?"duyet":(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(x)?"khong":(/^[☐☑]/.test(x)?"o":"chon"));
       if(b.url)return '<button type="button" data-url="'+esc(b.url)+'">'+esc(x)+' ↗</button>';
       const cho=lenh[id+"|"+b.callback_data]&&!lenh[id+"|"+b.callback_data].xong;
-      return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-i="'+i+'" data-j="'+j+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>').join("")+'</div>'}
+      return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-t="'+esc(x)+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>')(x.r)).join("")+'</div>'}
   // lịch sử bấm trên app + kết quả laptop + tin bot trả lời dưới tin này
   const ls=bam(t),tl=traLoiCua(t).filter(x=>!laLog(x)),lg=logCua(t);
   if(lg.length){s+='<div class="log">'+lg.map(x=>{const xi=k(x),moi=daVeLog[xi]===undefined&&!lanDau;daVeLog[xi]=1;const ax=x.anh&&window.yupiAnh?window.yupiAnh(x.anh):"";
@@ -328,9 +345,9 @@ document.addEventListener("click",e=>{
   const to=e.target.closest("[data-toi]");if(to){const el=document.getElementById("m"+to.dataset.toi);if(!el){xem="tat";ve()}const e2=document.getElementById("m"+to.dataset.toi);if(e2){e2.scrollIntoView({block:"center"});e2.classList.add("mo");setTimeout(()=>e2.classList.remove("mo"),1500)}return}
   const u=e.target.closest("[data-url]");if(u){window.open(u.dataset.url,"_blank","noopener");return}
   const b=e.target.closest("button[data-cb]");if(b){const m=b.closest(".msg"),t=tin[m.dataset.k];if(!t)return;
-    const nhan=b.textContent.replace(/ ⏳$/,"");const kk=m.dataset.k+"|"+b.dataset.cb;
+    const nhan=b.dataset.t||b.textContent.replace(/ ⏳$/,"");const kk=m.dataset.k+"|"+b.dataset.cb;
     hieuUng(b,m,e,nhan);
-    if(/^[☐☑]/.test(nhan)){b.textContent=(nhan[0]==="☐"?"☑":"☐")+nhan.slice(1)}   // đổi ô ngay cho nhanh, laptop sửa lại đúng sau 1–2 giây
+    if(/^[☐☑]/.test(nhan)){const on=nhan[0]==="☐";b.dataset.t=(on?"☑":"☐")+nhan.slice(1);b.classList.toggle("on",on);b.setAttribute("aria-pressed",on)}   // đổi ô ngay cho nhanh, laptop sửa lại đúng sau 1–2 giây
     guiLenh({op:"tg_bam",chat:t.chat,mid:t.mid,data:b.dataset.cb},/^[☐☑]/.test(nhan)?null:kk);return}
   const ml=e.target.closest("[data-motl]");if(ml){moForm[ml.dataset.motl]=1;khoaVe=0;ve();const i=document.querySelector('form.tl[data-k="'+CSS.escape(ml.dataset.motl)+'"] input');if(i)i.focus();return}
   const kc=e.target.closest(".kenhs .chip");if(kc){doiKenh(kc.dataset.k);return}
