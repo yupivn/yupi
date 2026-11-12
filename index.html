@@ -135,10 +135,11 @@ function SNAP_APPLY(r,rows,t){const m={"Quiz!A1:B3000":onQuiz,"Tin sót!A1:H300"
 function onMax(rows){const can=rows.filter(r=>r[0]==="can"&&!/test|gia lap|khs yupi|duc sang|tan dat|a luat|dac hung|long nguyen/.test(norm((r[3]||"")+" "+(r[4]||"")+" "+(r[6]||""))));const st=k=>can.filter(r=>norm(r[5])===k).length;
   const bad=rows.filter(r=>r[0]==="may"&&norm(r[5])!=="ok").length;
   fill("#c-max",chip(st("loi")+bad,"lỗi / máy","bad")+chip(st("hoi"),"bot đang hỏi","wait")+chip(st("duyet"),"chờ duyệt","wait"));}
-function onDon(rows){rows=rows.filter(r=>!/test|gia lap|khs yupi/.test(norm(r[0])));const open=rows.filter(r=>!/xong|hoan_thanh/.test(norm(r[1])));
+function onDon(rows){rows=rows.filter(r=>!/test|gia lap|^\s*khs yupi|kh845867559/.test(norm(r[0])));   // 12/11 20:50 chi Phuong: truoc loai CA khach that trong nhom «… | KHS Yupi | KH…» -> doanh thu thieu; nay chi loai nhom test
+const open=rows.filter(r=>!/xong|hoan_thanh/.test(norm(r[1])));
   const td=new Date(),ymd=`${td.getFullYear()}-${pad(td.getMonth()+1)}-${pad(td.getDate())}`;
   const today=rows.filter(r=>String(r[3]||"").startsWith(ymd));
-  const dt=today.filter(r=>/chot|ck|ghtk|xong/.test(norm(r[1]))).reduce((s,r)=>{const m=String(r[2]||"").match(/([\d.,]+)\s*k/i);return s+(m?+m[1].replace(/[.,]/g,""):0);},0);
+  const dt=today.filter(r=>/chot|ck|ghtk|xong/.test(norm(r[1]))&&/^HD/i.test(String(r[13]||"").trim()))   /* 12/11: chi tinh HOA DON nhu Kiot (phieu dat hang chua thanh HD khong tinh) */.reduce((s,r)=>{const m=String(r[2]||"").match(/([\d.,]+)\s*k/i);return s+(m?+m[1].replace(/[.,]/g,""):0);},0);
   const tien=dt>=1000?(dt/1000).toLocaleString("vi-VN",{maximumFractionDigits:1})+" tr":dt+"k";
   fill("#c-don",`<span class="c ok"><b>${tien}</b>doanh thu hôm nay</span><span class="c"><b>${today.length}</b>đơn hôm nay</span><span class="c"><b>${open.length}</b>đơn đang mở</span>`+chip(rows.filter(r=>String(r[7]||"").trim()).length,"cần xem gấp","bad")+chip(rows.filter(r=>/ck/.test(norm(r[1]))).length,"chờ CK","wait"));}
 function onGhtk(rows){const t=new Date();t.setHours(0,0,0,0);

@@ -507,7 +507,7 @@ function normCol(s){s=String(s||"").toLowerCase();
 function normWho(s){s=String(s||"").toLowerCase();if(/trường|truong/.test(s))return"truong";if(/phương|phuong/.test(s))return"phuong";return"bot";}
 const num=v=>{const n=parseFloat(String(v??"").replace(/[^\d.-]/g,""));return isNaN(n)?null:n;};
 function SNAP_APPLY(r,rows,t){cards=liveCards(rows);document.getElementById("demo").textContent="Bản lưu";const d=new Date(t);document.getElementById("hom").textContent=`Số liệu lưu lúc ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} ${d.getDate()}/${d.getMonth()+1}.`;render();}
-function liveCards(rows){const out=[];rows.slice(1).forEach((r,i)=>{if(!r||!r[0])return;if(/test|gia lap|khs yupi/.test(norm(r[0])))return;const g=k=>String(r[k]??"").trim();
+function liveCards(rows){const out=[];rows.slice(1).forEach((r,i)=>{if(!r||!r[0])return;if(/test|gia lap|^\s*khs yupi|kh845867559/.test(norm(r[0])))return;const g=k=>String(r[k]??"").trim();
   const name=g(0),code=(name.match(/KH\d+/)||["—"])[0];
   const t=g(3)?new Date(g(3).replace(" ","T")+"+07:00"):null;
   const c={id:i+1,live:true,col:normCol(g(1)),kh:name.split("|")[0].trim()+(/test/i.test(name)?" · nhóm thử":""),code,who:normWho(g(5)),
