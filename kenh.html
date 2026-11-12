@@ -71,6 +71,8 @@ img.anh{display:block;max-width:100%;max-height:420px;border-radius:10px;margin:
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kbo button.o.on{background:#163a2a;color:#9be3c0}}
 .kb button.khong{background:var(--late-soft);color:var(--late)}
 .kb button.cho{opacity:.55;pointer-events:none}
+.kb button.boqua{background:transparent;border:1.5px dashed var(--line);color:var(--muted);font-weight:700}
+.tem.xam{background:#6b7489;color:#fff}.msg.sang-xam{opacity:.55;transition:opacity .4s}
 /* 12/11 01:10 chị Phương: bấm là gửi luôn (không hỏi lại), hiệu ứng mỗi loại nút khác nhau */
 .msg{position:relative}
 .kb button{position:relative;overflow:hidden;transition:transform .08s,filter .15s,opacity .2s;-webkit-tap-highlight-color:transparent}
@@ -195,6 +197,7 @@ function sach(html){
 }
 // ---- ai đã duyệt / kết quả ----
 function xacNhan(t){
+  {const bq=bam(t).filter(x=>/Bỏ qua/.test(x.x)).pop();if(bq)return {cls:"bo",t:"⏭ Đã bỏ qua · "+bq.n+" · "+String(bq.t).slice(0,5)}}
   const chu=boThe(t.html);let m=chu.match(/✅\s*Đã xác nhận bởi\s*([^:\n]+?)(?::\s*([^\n]+))?\s*(?:\n|$)/);
   if(m)return {cls:"",t:"✅ Đã xác nhận bởi "+m[1].trim()+(m[2]?" · «"+m[2].trim()+"»":"")};
   for(const r of mk(t))for(const b of r){const x=String(b.text||"");if(/trên trang ·|đã duyệt|Đã duyệt/.test(x)&&!/Duyệt gửi/.test(x))return {cls:/Bỏ/.test(x)?"bo":"",t:x}}
@@ -236,7 +239,10 @@ function veTin(t){
     s+='<div class="kb">'+ra.map(x=>x.o?'<div class="kbo" role="group">'+(x.o.so?'<span class="so">'+esc(x.o.so)+'</span>':'')+x.o.ds.join("")+'</div>':(r=>'<div class="r">'+r.map((b,j)=>{const x=String(b.text||""),cls=/Duyệt gửi|✅ Duyệt|^✅ Xong/.test(x)?"duyet":(/Không gửi|Huỷ|Hủy|🚫|🛑/.test(x)?"khong":(/^[☐☑]/.test(x)?"o":"chon"));
       if(b.url)return '<button type="button" data-url="'+esc(b.url)+'">'+esc(x)+' ↗</button>';
       const cho=lenh[id+"|"+b.callback_data]&&!lenh[id+"|"+b.callback_data].xong;
-      return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-t="'+esc(x)+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>')(x.r)).join("")+'</div>'}
+      return '<button type="button" class="'+cls+(cho?" cho":"")+'" data-cb="'+esc(b.callback_data||"")+'" data-t="'+esc(x)+'">'+esc(x)+(cho?" ⏳":"")+'</button>'}).join("")+'</div>')(x.r)).join("")+'</div>'
+    // 12/11 19:15 chị Phương: nút ⏭ Bỏ qua trên MỌI thẻ cần bấm (đơn đã có anh Trường / nhân viên khác xử lý) – bấm là ẩn ngay, không hỏi lại
+    const nk=[].concat(...kb).find(b=>b.callback_data&&/Không gửi|Huỷ|Hủy|🚫|🛑|Bỏ qua/.test(String(b.text||"")));
+    if(nk&&laCan(t)){const cho=lenh[id+"|"+nk.callback_data]&&!lenh[id+"|"+nk.callback_data].xong;s+='<div class="kb"><div class="r"><button type="button" class="boqua'+(cho?" cho":"")+'" data-cb="'+esc(nk.callback_data)+'" data-bo="1" data-t="⏭ Bỏ qua">⏭ Bỏ qua – đã có người xử lý'+(cho?" ⏳":"")+'</button></div></div>'}}
   // lịch sử bấm trên app + kết quả laptop + tin bot trả lời dưới tin này
   const ls=bam(t),tl=traLoiCua(t).filter(x=>!laLog(x)),lg=logCua(t);
   if(lg.length){s+='<div class="log">'+lg.map(x=>{const xi=k(x),moi=daVeLog[xi]===undefined&&!lanDau;daVeLog[xi]=1;const ax=x.anh&&window.yupiAnh?window.yupiAnh(x.anh):"";
@@ -290,6 +296,7 @@ function hieuUng(b,m,e,nhan){
   b.classList.remove("bam");void b.offsetWidth;b.classList.add("bam");
   if(b.classList.contains("o")){rung(15);tiengBam("o");khoaVe=Date.now()+350;return}
   b.closest(".kb").classList.add("dang");
+  if(b.classList.contains("boqua")){m.classList.add("sang-xam");tem(m,"⏭ ĐÃ BỎ QUA","xam");rung([30,30,30]);tiengBam("khong");return}
   if(b.classList.contains("duyet")){m.classList.add("sang-xanh");tem(m,"✅ ĐÃ DUYỆT","xanh");rung([40,40,90]);tiengBam("duyet")}
   else if(b.classList.contains("khong")){m.classList.add("sang-do");tem(m,"🚫 KHÔNG GỬI","do");rung([90,50,90]);tiengBam("khong")}
   else{m.classList.add("sang-vang");tem(m,"👉 "+(nhan.length>16?nhan.slice(0,16)+"…":nhan),"vang");rung(40);tiengBam("chon")}
@@ -357,7 +364,7 @@ document.addEventListener("click",e=>{
     const nhan=b.dataset.t||b.textContent.replace(/ ⏳$/,"");const kk=m.dataset.k+"|"+b.dataset.cb;
     hieuUng(b,m,e,nhan);
     if(/^[☐☑]/.test(nhan)){const on=nhan[0]==="☐";b.dataset.t=(on?"☑":"☐")+nhan.slice(1);b.classList.toggle("on",on);b.setAttribute("aria-pressed",on)}   // đổi ô ngay cho nhanh, laptop sửa lại đúng sau 1–2 giây
-    guiLenh({op:"tg_bam",chat:t.chat,mid:t.mid,data:b.dataset.cb},/^[☐☑]/.test(nhan)?null:kk);return}
+    guiLenh(Object.assign({op:"tg_bam",chat:t.chat,mid:t.mid,data:b.dataset.cb},b.dataset.bo?{bo:1}:{}),/^[☐☑]/.test(nhan)?null:kk);return}
   const ml=e.target.closest("[data-motl]");if(ml){moForm[ml.dataset.motl]=1;khoaVe=0;ve();const i=document.querySelector('form.tl[data-k="'+CSS.escape(ml.dataset.motl)+'"] input');if(i)i.focus();return}
   const kc=e.target.closest(".kenhs .chip");if(kc){doiKenh(kc.dataset.k);return}
   if(e.target.closest("#moi")){$("#moi").style.display="none";window.scrollTo({top:0,behavior:"smooth"});return}

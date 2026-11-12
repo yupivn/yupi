@@ -184,7 +184,7 @@ function vDuyet(){
       const v=sua[mid]!=null?sua[mid]:tsn,daSua=sua[mid]!=null&&sua[mid].trim()!==tsn.trim();
       a=(tsn&&!isMay?'<label class="lbl" for="tx'+i+'">✉️ Tin sẽ nhắn khách – sửa được trước khi gửi</label><textarea id="tx'+i+'" data-mid="'+esc(mid)+'" rows="'+Math.min(12,Math.max(3,v.split("\n").length+1))+'">'+esc(v)+'</textarea>'+(daSua?'<div class="note">✏️ Đã sửa – bấm Duyệt gửi là gửi bản đã sửa · <a href="#" onclick="delete sua[\''+em+'\'];render();return false">trả về bản của Max</a></div>':''):(isMay?'<pre class="msg">'+esc(d["Đề xuất của Max"]||"")+'</pre>':''))+
        (xn[mid]?'<div class="confirm">Gửi '+(daSua?'bản đã sửa ':'')+'cho khách «'+esc(String(nhom).split("|")[0].trim())+'»?<button class="b-ok" onclick="doDuyet('+i+')">Gửi khách</button><button class="b-soft" onclick="xn[\''+em+'\']=0;render()">Thôi</button></div>'
-         :'<div class="acts"><button class="b-ok" onclick="hoiDuyet('+i+')">✅ Duyệt gửi</button><button class="b-soft" onclick="doBo('+i+')">🚫 Không gửi</button></div>');
+         :'<div class="acts"><button class="b-ok" onclick="doDuyet('+i+')">✅ Duyệt gửi</button><button class="b-soft" onclick="doBo('+i+')">🚫 Không gửi</button><button class="b-soft" onclick="doBo('+i+')">⏭ Bỏ qua</button></div>');
     } else if(st==="chua_co"&&!isMay) a='<div class="acts"><button class="b-acc" onclick="doXuLy('+i+')">🔎 Nhờ Max soạn đề xuất</button></div>';
     else if(st==="da_duyet") a='<div class="res ok">✅ Đề xuất này đã được duyệt – không gửi lần 2</div>';
     const tinCu=!(c.tin&&c.tin.length)&&d["Tin khách (gần nhất)"]?'<pre class="msg">'+esc(d["Tin khách (gần nhất)"])+'</pre>':"";
@@ -203,7 +203,7 @@ function hoiDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];if(mcL()){toastIn(m
 function doDuyet(i){const d=dI(i),mid=d["Mã đề xuất"];xn[mid]=0;if(mcL()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MC_LOI,"bad");return}if(mayTat()){toastIn(mid+"|duyet|"+d["Nhóm khách"],MAY_TAT,"bad");return}
   const tsn=(d["Tin sẽ nhắn"]||"").trim(),v=sua[mid]!=null?sua[mid].trim():"",nd=(v&&v!==tsn)?v:"";
   send("duyet",d["Nhóm khách"],mid,nd,mid+"|duyet|"+d["Nhóm khách"])}
-function doBo(i){const d=dI(i);if(!confirm("Không gửi khách đề xuất này?"))return;if(mayTat()){toastIn(d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"],MAY_TAT,"bad");return}send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
+function doBo(i){const d=dI(i);if(mayTat()){toastIn(d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"],MAY_TAT,"bad");return}send("bo",d["Nhóm khách"],d["Mã đề xuất"],"",d["Mã đề xuất"]+"|bo|"+d["Nhóm khách"])}
 function hoiSua(i){const d=dI(i);const y=prompt("Ghi ý cần sửa để Max soạn lại:");if(!y||!y.trim())return;send("sua",d["Nhóm khách"],d["Mã đề xuất"],y.trim(),d["Mã đề xuất"]+"|sua|"+d["Nhóm khách"])}
 function doXuLy(i){const d=dI(i);send("xu_ly",d["Nhóm khách"],"","","|xu_ly|"+d["Nhóm khách"])}
 function cuonToi(){if(daCuon||!nhomMo)return;const el=document.querySelector(".card.mo");if(el){daCuon=true;el.scrollIntoView({block:"start"})}}

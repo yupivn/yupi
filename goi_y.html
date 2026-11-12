@@ -109,6 +109,31 @@ table.bt td.nccTd select{width:100%;min-width:0;white-space:normal;font-size:13p
 .mau{display:inline-block;background:#8e959c;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800;letter-spacing:.3px;margin-right:5px;vertical-align:1px}
 .mauBar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(142,149,156,.14);border:1px dashed #8e959c;border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:13.5px}
 .mauBar button{border:1px solid #8e959c;background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;font:inherit;font-weight:800;cursor:pointer}
+
+[hidden]{display:none!important}
+[hidden]{display:none!important}
+/* 12/11 19:10 chi Phuong: BANG SO SANH giong sheet Tim hang (dong = ma, cot = NCC) */
+.che{display:flex;gap:6px;margin:8px 0 10px}.che button{flex:1;border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:8px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.che button.on{border-color:var(--gold);background:var(--warn-soft)}
+.ssWrap{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:14px;-webkit-overflow-scrolling:touch}
+table.ss{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+table.ss th,table.ss td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:6px 6px;vertical-align:middle;background:var(--card)}
+table.ss thead th{position:sticky;top:0;z-index:2;font-size:12px;font-weight:800;white-space:nowrap;background:var(--accent-soft);text-align:center}
+table.ss .c0{position:sticky;left:0;z-index:1;min-width:150px;max-width:190px;text-align:left;box-shadow:2px 0 4px rgba(20,33,61,.08)}
+table.ss thead .c0{z-index:3}
+table.ss td.o{min-width:78px;text-align:center;cursor:pointer;line-height:1.2;transition:transform .08s}
+table.ss td.o:active{transform:scale(.94)}
+table.ss td.o b{display:block;font-size:14px}table.ss td.o small{display:block;font-size:11px;color:var(--muted)}
+table.ss td.o.re{background:var(--ok-soft)}
+table.ss td.o.gy{box-shadow:inset 0 0 0 3px var(--gold)}
+table.ss td.o.chot{background:#17694a;color:#fff}table.ss td.o.chot small{color:#d6f2e4}
+table.ss td.o.mot b,table.ss td.o.mot small{color:#d9730d}table.ss td.o.chot.mot b{color:#ffd29a}
+table.ss td.trong{background:var(--bg);cursor:default}
+table.ss td.cong{text-align:center;min-width:64px}
+table.ss tr.ssTong td,table.ss tr.ssTong th{background:var(--warn-soft);font-size:11.5px;text-align:center;line-height:1.35;white-space:nowrap}
+table.ss tr.ssTong .c0{background:var(--warn-soft);font-weight:800}
+table.ss tr.formRow td{background:var(--bg)}
+.ssCh{font-size:11px;font-weight:800;margin-top:2px}
 </style></head><body>
 <div class="wrap">
   <a class="back" href="./">‹ Bảng tổng</a>
@@ -121,7 +146,10 @@ table.bt td.nccTd select{width:100%;min-width:0;white-space:normal;font-size:13p
     <div class="hint">Bấm <b>🧲 Gom NCC</b> lúc nào cũng được: máy gom các chai cùng NCC của nhiều đơn vào chung chuyến, chọn chuyến ship rẻ để <b>giá vốn + ship mỗi chai thấp nhất</b> (không xét công nợ), rồi gợi ý lên bảng tổng (⭐). Đổi NCC ở bảng tổng → chuyến và bảng từng đơn đổi ngay.</div>
   </div>
   <datalist id="dsNcc"></datalist>
-  <div class="card"><h2>📋 Bảng tổng – mã chưa bốc ship</h2><div style="overflow-x:auto"><table class="bt" id="bt"></table></div><div class="hint" id="btHint"></div></div>
+  <div class="card"><h2>📋 Bảng tổng – mã chưa bốc ship</h2>
+    <div class="che" role="tablist"><button type="button" data-che="ss" role="tab">📊 Bảng so sánh</button><button type="button" data-che="the" role="tab">🗂 Dạng thẻ</button></div>
+    <div id="ssBox"><div class="ssWrap"><table class="ss" id="ss"></table></div><div class="hint">Bấm vào ô giá = chốt NCC đó cho mã đó (bấm lại = bỏ chốt). 🟩 rẻ nhất · viền vàng ⭐ gợi ý · xanh đậm ✅ đã chốt · chữ cam = NCC còn 1 chai · ✍️ nhập tay.</div></div>
+    <div id="theBox"><div style="overflow-x:auto"><table class="bt" id="bt"></table></div></div><div class="hint" id="btHint"></div></div>
   <div class="card"><h2>🚚 Chuyến lấy hàng</h2><div id="chuyen"></div></div>
   <div class="card"><h2>🧾 Theo từng đơn</h2><div id="don"></div></div>
   <div class="card" id="hetCard" hidden><h2>❌ Chưa NCC nào có</h2><div id="het"></div></div>
@@ -201,6 +229,7 @@ function ve(nhay){if(!D)return;
       ${o?`<div class="giaChon">${o.tay?"✍️ ":""}${esc(o.ncc)}: ${k(o.gia)}${o.ton!=null&&o.ton!==""?" · còn "+esc(o.ton):""} · ship ${k(shipCua(o.ncc))}<div class="vs">→ vốn+ship/chai ${k(voncai(m))}</div></div>`:""}${veTay(m,ds)}`;})()}
       <div class="mph">${c?`✅ ${esc(c.ai||"")} ${esc(c.luc||"")} · <a href="#" data-bo="${esc(m.key)}" style="color:inherit">bỏ chốt</a>`:`⭐ gợi ý · <a href="#" data-chot1="${esc(m.key)}" style="color:var(--ok);font-weight:700">chốt</a>`}</div></td>
     <td class="sv"><b>${k(voncai(m))}</b></td></tr>`;}).join("")||`<tr><td colspan="4" class="mph">✅ Không còn mã nào chờ – ${D.coSan||0} mã có sẵn ở shop.</td></tr>`);
+  veSS(rows,CH,voncai);
   const nShip=can.length-chuaShip.length;$("#btHint").textContent=nShip?`🚚 ${nShip} mã đã bốc ship – không hiện ở bảng tổng (xem ở bảng từng đơn).`:"";
   // CHUYEN
   $("#chuyen").innerHTML=CH.map(c=>`<div class="ch ${c.tatShip||c.tatChot?"da":"goi"}"><div class="h"><b>🚚 ${esc(c.ncc)} ${c.tatShip?'<span class="tag o">🚚 Đã bốc ship</span>':c.tatChot?'<span class="tag o">✅ Đã chốt</span>':'<span class="tag g">⭐ Gợi ý</span>'}</b>
@@ -242,6 +271,36 @@ document.addEventListener("click",async e=>{const a=e.target.closest("a[data-bo]
   if(b.id==="tinh"){b.disabled=true;b.textContent="⏳ Đang gom…";gomLuc=D?D.luc:"";await ghi([[gioVN(),$("#ai").value||"?","","","","","","tinh"]]);
     setTimeout(()=>{if(gomLuc!==null){gomLuc=null;b.disabled=false;b.textContent="🧲 Gom NCC";}},45000);}
 });
+
+// ---- 12/11 19:10 chi Phuong: BANG SO SANH (dong = ma, cot = NCC) ----
+let che=ls("goiy_che")||"ss";
+function veChe(){document.querySelectorAll("[data-che]").forEach(b=>{const on=b.dataset.che===che;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});$("#ssBox").hidden=che!=="ss";$("#theBox").hidden=che!=="the";}
+const laLW=n=>/l[uụ]c\s*loan|wear/i.test(String(n||""));
+function veSS(rows,CH,voncai){
+  const byN={};CH.forEach(c=>byN[c.ncc]=c);
+  const dem={};rows.forEach(m=>{const n=nccCua(m);if(n)dem[n]=(dem[n]||0)+1;nccDs(m).forEach(o=>{dem[o.ncc]=dem[o.ncc]||0;});});
+  const cot=Object.keys(dem).sort((a,b)=>dem[b]-dem[a]||a.localeCompare(b,"vi"));
+  if(!rows.length){$("#ss").innerHTML=`<tbody><tr><td class="mph">✅ Không còn mã nào chờ – ${D.coSan||0} mã có sẵn ở shop.</td></tr></tbody>`;return;}
+  let h=`<thead><tr><th class="c0">Mã</th>${cot.map(n=>`<th>${esc(n)}${dem[n]?`<div class="mph">${dem[n]} mã</div>`:""}</th>`).join("")}<th>Thêm</th></tr></thead><tbody>`;
+  rows.forEach(m=>{const ds=nccDs(m),gy=goiYCua(m),c=chot(m),re=ds.length?Math.min(...ds.map(o=>o.gia)):null;
+    h+=`<tr data-k="${esc(m.key)}"><th class="c0"><div class="mten">${MAU(m)}<span class="kieu ${m.loai}">${KIEU[m.loai]||m.loai}</span>${esc(m.ten)}</div><div class="mph">SL ${m.sl} · ${esc(String(m.khach).split("|")[0])} · ${esc(m.don)}</div>${c?`<div class="ssCh" style="color:var(--ok)">✅ ${esc(c.ncc)}</div>`:""}</th>`;
+    cot.forEach(n=>{const o=ds.find(x=>x.ncc===n);
+      if(!o){h+=`<td class="o trong"></td>`;return;}
+      const laChot=c&&c.ncc===n,mot=(o.ton!=null&&o.ton!==""&&+o.ton===1&&!laLW(n));
+      const cls=["o",o.gia===re?"re":"",n===gy&&!c?"gy":"",laChot?"chot":"",mot?"mot":""].filter(Boolean).join(" ");
+      h+=`<td class="${cls}" data-o="${esc(m.key)}" data-n="${esc(n)}" role="button" tabindex="0" aria-label="${esc(n)} ${k(o.gia)}${laChot?" – đã chốt, bấm để bỏ":" – bấm để chốt"}"><b>${o.tay?"✍️":""}${n===gy?"⭐":""}${k(laChot?giaCua(m,n):o.gia)}</b><small>${o.ton!=null&&o.ton!==""?"còn "+esc(o.ton):(o.zalo?"Zalo":"")}</small>${laChot?`<small>✅ ${esc(c.ai||"")}</small>`:""}</td>`;});
+    h+=`<td class="cong"><button class="themNcc" data-them="${esc(m.key)}" style="margin:0">+ NCC</button></td></tr>`;
+    if(moForm===m.key)h+=`<tr class="formRow"><td colspan="${cot.length+2}">${veTay(m,ds)}</td></tr>`;});
+  h+=`<tr class="ssTong"><th class="c0">TỔNG</th>${cot.map(n=>{const c=byN[n];if(!c||c.tatShip)return `<td></td>`;const daCh=c.ms.filter(m=>chot(m)).reduce((a,m)=>a+m.sl,0);
+    return `<td>✅ ${daCh}/${c.soChai} chai<br>ship ${k(c.ship)}${c.daTra?" (đã trả)":""}<br><b>${k(c.tong)}</b><br>+${k(c.spc)}/chai</td>`;}).join("")}<td></td></tr></tbody>`;
+  $("#ss").innerHTML=h;}
+async function bamO(td){const m=M()[td.dataset.o],n=td.dataset.n;if(!m)return;const c=chot(m);
+  if(c&&c.ncc===n){tam[m.key]=null;ve([m.key]);await ghi([[gioVN(),$("#ai").value||(window.yupiNguoi&&window.yupiNguoi.ten)||"?",m.don,m.ma,"","",m.ten,"bo"]]);return;}
+  await chotNcc([m.key],n,"chot");}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-che]");if(b){che=b.dataset.che;ls("goiy_che",che);veChe();return}
+  const td=e.target.closest("td[data-o]");if(td)bamO(td);});
+document.addEventListener("keydown",e=>{const td=e.target.closest&&e.target.closest("td[data-o]");if(td&&(e.key==="Enter"||e.key===" ")){e.preventDefault();bamO(td);}});
+veChe();
 (async()=>{try{mcp=await window.claude.use("mcp")}catch(e){}
   if(!mcp){$("#sub").textContent="Chưa kết nối được dữ liệu.";return;}
   mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Gợi ý NCC!A1:A2"},ev=>{
