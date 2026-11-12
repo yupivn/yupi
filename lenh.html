@@ -36,6 +36,25 @@ h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;marg
 .st.xong{background:var(--ok-soft);color:var(--ok)} .st.loi{background:var(--late-soft);color:var(--late)}
 .kq{font-size:13.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;margin-top:6px;max-height:9.5em;overflow:auto}
 .empty{color:var(--muted);font-size:14px}
+/* 12/11 chị Phương: ảnh kèm lệnh */
+button.anh{border:2px solid var(--line);background:var(--accent-soft);color:var(--fg);border-radius:14px;padding:12px 14px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;white-space:nowrap}
+button.anh:disabled{opacity:.55;cursor:default}
+.thu{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.thu:empty{display:none}
+.thu .o{position:relative;width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.thu .o img{width:100%;height:100%;object-fit:cover;display:block}
+.thu .o .dang{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.thu .o button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(20,33,61,.82);color:#fff;font:700 13px/24px system-ui;padding:0;cursor:pointer}
+.anhl{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.anhl img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:var(--bg)}
+.kq a,.cmd a{color:var(--accent);text-decoration:underline;word-break:break-all}
+#xem{position:fixed;inset:0;z-index:99990;background:rgba(5,10,20,.92);display:none;align-items:center;justify-content:center;padding:16px}
+#xem.mo{display:flex}
+#xem img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+#xem .dong{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:42px;height:42px;border-radius:50%;border:2px solid #c9a227;background:#14213d;color:#fff;font:800 20px system-ui;cursor:pointer}
+#xem .lui,#xem .toi{position:absolute;top:50%;margin-top:-24px;width:48px;height:48px;border-radius:50%;border:0;background:rgba(20,33,61,.8);color:#fff;font:800 24px system-ui;cursor:pointer}
+#xem .lui{left:10px} #xem .toi{right:10px}
+#xem .so{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font:600 14px system-ui}
 </style></head><body>
 <div class="wrap">
   <div><h1>🤖 Ra lệnh cho Max</h1><p class="sub">Gõ việc cần làm, Max trên laptop của chị Phương nhận và làm như khi nhắn «max ơi» trên Telegram.</p></div>
@@ -44,11 +63,13 @@ h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;marg
     <label for="ai">Ai ra lệnh</label>
     <select id="ai"><option value="">— Chọn tên —</option><option>Chị Phương</option><option>Anh Trường</option><option>Anh Luật</option></select>
     <label for="nd" style="margin-top:12px">Việc cần Max làm</label>
+    <div class="thu" id="thu"></div>
     <textarea id="nd" placeholder="Ví dụ: lên đơn cho chị Như KS-N 2 Sauvage EDP 100ml"></textarea>
     <div class="chips" id="mau"></div>
-    <div class="row"><button class="send" id="gui">📨 Gửi lệnh cho Max</button></div>
+    <input type="file" id="chon" accept="image/*" multiple hidden>
+    <div class="row"><button class="anh" id="nutAnh" type="button" title="Chụp ảnh hoặc chọn ảnh trong máy">📷 Ảnh</button><button class="send" id="gui">📨 Gửi lệnh cho Max</button></div>
     <div class="msg" id="msg"></div>
-    <div class="hint">• Tin gửi khách vẫn phải được duyệt như cũ.<br>• Laptop tắt thì lệnh nằm chờ, máy bật lại mới chạy. Lệnh chờ quá 30 phút sẽ bị bỏ, cần gửi lại.<br>• Kết quả báo trong nhóm «Nội bộ Yupi Max» và hiện ở dưới đây.<br>• Nhãn tự đổi: 🛠 Max đang làm → ✅ Max đã làm (kèm giờ xong) khi Max báo xong ở nhóm Nội bộ; báo lỗi hoặc quá 30 phút chưa xong → ❌ Lỗi – cần xem.</div>
+    <div class="hint">• Bấm 📷 Ảnh để chụp hoặc chọn ảnh (chọn nhiều ảnh một lần được). Gửi ảnh không cần gõ chữ cũng được.<br>• Tin gửi khách vẫn phải được duyệt như cũ.<br>• Laptop tắt thì lệnh nằm chờ, máy bật lại mới chạy. Lệnh chờ quá 30 phút sẽ bị bỏ, cần gửi lại.<br>• Kết quả báo trong nhóm «Nội bộ Yupi Max» và hiện ở dưới đây.<br>• Nhãn tự đổi: 🛠 Max đang làm → ✅ Max đã làm (kèm giờ xong) khi Max báo xong ở nhóm Nội bộ; báo lỗi hoặc quá 30 phút chưa xong → ❌ Lỗi – cần xem.</div>
   </div>
 
   <div class="card">
@@ -56,6 +77,7 @@ h2{font-family:"Nunito",system-ui,sans-serif;font-size:18px;font-weight:900;marg
     <div id="ds"><div class="empty">Đang tải…</div></div>
   </div>
 </div>
+<div id="xem" role="dialog" aria-label="Xem ảnh"><img alt="Ảnh kèm lệnh"><button class="lui" type="button" aria-label="Ảnh trước">‹</button><button class="toi" type="button" aria-label="Ảnh sau">›</button><button class="dong" type="button" aria-label="Đóng">✕</button><div class="so"></div></div>
 <script>
 const HOP="1rl3Gtuy1zZ3Bxc8odMVNKdUNddHn0BFZUBNTKrcfL5M";
 const $=s=>document.querySelector(s);
@@ -79,29 +101,76 @@ function badge(tt,kq,luc){const t=String(tt||"").toLowerCase();
   if(phutTu(luc)>=30)return '<span class="st loi">❌ Lỗi – cần xem</span>';
   return '<span class="st lam">🛠 Max đang làm</span>';}
 let mcp=null;
-function ve(rows){const ds=(rows||[]).slice(1).map((r,i)=>({r,hang:i+2})).filter(x=>String(x.r[2]||"").trim()==="max").slice(-20).reverse();
+// 12/11 chị Phương: link trong kết quả bấm được (mở tab mới)
+const lk=s=>esc(s).replace(/https?:\/\/[^\s<>"']+/g,u=>{const m=u.match(/[).,;:!?»]+$/);const tail=m?m[0]:"";const v=tail?u.slice(0,-tail.length):u;return `<a href="${v}" target="_blank" rel="noopener">${v}</a>${tail}`;});
+const anhCua=r=>String(r[8]||"").split(",").map(x=>x.trim()).filter(x=>/^lenh_\d{14}_[0-9a-f]{8}$/.test(x));
+let rowsCu=null;
+function ve(rows){rowsCu=rows;const ds=(rows||[]).slice(1).map((r,i)=>({r,hang:i+2})).filter(x=>String(x.r[2]||"").trim()==="max").slice(-20).reverse();
   if(!ds.length){$("#ds").innerHTML='<div class="empty">Chưa có lệnh nào.</div>';return;}
   $("#ds").innerHTML=ds.map(({r})=>`<div class="it"><div class="top"><span>${esc(r[1])} · ${esc(String(r[0]||"").slice(11,16))} ${esc(String(r[0]||"").slice(8,10))}/${esc(String(r[0]||"").slice(5,7))}</span>${badge(r[6],r[7],r[0])}</div>
-    <div class="cmd">${esc(r[5])}</div>${r[7]?`<div class="kq">${esc(r[7])}</div>`:""}</div>`).join("");}
+    <div class="cmd">${lk(r[5])}</div>${veAnh(anhCua(r))}${r[7]?`<div class="kq">${lk(r[7])}</div>`:""}</div>`).join("");}
+function veAnh(ks){if(!ks.length)return "";const u=ks.map(k=>window.yupiAnh?window.yupiAnh(k):"");if(u.some(x=>!x))return `<div class="anhl"><span class="empty">🖼 ${ks.length} ảnh – đang tải…</span></div>`;
+  return `<div class="anhl" data-ds="${esc(JSON.stringify(u))}">${u.map((x,i)=>`<img src="${esc(x)}" alt="Ảnh kèm lệnh ${i+1}" loading="lazy" data-i="${i}">`).join("")}</div>`;}
+window.addEventListener("yupi-anh",()=>{if(rowsCu)ve(rowsCu);});
+// xem ảnh to
+let xemDs=[],xemI=0;
+function xemVe(){const x=$("#xem");x.querySelector("img").src=xemDs[xemI]||"";x.querySelector(".so").textContent=xemDs.length>1?`${xemI+1}/${xemDs.length}`:"";
+  x.querySelector(".lui").style.display=x.querySelector(".toi").style.display=xemDs.length>1?"":"none";}
+function xemMo(ds,i){xemDs=ds;xemI=i;xemVe();$("#xem").classList.add("mo");}
+function xemDong(){$("#xem").classList.remove("mo");$("#xem img").src="";}
+$("#ds").addEventListener("click",e=>{const im=e.target.closest(".anhl img");if(!im)return;try{xemMo(JSON.parse(im.parentNode.dataset.ds||"[]"),+im.dataset.i||0)}catch(x){}});
+$("#xem").addEventListener("click",e=>{if(e.target.closest(".lui")){xemI=(xemI-1+xemDs.length)%xemDs.length;xemVe();return}if(e.target.closest(".toi")){xemI=(xemI+1)%xemDs.length;xemVe();return}xemDong();});
+document.addEventListener("keydown",e=>{if(!$("#xem").classList.contains("mo"))return;if(e.key==="Escape")xemDong();if(e.key==="ArrowLeft"&&xemDs.length>1){xemI=(xemI-1+xemDs.length)%xemDs.length;xemVe()}if(e.key==="ArrowRight"&&xemDs.length>1){xemI=(xemI+1)%xemDs.length;xemVe()}});
+// ---- ảnh chọn để gửi: thu nhỏ trên máy (cạnh dài 1600px, JPEG 0.8 – vẫn đọc rõ chữ; xoay đúng chiều ảnh iPhone) ----
+const ANH_TOI_DA=10;let anhs=[];   // {id, url(xem trước), data(dataURL đã thu nhỏ) | loi}
+function veThu(){$("#thu").innerHTML=anhs.map(a=>`<div class="o" data-id="${a.id}">${a.data?`<img src="${a.data}" alt="Ảnh sẽ gửi">`:`<div class="dang">${a.loi?"⚠️ lỗi":"Đang xử lý…"}</div>`}<button type="button" aria-label="Bỏ ảnh này" data-bo="${a.id}">✕</button></div>`).join("");}
+$("#thu").addEventListener("click",e=>{const b=e.target.closest("[data-bo]");if(!b)return;anhs=anhs.filter(a=>String(a.id)!==b.dataset.bo);veThu();});
+function napAnh(f){return new Promise((ok,no)=>{const u=URL.createObjectURL(f);const im=new Image();im.decoding="async";
+  im.onload=()=>ok({im,u});im.onerror=()=>{URL.revokeObjectURL(u);no(new Error("Máy không đọc được ảnh này"+(/heic|heif/i.test(f.type+f.name)?" (HEIC) – chụp màn hình ảnh đó rồi gửi giúp em":"")))};im.src=u;});}
+async function thuNho(f){
+  let src,w,h,dong=()=>{};
+  // createImageBitmap + imageOrientation:'from-image' = xoay theo EXIF (ảnh iPhone/Android chụp dọc)
+  try{if(window.createImageBitmap){const bm=await createImageBitmap(f,{imageOrientation:"from-image"});src=bm;w=bm.width;h=bm.height;dong=()=>{try{bm.close()}catch(e){}};}}catch(e){src=null}
+  if(!src){const r=await napAnh(f);src=r.im;w=r.im.naturalWidth;h=r.im.naturalHeight;dong=()=>URL.revokeObjectURL(r.u);}
+  if(!w||!h){dong();throw new Error("Ảnh trống");}
+  const ve2=(canh,q)=>{const k=Math.min(1,canh/Math.max(w,h));const c=document.createElement("canvas");c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
+    const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.imageSmoothingQuality="high";g.drawImage(src,0,0,c.width,c.height);return c.toDataURL("image/jpeg",q);};
+  let d=ve2(1600,.8);if(d.length>1400000)d=ve2(1600,.65);if(d.length>1400000)d=ve2(1280,.65);dong();
+  if(!/^data:image\/jpeg;base64,/.test(d))throw new Error("Trình duyệt không nén được ảnh");return d;}
+$("#nutAnh").onclick=()=>{$("#chon").value="";$("#chon").click();};
+$("#chon").onchange=async()=>{const fs=[...($("#chon").files||[])];if(!fs.length)return;
+  const cho=ANH_TOI_DA-anhs.length;if(cho<=0){$("#msg").textContent=`Tối đa ${ANH_TOI_DA} ảnh một lệnh.`;return;}
+  if(fs.length>cho)$("#msg").textContent=`Tối đa ${ANH_TOI_DA} ảnh một lệnh – em lấy ${cho} ảnh đầu.`;else $("#msg").textContent="";
+  const moi=fs.slice(0,cho).map((f,i)=>({id:Date.now()+"_"+i,f}));anhs=anhs.concat(moi);veThu();
+  for(const a of moi){try{a.data=await thuNho(a.f)}catch(e){a.loi=String(e&&e.message||e);$("#msg").textContent="⚠️ "+a.loi;}delete a.f;veThu();}
+  anhs=anhs.filter(a=>!a.loi);setTimeout(veThu,2500);};
+
 (async()=>{
   try{mcp=await window.claude.use("mcp")}catch(e){}
   if(!mcp){$("#ds").innerHTML='<div class="empty">Chưa kết nối được dữ liệu.</div>';return;}
-  mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Lệnh!A1:H400"},ev=>{
+  mcp.watchTool("Google Sheets","get_values",{spreadsheetId:HOP,range:"Lệnh!A1:I400"},ev=>{
     if(ev.type!=="data"){$("#ds").innerHTML='<div class="empty">Chưa đọc được danh sách lệnh, thử lại sau.</div>';return;}
     ve(ev.result.payload&&ev.result.payload.values);},{refetchInterval:30000});
 })();
 $("#gui").onclick=async()=>{
-  const ai=$("#ai").value,nd=$("#nd").value.trim();
+  const ai=$("#ai").value;let nd=$("#nd").value.trim();
   if(!ai){$("#msg").textContent="Chọn tên người ra lệnh giúp em.";return;}
-  if(nd.length<4){$("#msg").textContent="Gõ rõ việc cần làm giúp em.";return;}
+  if(anhs.some(a=>!a.data&&!a.loi)){$("#msg").textContent="Ảnh đang xử lý, đợi chút rồi bấm lại giúp em.";return;}
+  const anhGui=anhs.filter(a=>a.data);
+  if(!anhGui.length&&nd.length<4){$("#msg").textContent="Gõ rõ việc cần làm giúp em.";return;}
+  if(anhGui.length&&!nd)nd="(Chỉ gửi ảnh – xem ảnh kèm theo)";
   if(!mcp){$("#msg").textContent="Chưa kết nối được dữ liệu.";return;}
-  $("#gui").disabled=true;$("#msg").textContent="Đang gửi…";
+  if(anhGui.length&&!window.yupiApi){$("#msg").textContent="Chưa kết nối được máy chủ ảnh.";return;}
+  $("#gui").disabled=true;$("#nutAnh").disabled=true;$("#msg").textContent="Đang gửi…";
   try{
-    await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Lệnh!A1",values:[[gioVN(),ai,"max","","",nd]]});
-    $("#msg").textContent="✅ Đã gửi. Max nhận trong vài giây khi laptop đang bật.";$("#nd").value="";ls("lenh_nhap","");
+    const ks=[];
+    for(let i=0;i<anhGui.length;i++){$("#msg").textContent=`Đang tải ảnh ${i+1}/${anhGui.length}…`;
+      const a=anhGui[i];if(!a.k){const j=await window.yupiApi({op:"lenh_anh",data:a.data});if(!j||!j.k)throw new Error("máy chủ chưa nhận ảnh "+(i+1));a.k=j.k;}ks.push(a.k);}
+    await mcp.callTool("Google Sheets","append_values",{spreadsheetId:HOP,range:"Lệnh!A1",values:[[gioVN(),ai,"max","","",nd,"","",ks.join(",")]]});
+    $("#msg").textContent="✅ Đã gửi"+(ks.length?` kèm ${ks.length} ảnh`:"")+". Max nhận trong vài giây khi laptop đang bật.";$("#nd").value="";ls("lenh_nhap","");anhs=[];veThu();
     setTimeout(()=>mcp.invalidate(),5000);setTimeout(()=>mcp.invalidate(),15000);
   }catch(e){$("#msg").textContent="⚠️ Chưa gửi được: "+(e&&e.message||e);}
-  $("#gui").disabled=false;
+  $("#gui").disabled=false;$("#nutAnh").disabled=false;
 };
 </script>
 </body></html>
